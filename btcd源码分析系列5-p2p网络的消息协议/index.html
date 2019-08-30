@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd源码分析系列：5 - p2p网络的消息协议 - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd源码分析系列：5 - p2p网络的消息协议</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:54:196">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%25E7%25B3%25BB%25E5%2588%25975-p2p%25E7%25BD%2591%25E7%25BB%259C%25E7%259A%2584%25E6%25B6%2588%25E6%2581%25AF%25E5%258D%258F%25E8%25AE%25AE%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd源码分析系列：5 - p2p网络的消息协议" data-url="https://tpkeeper.github.io/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure">protocol document</a> 、<a href="https://github.com/btcsuite/btcd/tree/master/wire">btcd</a></p>
+</blockquote>
+
+<ul>
+<li>协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc定义的协议有很多，包括p2p之间通信协议、交易认证协议、pow共识协议等等。本文主要分析<strong>p2p网络的消息协议及代码实现</strong></li>
+<li>btc 的p2p网络的传输层支持tcp、udp、onion，应用层使用的即是本文讨论的消息协议</li>
+</ul>
+
+<h2 id="一-message">一、Message</h2>
+
+<p>一次通信以message为单位，具体结构如上图：
+<img src="en-resource://database/532:1" alt="d018cee1eb87aabcbc1bd44609e2beb3.png" /></p>
+
+<p><strong>代码实现：</strong></p>
+
+<h3 id="1-通用接口定义">（1）通用接口定义</h3>
+
+<pre><code class="language-go">// Message is an interface that describes a bitcoin message.  A type that
+// implements Message has complete control over the representation of its data
+// and may therefore contain additional or fewer fields than those which
+// are used directly in the protocol encoded message.
+type Message interface {
+	BtcDecode(io.Reader, uint32, MessageEncoding) error
+	BtcEncode(io.Writer, uint32, MessageEncoding) error
+	Command() string
+	MaxPayloadLength(uint32) uint32
+}
+</code></pre>
+
+<p>message 接口，定义通用方法，由具体的消息类型去实现
+* BtcDecode BtcEnode 将结构化的消息体序列化为字节流 <strong>(对应payload)</strong> 或者将字节流实例化为某种消息格式
+* Commd 返回具体消息的命令字符串，标识不同的命令
+* MaxPayloadLength 最大payload 长度</p>
+
+<h3 id="2-通用header">（2）通用header</h3>
+
+<p><strong>Magic bytes</strong> are used as a way to identify the separate messages sent between nodes on the bitcoin network.</p>
+
+<pre><code class="language-go">// messageHeader defines the header structure for all bitcoin protocol messages.
+type messageHeader struct {
+	magic    BitcoinNet // 4 bytes
+	command  string     // 12 bytes
+	length   uint32     // 4 bytes
+	checksum [4]byte    // 4 bytes
+}
+</code></pre>
+
+<p>message header 结构体，定义通用部分字段</p>
+
+<h3 id="3-发送">（3）发送</h3>
+
+<pre><code class="language-go">func WriteMessageN(w io.Writer, msg Message, pver uint32, hcnet CurrencyNet) (int, error) {
+	totalBytes := 0
+
+	// Enforce max command size.
+	var command [CommandSize]byte
+	cmd := msg.Command()
+	if len(cmd) &gt; CommandSize {
+		str := fmt.Sprintf(&quot;command [%s] is too long [max %v]&quot;,
+			cmd, CommandSize)
+		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
+	}
+	copy(command[:], []byte(cmd))
+
+	// Encode the message payload.
+	var bw bytes.Buffer
+	err := msg.BtcEncode(&amp;bw, pver)
+	if err != nil {
+		return totalBytes, err
+	}
+	payload := bw.Bytes()
+	lenp := len(payload)
+
+	// Enforce maximum overall message payload.
+	if lenp &gt; MaxMessagePayload {
+		str := fmt.Sprintf(&quot;message payload is too large - encoded &quot;+
+			&quot;%d bytes, but maximum message payload is %d bytes&quot;,
+			lenp, MaxMessagePayload)
+		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
+	}
+
+	// Enforce maximum message payload based on the message type.
+	mpl := msg.MaxPayloadLength(pver)
+	if uint32(lenp) &gt; mpl {
+		str := fmt.Sprintf(&quot;message payload is too large - encoded &quot;+
+			&quot;%d bytes, but maximum message payload size for &quot;+
+			&quot;messages of type [%s] is %d.&quot;, lenp, cmd, mpl)
+		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
+	}
+
+	// Create header for the message.
+	hdr := messageHeader{}
+	hdr.magic = hcnet
+	hdr.command = cmd
+	hdr.length = uint32(lenp)
+	copy(hdr.checksum[:], chainhash.HashB(payload)[0:4])
+
+	// Encode the header for the message.  This is done to a buffer
+	// rather than directly to the writer since writeElements doesn't
+	// return the number of bytes written.
+	hw := bytes.NewBuffer(make([]byte, 0, MessageHeaderSize))
+	writeElements(hw, hdr.magic, command, hdr.length, hdr.checksum)
+
+	// Write header.
+	n, err := w.Write(hw.Bytes())
+	totalBytes += n
+	if err != nil {
+		return totalBytes, err
+	}
+
+	// Write payload.
+	n, err = w.Write(payload)
+	totalBytes += n
+	return totalBytes, err
+}
+</code></pre>
+
+<p>发送message时，先发送header再发送payload</p>
+
+<h2 id="二-具体消息举例-tx">二、具体消息举例：Tx</h2>
+
+<p><img src="en-resource://database/568:1" alt="99cea19d9cefbb3d00df0c5331f6458e.png" /></p>
+
+<p><strong>代码实现：</strong></p>
+
+<h3 id="1-定义tx结构体">（1）定义tx结构体</h3>
+
+<pre><code class="language-go">// MsgTx implements the Message interface and represents a bitcoin tx message.
+// It is used to deliver transaction information in response to a getdata
+// message (MsgGetData) for a given transaction.
+//
+// Use the AddTxIn and AddTxOut functions to build up the list of transaction
+// inputs and outputs.
+type MsgTx struct {
+	Version  int32
+	TxIn     []*TxIn
+	TxOut    []*TxOut
+	LockTime uint32
+}
+</code></pre>
+
+<h3 id="2-接口实现">（2） 接口实现</h3>
+
+<pre><code class="language-go">// Command returns the protocol command string for the message.  This is part
+// of the Message interface implementation.
+func (msg *MsgTx) Command() string {
+	return CmdTx
+}
+
+// MaxPayloadLength returns the maximum length the payload can be for the
+// receiver.  This is part of the Message interface implementation.
+func (msg *MsgTx) MaxPayloadLength(pver uint32) uint32 {
+	return MaxBlockPayload
+}
+
+</code></pre>
+
+<p>BtcDecode BtcEnode 不再赘述，具体可参考 <a href="https://github.com/btcsuite/btcd/blob/master/wire/msgtx.go">btcd</a></p>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+	<h4>Related Posts</h4>
+	<ol style="margin-left: 30px; list-style-type: decimal;">
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a></strong></li>
+		
+	</ol>
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+                <a class="previous" href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/"> btcd 源码分析系列：4 - p2p网络的peer</a>
+                
+            </div>
+            <div class="nav-next">
+                
+                <a class="next" href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/"> btcd 源码分析系列：6 - mempool</a>
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>

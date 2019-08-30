@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd 源码分析系列：4 - p2p网络的peer - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd 源码分析系列：4 - p2p网络的peer</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:54:146">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd-%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%25E7%25B3%25BB%25E5%2588%25974-p2p%25E7%25BD%2591%25E7%25BB%259C%25E7%259A%2584peer%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd 源码分析系列：4 - p2p网络的peer" data-url="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/peer">btcd</a></p>
+</blockquote>
+
+<ul>
+<li>btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。</li>
+</ul>
+
+<h2 id="一-创建peer对象">一、创建peer对象</h2>
+
+<p>peer具体分为两种：
+* inbound 当connmanager监听到其他节点的请求时创建
+* outbound 当connmanager主动连接其他节点时创建
+* 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</p>
+
+<pre><code class="language-go">// NewInboundPeer returns a new inbound bitcoin peer. Use Start to begin
+// processing incoming and outgoing messages.
+func NewInboundPeer(cfg *Config) *Peer {
+	return newPeerBase(cfg, true)
+}
+
+// NewOutboundPeer returns a new outbound bitcoin peer.
+func NewOutboundPeer(cfg *Config, addr string) (*Peer, error) {
+	p := newPeerBase(cfg, false)
+	p.addr = addr
+
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg.HostToNetAddress != nil {
+		na, err := cfg.HostToNetAddress(host, uint16(port), 0)
+		if err != nil {
+			return nil, err
+		}
+		p.na = na
+	} else {
+		p.na = wire.NewNetAddressIPPort(net.ParseIP(host), uint16(port), 0)
+	}
+
+	return p, nil
+}
+
+
+// newPeerBase returns a new base bitcoin peer based on the inbound flag.  This
+// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
+// setup needed by both types of peers.
+func newPeerBase(origCfg *Config, inbound bool) *Peer {
+	// Default to the max supported protocol version if not specified by the
+	// caller.
+	cfg := *origCfg // Copy to avoid mutating caller.
+	if cfg.ProtocolVersion == 0 {
+		cfg.ProtocolVersion = MaxProtocolVersion
+	}
+
+	// Set the chain parameters to testnet if the caller did not specify any.
+	if cfg.ChainParams == nil {
+		cfg.ChainParams = &amp;chaincfg.TestNet3Params
+	}
+
+	// Set the trickle interval if a non-positive value is specified.
+	if cfg.TrickleInterval &lt;= 0 {
+		cfg.TrickleInterval = DefaultTrickleInterval
+	}
+
+	p := Peer{
+		inbound:         inbound,
+		wireEncoding:    wire.BaseEncoding,
+		knownInventory:  newMruInventoryMap(maxKnownInventory),
+		stallControl:    make(chan stallControlMsg, 1), // nonblocking sync
+		outputQueue:     make(chan outMsg, outputBufferSize),
+		sendQueue:       make(chan outMsg, 1),   // nonblocking sync
+		sendDoneQueue:   make(chan struct{}, 1), // nonblocking sync
+		outputInvChan:   make(chan *wire.InvVect, outputBufferSize),
+		inQuit:          make(chan struct{}),
+		queueQuit:       make(chan struct{}),
+		outQuit:         make(chan struct{}),
+		quit:            make(chan struct{}),
+		cfg:             cfg, // Copy so caller can't mutate.
+		services:        cfg.Services,
+		protocolVersion: cfg.ProtocolVersion,
+	}
+	return &amp;p
+}
+
+</code></pre>
+
+<h2 id="二-启动peer">二、启动peer</h2>
+
+<p>启动顺序
+1. 通过versionMsg交换协议版本，进行protocol version判断（如果是outbound先发送自己的version再读取对方的，如果是inbound则反之）
+2. 如果version握手成功，启动其他handler goroutine
+    * p.stallHandler() 处理消息超时
+    * p.inHandler() 处理接收的消息
+    * p.queueHandler() 处理消息发送队列
+    * p.outHandler() 处理发送的消息
+    * p.pingHandler() 发送周期心跳
+3. 最后发送verAck确认，完成握手</p>
+
+<pre><code class="language-go">// start begins processing input and output messages.
+func (p *Peer) start() error {
+	log.Tracef(&quot;Starting peer %s&quot;, p)
+
+	negotiateErr := make(chan error, 1)
+	go func() {
+		if p.inbound {
+			negotiateErr &lt;- p.negotiateInboundProtocol()
+		} else {
+			negotiateErr &lt;- p.negotiateOutboundProtocol()
+		}
+	}()
+
+	// Negotiate the protocol within the specified negotiateTimeout.
+	select {
+	case err := &lt;-negotiateErr:
+		if err != nil {
+			p.Disconnect()
+			return err
+		}
+	case &lt;-time.After(negotiateTimeout):
+		p.Disconnect()
+		return errors.New(&quot;protocol negotiation timeout&quot;)
+	}
+	log.Debugf(&quot;Connected to %s&quot;, p.Addr())
+
+	// The protocol has been negotiated successfully so start processing input
+	// and output messages.
+	go p.stallHandler()
+	go p.inHandler()
+	go p.queueHandler()
+	go p.outHandler()
+	go p.pingHandler()
+
+	// Send our verack message now that the IO processing machinery has started.
+	p.QueueMessage(wire.NewMsgVerAck(), nil)
+	return nil
+}
+</code></pre>
+
+<h2 id="三-交换协议version-inbound端">三、交换协议version（inbound端）</h2>
+
+<p>主要流程：
+* 读取接收的协议
+* 发送自己的协议</p>
+
+<p>检测协议过程：
+* 检测nonce（防止跟自己建立连接）
+* 填充peer的基础信息（block高度，id，代理、services，address等）
+* 回调onVersion()方法
+* 判断版本是否符合要求</p>
+
+<pre><code class="language-go">// negotiateInboundProtocol waits to receive a version message from the peer
+// then sends our version message. If the events do not occur in that order then
+// it returns an error.
+func (p *Peer) negotiateInboundProtocol() error {
+	if err := p.readRemoteVersionMsg(); err != nil {
+		return err
+	}
+
+	return p.writeLocalVersionMsg()
+}
+
+
+// readRemoteVersionMsg waits for the next message to arrive from the remote
+// peer.  If the next message is not a version message or the version is not
+// acceptable then return an error.
+func (p *Peer) readRemoteVersionMsg() error {
+	// Read their version message.
+	remoteMsg, _, err := p.readMessage(wire.LatestEncoding)
+	if err != nil {
+		return err
+	}
+
+	// Notify and disconnect clients if the first message is not a version
+	// message.
+	msg, ok := remoteMsg.(*wire.MsgVersion)
+	if !ok {
+		reason := &quot;a version message must precede all others&quot;
+		rejectMsg := wire.NewMsgReject(msg.Command(), wire.RejectMalformed,
+			reason)
+		_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
+		return errors.New(reason)
+	}
+
+	// Detect self connections.
+	if !allowSelfConns &amp;&amp; sentNonces.Exists(msg.Nonce) {
+		return errors.New(&quot;disconnecting peer connected to self&quot;)
+	}
+
+	// Negotiate the protocol version and set the services to what the remote
+	// peer advertised.
+	p.flagsMtx.Lock()
+	p.advertisedProtoVer = uint32(msg.ProtocolVersion)
+	p.protocolVersion = minUint32(p.protocolVersion, p.advertisedProtoVer)
+	p.versionKnown = true
+	p.services = msg.Services
+	p.flagsMtx.Unlock()
+	log.Debugf(&quot;Negotiated protocol version %d for peer %s&quot;,
+		p.protocolVersion, p)
+
+	// Updating a bunch of stats including block based stats, and the
+	// peer's time offset.
+	p.statsMtx.Lock()
+	p.lastBlock = msg.LastBlock
+	p.startingHeight = msg.LastBlock
+	p.timeOffset = msg.Timestamp.Unix() - time.Now().Unix()
+	p.statsMtx.Unlock()
+
+	// Set the peer's ID, user agent, and potentially the flag which
+	// specifies the witness support is enabled.
+	p.flagsMtx.Lock()
+	p.id = atomic.AddInt32(&amp;nodeCount, 1)
+	p.userAgent = msg.UserAgent
+
+	// Determine if the peer would like to receive witness data with
+	// transactions, or not.
+	if p.services&amp;wire.SFNodeWitness == wire.SFNodeWitness {
+		p.witnessEnabled = true
+	}
+	p.flagsMtx.Unlock()
+
+	// Once the version message has been exchanged, we're able to determine
+	// if this peer knows how to encode witness data over the wire
+	// protocol. If so, then we'll switch to a decoding mode which is
+	// prepared for the new transaction format introduced as part of
+	// BIP0144.
+	if p.services&amp;wire.SFNodeWitness == wire.SFNodeWitness {
+		p.wireEncoding = wire.WitnessEncoding
+	}
+
+	// Invoke the callback if specified.
+	if p.cfg.Listeners.OnVersion != nil {
+		rejectMsg := p.cfg.Listeners.OnVersion(p, msg)
+		if rejectMsg != nil {
+			_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
+			return errors.New(rejectMsg.Reason)
+		}
+	}
+
+	// Notify and disconnect clients that have a protocol version that is
+	// too old.
+	//
+	// NOTE: If minAcceptableProtocolVersion is raised to be higher than
+	// wire.RejectVersion, this should send a reject packet before
+	// disconnecting.
+	if uint32(msg.ProtocolVersion) &lt; MinAcceptableProtocolVersion {
+		// Send a reject message indicating the protocol version is
+		// obsolete and wait for the message to be sent before
+		// disconnecting.
+		reason := fmt.Sprintf(&quot;protocol version must be %d or greater&quot;,
+			MinAcceptableProtocolVersion)
+		rejectMsg := wire.NewMsgReject(msg.Command(), wire.RejectObsolete,
+			reason)
+		_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
+		return errors.New(reason)
+	}
+
+	return nil
+}
+
+</code></pre>
+
+<h2 id="发送消息">发送消息</h2>
+
+<ul>
+<li>发送消息的直接入口是QueueMessage()方法</li>
+<li>outMesage 被发送到了outputQueue队列（带缓冲的channel）</li>
+<li>然后再由queueHandler发给sendQueue</li>
+<li>outHandler 对sendQueue处理
+
+<ul>
+<li>发给 stallContol</li>
+<li>发给peer</li>
+</ul></li>
+<li>stallhandler 对stallContol 处理
+```go
+// QueueMessage adds the passed bitcoin message to the peer send queue.
+//
+// This function is safe for concurrent access.
+func (p *Peer) QueueMessage(msg wire.Message, doneChan chan&lt;- struct{}) {
+	p.QueueMessageWithEncoding(msg, doneChan, wire.BaseEncoding)
+}</li>
+</ul>
+
+<p>// This function is safe for concurrent access.
+func (p *Peer) QueueMessageWithEncoding(msg wire.Message, doneChan chan&lt;- struct{},
+	encoding wire.MessageEncoding) {</p>
+
+<p>	// Avoid risk of deadlock if goroutine already exited.  The goroutine
+	// we will be sending to hangs around until it knows for a fact that
+	// it is marked as disconnected and <em>then</em> it drains the channels.
+	if !p.Connected() {
+		if doneChan != nil {
+			go func() {
+				doneChan &lt;- struct{}{}
+			}()
+		}
+		return
+	}
+	p.outputQueue &lt;- outMsg{msg: msg, encoding: encoding, doneChan: doneChan}
+}</p>
+
+<pre><code>```go
+p := Peer{
+		inbound:         inbound,
+		wireEncoding:    wire.BaseEncoding,
+		knownInventory:  newMruInventoryMap(maxKnownInventory),
+		stallControl:    make(chan stallControlMsg, 1), // nonblocking sync
+		outputQueue:     make(chan outMsg, outputBufferSize),
+		sendQueue:       make(chan outMsg, 1),   // nonblocking sync
+		sendDoneQueue:   make(chan struct{}, 1), // nonblocking sync
+		outputInvChan:   make(chan *wire.InvVect, outputBufferSize),
+		inQuit:          make(chan struct{}),
+		queueQuit:       make(chan struct{}),
+		outQuit:         make(chan struct{}),
+		quit:            make(chan struct{}),
+		cfg:             cfg, // Copy so caller can't mutate.
+		services:        cfg.Services,
+		protocolVersion: cfg.ProtocolVersion,
+	}
+</code></pre>
+
+<h2 id="接收消息">接收消息</h2>
+
+<ul>
+<li>通过inHandler,监听peer消息</li>
+<li>向stallControl发送 sccReceiveMessage</li>
+<li>向stallControl发送 sccHandlerStart</li>
+<li>调用onXXX相应消息，并通过queueMessage发送结果</li>
+<li>向stallContol 发送 sccHandlerDone</li>
+</ul>
+
+<pre><code class="language-go">// inHandler handles all incoming messages for the peer.  It must be run as a
+// goroutine.
+func (p *Peer) inHandler() {
+	// The timer is stopped when a new message is received and reset after it
+	// is processed.
+	idleTimer := time.AfterFunc(idleTimeout, func() {
+		log.Warnf(&quot;Peer %s no answer for %s -- disconnecting&quot;, p, idleTimeout)
+		p.Disconnect()
+	})
+
+out:
+	for atomic.LoadInt32(&amp;p.disconnect) == 0 {
+		// Read a message and stop the idle timer as soon as the read
+		// is done.  The timer is reset below for the next iteration if
+		// needed.
+		rmsg, buf, err := p.readMessage(p.wireEncoding)
+		idleTimer.Stop()
+		if err != nil {
+			// In order to allow regression tests with malformed messages, don't
+			// disconnect the peer when we're in regression test mode and the
+			// error is one of the allowed errors.
+			if p.isAllowedReadError(err) {
+				log.Errorf(&quot;Allowed test error from %s: %v&quot;, p, err)
+				idleTimer.Reset(idleTimeout)
+				continue
+			}
+
+			// Only log the error and send reject message if the
+			// local peer is not forcibly disconnecting and the
+			// remote peer has not disconnected.
+			if p.shouldHandleReadError(err) {
+				errMsg := fmt.Sprintf(&quot;Can't read message from %s: %v&quot;, p, err)
+				if err != io.ErrUnexpectedEOF {
+					log.Errorf(errMsg)
+				}
+
+				// Push a reject message for the malformed message and wait for
+				// the message to be sent before disconnecting.
+				//
+				// NOTE: Ideally this would include the command in the header if
+				// at least that much of the message was valid, but that is not
+				// currently exposed by wire, so just used malformed for the
+				// command.
+				p.PushRejectMsg(&quot;malformed&quot;, wire.RejectMalformed, errMsg, nil,
+					true)
+			}
+			break out
+		}
+		atomic.StoreInt64(&amp;p.lastRecv, time.Now().Unix())
+		p.stallControl &lt;- stallControlMsg{sccReceiveMessage, rmsg}
+
+		// Handle each supported message type.
+		p.stallControl &lt;- stallControlMsg{sccHandlerStart, rmsg}
+		switch msg := rmsg.(type) {
+		case *wire.MsgVersion:
+			// Limit to one version message per peer.
+			p.PushRejectMsg(msg.Command(), wire.RejectDuplicate,
+				&quot;duplicate version message&quot;, nil, true)
+			break out
+
+		case *wire.MsgVerAck:
+
+			// No read lock is necessary because verAckReceived is not written
+			// to in any other goroutine.
+			if p.verAckReceived {
+				log.Infof(&quot;Already received 'verack' from peer %v -- &quot;+
+					&quot;disconnecting&quot;, p)
+				break out
+			}
+			p.flagsMtx.Lock()
+			p.verAckReceived = true
+			p.flagsMtx.Unlock()
+			if p.cfg.Listeners.OnVerAck != nil {
+				p.cfg.Listeners.OnVerAck(p, msg)
+			}
+            
+            
+            ....
+}
+</code></pre>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+	<h4>Related Posts</h4>
+	<ol style="margin-left: 30px; list-style-type: decimal;">
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a></strong></li>
+		
+	</ol>
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+                <a class="previous" href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/"> btcd 源码分析系列：3 - connmanager</a>
+                
+            </div>
+            <div class="nav-next">
+                
+                <a class="next" href="https://tpkeeper.github.io/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/"> btcd源码分析系列：5 - p2p网络的消息协议</a>
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>

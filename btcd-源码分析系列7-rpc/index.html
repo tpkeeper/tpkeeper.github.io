@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd 源码分析系列：7 - rpc - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd 源码分析系列：7 - rpc</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:54:406">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd-%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%25E7%25B3%25BB%25E5%2588%25977-rpc%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd 源码分析系列：7 - rpc" data-url="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/rpcserver.go">btcd</a></p>
+</blockquote>
+
+<ul>
+<li>btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。</li>
+<li>websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求</li>
+<li>http/websocket是传输协议，json是序列化协议。</li>
+</ul>
+
+<h2 id="一-start">一、start</h2>
+
+<ul>
+<li>启动一个server,监听路径&rdquo;/&ldquo;和&rdquo;/ws&rdquo;,分别对应http/websocket。</li>
+<li>通过chedkAuth()函数认证，基于Basic authentication</li>
+
+<li><p>通过limitConnections（）对单个地址的并发连接数量做限制</p>
+
+<pre><code class="language-go">    rpcServeMux.HandleFunc(&quot;/&quot;, func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set(&quot;Connection&quot;, &quot;close&quot;)
+        w.Header().Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
+        r.Close = true
+
+        // Limit the number of connections to max allowed.
+        if s.limitConnections(w, r.RemoteAddr) {
+            return
+        }
+
+        // Keep track of the number of connected clients.
+        s.incrementClients()
+        defer s.decrementClients()
+        _, isAdmin, err := s.checkAuth(r, true)
+        if err != nil {
+            jsonAuthFail(w)
+            return
+        }
+
+        // Read and respond to the request.
+        s.jsonRPCRead(w, r, isAdmin)
+    })
+
+    // Websocket endpoint.
+    rpcServeMux.HandleFunc(&quot;/ws&quot;, func(w http.ResponseWriter, r *http.Request) {
+        authenticated, isAdmin, err := s.checkAuth(r, false)
+        if err != nil {
+            jsonAuthFail(w)
+            return
+        }
+
+        // Attempt to upgrade the connection to a websocket connection
+        // using the default size for read/write buffers.
+        ws, err := websocket.Upgrade(w, r, nil, 0, 0)
+        if err != nil {
+            if _, ok := err.(websocket.HandshakeError); !ok {
+                rpcsLog.Errorf(&quot;Unexpected websocket error: %v&quot;,
+                    err)
+            }
+            http.Error(w, &quot;400 Bad Request.&quot;, http.StatusBadRequest)
+            return
+        }
+        s.WebsocketHandler(ws, r.RemoteAddr, authenticated, isAdmin)
+    })
+
+</code></pre>
+
+<h2 id="二-解析参数">二、解析参数</h2>
+
+<ul>
+<li>通过对body进行unmarshal，可以直接拿到此结构
+<code>go
+type Request struct {
+Jsonrpc string            `json:&quot;jsonrpc&quot;`
+Method  string            `json:&quot;method&quot;`
+Params  []json.RawMessage `json:&quot;params&quot;`
+ID      interface{}       `json:&quot;id&quot;`
+}
+</code></li>
+</ul></li>
+
+<li><p>进一步通过反射拿到此结构体，cmd对应method cmd（实际上就是参数）的结构体反射值</p>
+
+<pre><code class="language-go">type parsedRPCCmd struct {
+    id     interface{}
+    method string
+    cmd    interface{}
+    err    *hcjson.RPCError
+}
+</code></pre>
+
+<ul>
+<li>一个具体的method,对应的cmd结构体，也就是method的参数</li>
+</ul>
+
+<pre><code class="language-go">// CreateRawTransactionCmd defines the createrawtransaction JSON-RPC command.
+type CreateRawTransactionCmd struct {
+    Inputs   []TransactionInput
+    Amounts  map[string]float64 `jsonrpcusage:&quot;{\&quot;address\&quot;:amount,...}&quot;` // In HC
+    LockTime *int64
+    PayLoad  *string
+}
+</code></pre></li>
+</ul>
+
+<h2 id="三-执行">三、执行</h2>
+
+<ul>
+<li><p>通过method找到相应的handler，传入之前拿到的参数，并执行</p>
+
+<pre><code class="language-go">func (s *rpcServer) standardCmdResult(cmd *parsedRPCCmd, closeChan &lt;-chan struct{}) (interface{}, error) {
+    handler, ok := rpcHandlers[cmd.method]
+    if ok {
+        goto handled
+    }
+    _, ok = rpcAskWallet[cmd.method]
+    if ok {
+        handler = handleAskWallet
+        goto handled
+    }
+    _, ok = rpcUnimplemented[cmd.method]
+    if ok {
+        handler = handleUnimplemented
+        goto handled
+    }
+    return nil, hcjson.ErrRPCMethodNotFound
+handled:
+
+    return handler(s, cmd.cmd, closeChan)
+}
+
+</code></pre>
+
+<ul>
+<li>具体的执行方法
+```go</li>
+</ul>
+
+<p>// handleCreateRawTransaction handles createrawtransaction commands.
+func handleCreateRawTransaction(s *rpcServer, cmd interface{}, closeChan &lt;-chan struct{}) (interface{}, error) {
+    c := cmd.(*hcjson.CreateRawTransactionCmd)</p>
+
+<pre><code>// Validate the locktime, if given.
+if c.LockTime != nil &amp;&amp;
+    (*c.LockTime &lt; 0 ||
+        *c.LockTime &gt; int64(wire.MaxTxInSequenceNum)) {
+    return nil, rpcInvalidError(&quot;Locktime out of range&quot;)
+}
+
+// Add all transaction inputs to a new transaction after performing
+// some validity checks.
+mtx := wire.NewMsgTx()
+for _, input := range c.Inputs {
+    txHash, err := chainhash.NewHashFromStr(input.Txid)
+    if err != nil {
+        return nil, rpcDecodeHexError(input.Txid)
+    }
+</code></pre>
+
+<p>}
+```</p></li>
+</ul>
+
+<h2 id="四-返回">四、返回</h2>
+
+<ul>
+<li><p>最后将结果序列化并返回，responseID=requestID</p>
+
+<pre><code class="language-go">    // Marshal the response.
+    msg, err := createMarshalledReply(responseID, result, jsonErr)
+    if err != nil {
+        rpcsLog.Errorf(&quot;Failed to marshal reply: %v&quot;, err)
+        return
+    }
+
+    // Write the response.
+    err = s.writeHTTPResponseHeaders(r, w.Header(), http.StatusOK, buf)
+    if err != nil {
+        rpcsLog.Error(err)
+        return
+    }
+    if _, err := buf.Write(msg); err != nil {
+        rpcsLog.Errorf(&quot;Failed to write marshalled reply: %v&quot;, err)
+    }
+</code></pre></li>
+</ul>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+	<h4>Related Posts</h4>
+	<ol style="margin-left: 30px; list-style-type: decimal;">
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/">btcd 源码分析系列：6 - mempool</a></strong></li>
+		
+		<li><strong><a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a></strong></li>
+		
+	</ol>
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+                <a class="previous" href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/"> btcd 源码分析系列：6 - mempool</a>
+                
+            </div>
+            <div class="nav-next">
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>

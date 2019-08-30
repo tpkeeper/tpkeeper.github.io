@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd 源码分析系列：6 - mempool - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd 源码分析系列：6 - mempool</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:54:316">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd-%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%25E7%25B3%25BB%25E5%2588%25976-mempool%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd 源码分析系列：6 - mempool" data-url="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/mempool">btcd</a></p>
+</blockquote>
+
+<ul>
+<li>btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。</li>
+<li>utxo和block index存储于leveldb中，而不是本文讨论的mempool</li>
+<li>被插入之前要进行一系列的正确性验证（通过mabeAcceptTransaction）。</li>
+<li>如果是orphan tx（即在main chain和mempool里找不到input的所属交易tx）会暂时插入到orphans pool（通过ProcessTransaction）。</li>
+<li>当新的block连接到主链时，会把block中的tx从mempool中移除，相应的也会转移orphans pool中依赖此block的tx到mempool中（通过MabeAcceptTransaction）</li>
+<li>当block从主链脱离时，会重新处理block里的tx(通过MabeAcceptTransaction)</li>
+</ul>
+
+<h2 id="一-创建mempool对象">一、创建mempool对象</h2>
+
+<ul>
+<li>在server被创建的时候调用此方法生成一个mempool对象</li>
+
+<li><p>可以看到，pool用来存储正常的tx，orphans存储orphan tx</p>
+
+<pre><code class="language-go">// New returns a new memory pool for validating and storing standalone
+// transactions until they are mined into a block.
+func New(cfg *Config) *TxPool {
+    return &amp;TxPool{
+        cfg:            *cfg,
+        pool:           make(map[chainhash.Hash]*TxDesc),
+        orphans:        make(map[chainhash.Hash]*orphanTx),
+        orphansByPrev:  make(map[wire.OutPoint]map[chainhash.Hash]*btcutil.Tx),
+        nextExpireScan: time.Now().Add(orphanExpireScanInterval),
+        outpoints:      make(map[wire.OutPoint]*btcutil.Tx),
+    }
+}
+</code></pre>
+
+<h4 id="二-processtransaction">二、ProcessTransaction</h4>
+
+<ul>
+<li>该方法用来处理通过rpc请求（handleSendRawTransaction）发送的的rawtx和通过p2p网络（OnTx）同步的tx</li>
+<li>支持orphan tx的插入</li>
+</ul>
+
+<pre><code class="language-go">// ProcessTransaction is the main workhorse for handling insertion of new
+// free-standing transactions into the memory pool.  It includes functionality
+// such as rejecting duplicate transactions, ensuring transactions follow all
+// rules, orphan transaction handling, and insertion into the memory pool.
+//
+// It returns a slice of transactions added to the mempool.  When the
+// error is nil, the list will include the passed transaction itself along
+// with any additional orphan transaactions that were added as a result of
+// the passed one being accepted.
+//
+// This function is safe for concurrent access.
+func (mp *TxPool) ProcessTransaction(tx *btcutil.Tx, allowOrphan, rateLimit bool, tag Tag) ([]*TxDesc, error) {
+    log.Tracef(&quot;Processing transaction %v&quot;, tx.Hash())
+
+    // Protect concurrent access.
+    mp.mtx.Lock()
+    defer mp.mtx.Unlock()
+
+    // Potentially accept the transaction to the memory pool.
+    missingParents, txD, err := mp.maybeAcceptTransaction(tx, true, rateLimit,
+        true)
+    if err != nil {
+        return nil, err
+    }
+
+    if len(missingParents) == 0 {
+        // Accept any orphan transactions that depend on this
+        // transaction (they may no longer be orphans if all inputs
+        // are now available) and repeat for those accepted
+        // transactions until there are no more.
+        newTxs := mp.processOrphans(tx)
+        acceptedTxs := make([]*TxDesc, len(newTxs)+1)
+
+        // Add the parent transaction first so remote nodes
+        // do not add orphans.
+        acceptedTxs[0] = txD
+        copy(acceptedTxs[1:], newTxs)
+
+        return acceptedTxs, nil
+    }
+
+    // The transaction is an orphan (has inputs missing).  Reject
+    // it if the flag to allow orphans is not set.
+    if !allowOrphan {
+        // Only use the first missing parent transaction in
+        // the error message.
+        //
+        // NOTE: RejectDuplicate is really not an accurate
+        // reject code here, but it matches the reference
+        // implementation and there isn't a better choice due
+        // to the limited number of reject codes.  Missing
+        // inputs is assumed to mean they are already spent
+        // which is not really always the case.
+        str := fmt.Sprintf(&quot;orphan transaction %v references &quot;+
+            &quot;outputs of unknown or fully-spent &quot;+
+            &quot;transaction %v&quot;, tx.Hash(), missingParents[0])
+        return nil, txRuleError(wire.RejectDuplicate, str)
+    }
+
+    // Potentially add the orphan transaction to the orphan pool.
+    err = mp.maybeAddOrphan(tx, tag)
+    return nil, err
+}
+</code></pre></li>
+</ul>
+
+<h4 id="三-maybeaccepttransaction">三、MaybeAcceptTransaction</h4>
+
+<ul>
+<li>当block 从主链 connect / disconnect 的时候(blockchain.NTBlockConnected/blockchain.NTBlockDisconnected)，使用此函数处理block中的tx（当然不会包含coinbase）</li>
+
+<li><p>不支持orphan tx的插入</p>
+
+<pre><code class="language-go">// MaybeAcceptTransaction is the main workhorse for handling insertion of new
+// free-standing transactions into a memory pool.  It includes functionality
+// such as rejecting duplicate transactions, ensuring transactions follow all
+// rules, detecting orphan transactions, and insertion into the memory pool.
+//
+// If the transaction is an orphan (missing parent transactions), the
+// transaction is NOT added to the orphan pool, but each unknown referenced
+// parent is returned.  Use ProcessTransaction instead if new orphans should
+// be added to the orphan pool.
+//
+// This function is safe for concurrent access.
+func (mp *TxPool) MaybeAcceptTransaction(tx *btcutil.Tx, isNew, rateLimit bool) ([]*chainhash.Hash, *TxDesc, error) {
+    // Protect concurrent access.
+    mp.mtx.Lock()
+    hashes, txD, err := mp.maybeAcceptTransaction(tx, isNew, rateLimit, true)
+    mp.mtx.Unlock()
+
+    return hashes, txD, err
+}
+</code></pre>
+
+<h2 id="四-mabeaccepttransaction">四、mabeAcceptTransaction</h2>
+
+<ul>
+<li>ProcessTransaction和MabeAcceptTransaction最终都调用的该方法</li>
+<li>该方法会做一系列合法性验证然后将tx插入mempool</li>
+</ul>
+
+<h2 id="五-processorhpans">五、ProcessOrhpans</h2>
+
+<ul>
+<li><p>当有新的block connect 到主链时，对block中的每一个tx都检测是否存在基于它的orphan tx，并将存在的tx移到mempool中</p>
+
+<pre><code>// ProcessOrphans determines if there are any orphans which depend on the passed
+// transaction hash (it is possible that they are no longer orphans) and
+// potentially accepts them to the memory pool.  It repeats the process for the
+// newly accepted transactions (to detect further orphans which may no longer be
+// orphans) until there are no more.
+//
+// It returns a slice of transactions added to the mempool.  A nil slice means
+// no transactions were moved from the orphan pool to the mempool.
+//
+// This function is safe for concurrent access.
+func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
+mp.mtx.Lock()
+acceptedTxns := mp.processOrphans(acceptedTx)
+mp.mtx.Unlock()
+
+return acceptedTxns
+}
+</code></pre></li>
+</ul>
+
+<h2 id="六-fetchtransaction">六、Fetchtransaction</h2>
+
+<ul>
+<li>从mem pool中获取对应hash的tx，不包含orphans pool</li>
+<li>在rpc请求的一些方法（searchrawtransactions、getrawtransaction、gettxout、）和p2p网络发送txmsg使用</li>
+</ul>
+
+<pre><code class="language-go">// FetchTransaction returns the requested transaction from the transaction pool.
+// This only fetches from the main transaction pool and does not include
+// orphans.
+//
+// This function is safe for concurrent access.
+func (mp *TxPool) FetchTransaction(txHash *chainhash.Hash) (*btcutil.Tx, error) {
+    // Protect concurrent access.
+    mp.mtx.RLock()
+    txDesc, exists := mp.pool[*txHash]
+    mp.mtx.RUnlock()
+
+    if exists {
+        return txDesc.Tx, nil
+    }
+
+    return nil, fmt.Errorf(&quot;transaction is not in the pool&quot;)
+}
+</code></pre></li>
+</ul>
+
+<h4 id="七-miningdescs">七、MiningDescs</h4>
+
+<ul>
+<li><p>rpc getBlockTemplate 使用此方法生成挖矿需要的数据</p>
+
+<pre><code class="language-go">// MiningDescs returns a slice of mining descriptors for all the transactions
+// in the pool.
+//
+// This is part of the mining.TxSource interface implementation and is safe for
+// concurrent access as required by the interface contract.
+func (mp *TxPool) MiningDescs() []*mining.TxDesc {
+    mp.mtx.RLock()
+    descs := make([]*mining.TxDesc, len(mp.pool))
+    i := 0
+    for _, desc := range mp.pool {
+        descs[i] = &amp;desc.TxDesc
+        i++
+    }
+    mp.mtx.RUnlock()
+
+    return descs
+}
+</code></pre>
+
+<h2 id="八-removetransaction">八、RemoveTransaction</h2>
+
+<ul>
+<li>从mempool中移除交易</li>
+<li>当有新的block connect到主链时，移除block中的transaction</li>
+</ul>
+
+<pre><code class="language-go">// RemoveTransaction removes the passed transaction from the mempool. When the
+// removeRedeemers flag is set, any transactions that redeem outputs from the
+// removed transaction will also be removed recursively from the mempool, as
+// they would otherwise become orphans.
+//
+// This function is safe for concurrent access.
+func (mp *TxPool) RemoveTransaction(tx *btcutil.Tx, removeRedeemers bool) {
+    // Protect concurrent access.
+    mp.mtx.Lock()
+    mp.removeTransaction(tx, removeRedeemers)
+    mp.mtx.Unlock()
+}
+
+</code></pre></li>
+</ul>
+
+<h2 id="九-checkpooldoublespend">九、checkPoolDoubleSpend</h2>
+
+<ul>
+<li>双花检测</li>
+
+<li><p>通过对比 待插入txin的PreviousOutPoint和内存池里边的已经存在的outpoints</p>
+
+<pre><code class="language-go">// checkPoolDoubleSpend checks whether or not the passed transaction is
+// attempting to spend coins already spent by other transactions in the pool.
+// Note it does not check for double spends against transactions already in the
+// main chain.
+//
+// This function MUST be called with the mempool lock held (for reads).
+func (mp *TxPool) checkPoolDoubleSpend(tx *hcutil.Tx, txType stake.TxType) error {
+    for i, txIn := range tx.MsgTx().TxIn {
+        // We don't care about double spends of stake bases.
+        if  i == 0 &amp;&amp; (txType == stake.TxTypeSSGen || txType == stake.TxTypeSSRtx) {
+            continue
+        }
+
+        if txR, exists := mp.outpoints[txIn.PreviousOutPoint]; exists {
+            str := fmt.Sprintf(&quot;transaction %v in the pool &quot;+
+                &quot;already spends the same coins&quot;, txR.Hash())
+            return txRuleError(wire.RejectDuplicate, str)
+        }
+    }
+
+    return nil
+}
+</code></pre>
+
+<ul>
+<li>outpoint 包含hash和索引
+<code>go
+// OutPoint defines a HC data type that is used to track previous
+// transaction outputs.
+type OutPoint struct {
+Hash  chainhash.Hash
+Index uint32
+Tree  int8
+}
+
+</code></li>
+</ul></li>
+</ul>
+
+<h2 id="十-pruneexpiredtx">十、PruneExpiredTx</h2>
+
+<ul>
+<li>根据高度移除过期交易</li>
+
+<li><p>当从其他peer同步到一个块的时候和重组的时候发生</p>
+
+<pre><code class="language-go">// PruneExpiredTx prunes expired transactions from the mempool that may no longer
+// be able to be included into a block.
+func (mp *TxPool) PruneExpiredTx(height int64) {
+    // Protect concurrent access.
+    mp.mtx.Lock()
+    mp.pruneExpiredTx(height)
+    mp.mtx.Unlock()
+}
+
+func (mp *TxPool) pruneExpiredTx(height int64) {
+    for _, tx := range mp.pool {
+        if tx.Tx.MsgTx().Expiry != 0 {
+            if height &gt;= int64(tx.Tx.MsgTx().Expiry) {
+                log.Debugf(&quot;Pruning expired transaction %v &quot;+
+                    &quot;from the mempool&quot;, tx.Tx.Hash())
+                mp.removeTransaction(tx.Tx, true)
+            }
+        }
+    }
+}
+</code></pre></li>
+</ul>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+	<h4>Related Posts</h4>
+	<ol style="margin-left: 30px; list-style-type: decimal;">
+		
+		<li><strong><a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></strong></li>
+		
+		<li><strong><a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a></strong></li>
+		
+	</ol>
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+                <a class="previous" href="https://tpkeeper.github.io/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/"> btcd源码分析系列：5 - p2p网络的消息协议</a>
+                
+            </div>
+            <div class="nav-next">
+                
+                <a class="next" href="https://tpkeeper.github.io/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/"> btcd 源码分析系列：7 - rpc</a>
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%977-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%976-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%975-p2p%E7%BD%91%E7%BB%9C%E7%9A%84%E6%B6%88%E6%81%AF%E5%8D%8F%E8%AE%AE/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%974-p2p%E7%BD%91%E7%BB%9C%E7%9A%84peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%973-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%972-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E7%B3%BB%E5%88%97-1-%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>
