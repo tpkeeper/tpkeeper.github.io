@@ -84,10 +84,20 @@
 <p>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理</p>
 </blockquote>
 
-<p>主要涉及到的bip协议：
-1. <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a> hd 钱包核心提案，定义分层概念和算法</p>
+<p><strong>助记词、种子、公钥、地址之间的关系如下：</strong></p>
+
+<ul>
+<li>助记词与种子之间可以双向转换</li>
+<li>种子公钥与地址之间只能单向</li>
+</ul>
+
+<p><img src="/image/seed-addr-rlt.png" alt="seed-addr-rlt.png" /></p>
+
+<p><strong>主要涉及到的bip协议：</strong></p>
 
 <ol>
+<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a> hd 钱包核心提案，定义分层概念和算法</p></li>
+
 <li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">bip39</a> 定义助记词种子转换规则</p></li>
 
 <li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">bip44</a> 定义 5 层路径规则</p></li>
