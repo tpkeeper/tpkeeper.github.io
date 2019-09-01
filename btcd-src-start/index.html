@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd 源码分析系列 - 1 - 启动分析 - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd 源码分析系列 - 1 - 启动分析</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:156:86">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd-src-start/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd-src-start%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd 源码分析系列 - 1 - 启动分析" data-url="https://tpkeeper.github.io/btcd-src-start/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/btcd.go">btcd</a></p>
+</blockquote>
+
+<h2 id="主启动顺序">主启动顺序</h2>
+
+<p><em>main函数位于btcd.go，此处省略了辅助功能的服务（profile等）</em></p>
+
+<ol>
+<li>loadconfig() 加载配置</li>
+<li>doUpgrades() 升级操作</li>
+<li>loadBlockDB() 加载数据库</li>
+<li>server.start() 启动server</li>
+</ol>
+
+<pre><code class="language-go">func btcdMain(serverChan chan&lt;- *server) error {
+	// Load configuration and parse command line.  This function also
+	// initializes logging and configures it accordingly.
+	tcfg, _, err := loadConfig()
+	if err != nil {
+		return err
+	}
+	cfg = tcfg
+	defer func() {
+		if logRotator != nil {
+			logRotator.Close()
+		}
+	}()
+
+
+	// Load the block database.
+	db, err := loadBlockDB()
+	if err != nil {
+		btcdLog.Errorf(&quot;%v&quot;, err)
+		return err
+	}
+	defer func() {
+		// Ensure the database is sync'd and closed on shutdown.
+		btcdLog.Infof(&quot;Gracefully shutting down the database...&quot;)
+		db.Close()
+	}()
+
+	
+	// Create server and start it.
+	server, err := newServer(cfg.Listeners, db, activeNetParams.Params,
+		interrupt)
+	if err != nil {
+		// TODO: this logging could do with some beautifying.
+		btcdLog.Errorf(&quot;Unable to start server on %v: %v&quot;,
+			cfg.Listeners, err)
+		return err
+	}
+	defer func() {
+		btcdLog.Infof(&quot;Gracefully shutting down the server...&quot;)
+		server.Stop()
+		server.WaitForShutdown()
+		srvrLog.Infof(&quot;Server shutdown complete&quot;)
+	}()
+	server.Start()
+	if serverChan != nil {
+		serverChan &lt;- server
+	}
+
+	// Wait until the interrupt signal is received from an OS signal or
+	// shutdown is requested through one of the subsystems such as the RPC
+	// server.
+	&lt;-interrupt
+	return nil
+}
+</code></pre>
+
+<h2 id="server启动顺序">server启动顺序</h2>
+
+<p><em>start()函数实现位于server.go</em></p>
+
+<ol>
+<li>peerHandler() p2p服务，用于处理节点间的同步信息 端口 :12008</li>
+<li>rpcServer.Start() rpcServer，用于处理客户端的rpc请求 端口:12009</li>
+<li>cpuMiner.Start() 用于挖矿服务</li>
+</ol>
+
+<pre><code class="language-go">// Start begins accepting connections from peers.
+func (s *server) Start() {
+	// Already started?
+	if atomic.AddInt32(&amp;s.started, 1) != 1 {
+		return
+	}
+
+	srvrLog.Trace(&quot;Starting server&quot;)
+
+	// Server startup time. Used for the uptime command for uptime calculation.
+	s.startupTime = time.Now().Unix()
+
+	// Start the peer handler which in turn starts the address and block
+	// managers.
+	s.wg.Add(1)
+	go s.peerHandler()
+
+	if s.nat != nil {
+		s.wg.Add(1)
+		go s.upnpUpdateThread()
+	}
+
+	if !cfg.DisableRPC {
+		s.wg.Add(1)
+
+		// Start the rebroadcastHandler, which ensures user tx received by
+		// the RPC server are rebroadcast until being included in a block.
+		go s.rebroadcastHandler()
+
+		s.rpcServer.Start()
+	}
+
+	// Start the CPU miner if generation is enabled.
+	if cfg.Generate {
+		s.cpuMiner.Start()
+	}
+}
+</code></pre>
+
+<h2 id="peerhander启动顺序">peerHander启动顺序</h2>
+
+<p><em>peerHandler()函数实现位于server.go</em></p>
+
+<ol>
+<li>addrManager.Start() 处理节点信息地址</li>
+<li>syncManager.Start() 处理节点同步</li>
+<li>connManager.Start() 处理节点之间连接 （支持tcp/onion）</li>
+</ol>
+
+<pre><code class="language-go">// peerHandler is used to handle peer operations such as adding and removing
+// peers to and from the server, banning peers, and broadcasting messages to
+// peers.  It must be run in a goroutine.
+
+func (s *server) peerHandler() {
+	// Start the address manager and sync manager, both of which are needed
+	// by peers.  This is done here since their lifecycle is closely tied
+	// to this handler and rather than adding more channels to sychronize
+	// things, it's easier and slightly faster to simply start and stop them
+	// in this handler.
+    
+	s.addrManager.Start()
+	s.syncManager.Start()
+
+	srvrLog.Tracef(&quot;Starting peer handler&quot;)
+
+	state := &amp;peerState{
+		inboundPeers:    make(map[int32]*serverPeer),
+		persistentPeers: make(map[int32]*serverPeer),
+		outboundPeers:   make(map[int32]*serverPeer),
+		banned:          make(map[string]time.Time),
+		outboundGroups:  make(map[string]int),
+	}
+
+	if !cfg.DisableDNSSeed {
+		// Add peers discovered through DNS to the address manager.
+		connmgr.SeedFromDNS(activeNetParams.Params, defaultRequiredServices,
+			btcdLookup, func(addrs []*wire.NetAddress) {
+				// Bitcoind uses a lookup of the dns seeder here. This
+				// is rather strange since the values looked up by the
+				// DNS seed lookups will vary quite a lot.
+				// to replicate this behaviour we put all addresses as
+				// having come from the first one.
+				s.addrManager.AddAddresses(addrs, addrs[0])
+			})
+	}
+	go s.connManager.Start()
+}
+</code></pre>
+
+<h2 id="rpcserver启动顺序">rpcServer启动顺序</h2>
+
+<p><em>rpcServer.Start()函数实现位于rpcserver.go</em></p>
+
+<ol>
+<li>httpServer.serve() 监听rpc请求（支持http/websocket）</li>
+</ol>
+
+<pre><code class="language-go">// Start is used by server.go to start the rpc listener.
+func (s *rpcServer) Start() {
+	if atomic.AddInt32(&amp;s.started, 1) != 1 {
+		return
+	}
+
+	rpcsLog.Trace(&quot;Starting RPC server&quot;)
+	rpcServeMux := http.NewServeMux()
+	httpServer := &amp;http.Server{
+		Handler: rpcServeMux,
+
+		// Timeout connections which don't complete the initial
+		// handshake within the allowed timeframe.
+		ReadTimeout: time.Second * rpcAuthTimeoutSeconds,
+	}
+	rpcServeMux.HandleFunc(&quot;/&quot;, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(&quot;Connection&quot;, &quot;close&quot;)
+		w.Header().Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
+		r.Close = true
+
+		// Limit the number of connections to max allowed.
+		if s.limitConnections(w, r.RemoteAddr) {
+			return
+		}
+
+		// Keep track of the number of connected clients.
+		s.incrementClients()
+		defer s.decrementClients()
+		_, isAdmin, err := s.checkAuth(r, true)
+		if err != nil {
+			jsonAuthFail(w)
+			return
+		}
+
+		// Read and respond to the request.
+		s.jsonRPCRead(w, r, isAdmin)
+	})
+
+	// Websocket endpoint.
+	rpcServeMux.HandleFunc(&quot;/ws&quot;, func(w http.ResponseWriter, r *http.Request) {
+		authenticated, isAdmin, err := s.checkAuth(r, false)
+		if err != nil {
+			jsonAuthFail(w)
+			return
+		}
+
+		// Attempt to upgrade the connection to a websocket connection
+		// using the default size for read/write buffers.
+		ws, err := websocket.Upgrade(w, r, nil, 0, 0)
+		if err != nil {
+			if _, ok := err.(websocket.HandshakeError); !ok {
+				rpcsLog.Errorf(&quot;Unexpected websocket error: %v&quot;,
+					err)
+			}
+			http.Error(w, &quot;400 Bad Request.&quot;, http.StatusBadRequest)
+			return
+		}
+		s.WebsocketHandler(ws, r.RemoteAddr, authenticated, isAdmin)
+	})
+
+	for _, listener := range s.cfg.Listeners {
+		s.wg.Add(1)
+		go func(listener net.Listener) {
+			rpcsLog.Infof(&quot;RPC server listening on %s&quot;, listener.Addr())
+			httpServer.Serve(listener)
+			rpcsLog.Tracef(&quot;RPC listener done for %s&quot;, listener.Addr())
+			s.wg.Done()
+		}(listener)
+	}
+
+	s.ntfnMgr.Start()
+}
+</code></pre>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+            </div>
+            <div class="nav-next">
+                
+                <a class="next" href="https://tpkeeper.github.io/btcd-src-addrmanager/"> btcd 源码分析系列：2 - addrmanager</a>
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li><li class="cat-item cat-item-2">
+                <a href="/categories/hd-wallet-%e7%b3%bb%e5%88%97">HD Wallet 系列 (1)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;<a class="tag-cloud-link" href="/tags/hd-wallet" title="hd-wallet" style="font-size: 12pt;">HD Wallet</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/hd-wallet-overview/">HD Wallet 系列：概述</a>
+            </li>
+            <li>
+                <a href="/btcd-src-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-src-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd-src-wire/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-src-peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-src-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-src-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>

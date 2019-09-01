@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HD Wallet 系列 on 大远的博客</title>
+    <link>https://tpkeeper.github.io/categories/hd-wallet-%E7%B3%BB%E5%88%97/</link>
+    <description>Recent content in HD Wallet 系列 on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 31 Aug 2019 17:04:19 +0800</lastBuildDate>
+    
+	<atom:link href="https://tpkeeper.github.io/categories/hd-wallet-%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>HD Wallet 系列：概述</title>
+      <link>https://tpkeeper.github.io/hd-wallet-overview/</link>
+      <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>https://tpkeeper.github.io/hd-wallet-overview/</guid>
+      <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 主要涉及到的bip协议： 1. bip32 hd 钱包核心提案，定义分层概念和算法 bip39 定义助记词种子转换规则 bip44 定义 5 层路径规则 bip45 定义多签地址生成规则 在该系列文章中，我将对上述协议分别展开讨论与分析，并且在最后会通过代码示例来帮助我们更好的理</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+    <title>btcd 源码分析系列：2 - addrmanager - 大远的博客</title>
+
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/style.css' type='text/css' media='all' />
+    <link rel='stylesheet' href='https://tpkeeper.github.io/css/custom.css' type='text/css' media='all' />
+        
+</head>
+    <body class="two-column">
+        <a href="#content">Skip to content</a>
+<div class="wrapper">
+    <header role="banner" class="banner widgets columns-1">
+        <a href="/" rel="home">
+            <h1 class="site">大远的博客</h1>
+            <p></p>
+        </a>
+        <nav role="navigation" aria-label="Primary Navigation">
+
+            <ul class="menu">
+                <li class="menu-item "><a class="menu__link" href="/about/">ABOUT</a></li>
+            </ul>
+            <select onChange="location.href=value;">
+                <option value="/about/" class="menu-item menu-item-type-custom menu-item-object-custom" >ABOUT</option>
+            </select>
+        </nav>
+    </header>
+
+    <br>
+    <div style="width: 100%; max-height: 100px; text-align: center;">
+       
+</div>
+
+    <div class="breadcrumbs">
+        
+    </div>
+        <div id="content" class="content">
+
+<main role="main">
+    <article role="article" class="post type-post format-standard hentry">
+        <header class="post-header">
+            <h1>btcd 源码分析系列：2 - addrmanager</h1>
+            <div class="post-details">
+                <a rel="bookmark">
+                    <time datetime="2019-08-30T830:53:296">2019-08-30</time>
+                </a>
+				
+<span style="float: right;">
+    <div id="fb-root" style="height: 100%;"></div>
+    
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.2"></script>
+    
+    <div class="fb-share-button" data-href="https://tpkeeper.github.io/btcd-src-addrmanager/" data-layout="button_count" data-size="small">
+        <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2ftpkeeper.github.io%2fbtcd-src-addrmanager%2f" class="fb-xfbml-parse-ignore">Share</a>
+    </div>
+    &nbsp;
+    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-text="btcd 源码分析系列：2 - addrmanager" data-url="https://tpkeeper.github.io/btcd-src-addrmanager/" data-show-count="false">Tweet</a>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    &nbsp;
+    
+</span>
+
+            </div>
+        </header>
+
+        <div class="post-content">
+            
+
+<blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/addrmgr">btcd</a></p>
+</blockquote>
+
+<ul>
+<li>addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改</li>
+<li>通过存储json序列化后的数据到本地文件实现持久化</li>
+<li>btc启动的时候，会读取该json文件，将保存的节点信息读取到内存中</li>
+<li>btc运行的过程中，每过一段时间（十分钟）就持久化一次，以备下次启动时使用</li>
+<li>btc退出时，会再次持久化一次</li>
+</ul>
+
+<h2 id="一-创建addrmanager对象">一、创建addrmanager对象</h2>
+
+<pre><code class="language-go">// New returns a new bitcoin address manager.
+// Use Start to begin processing asynchronous address updates.
+func New(dataDir string, lookupFunc func(string) ([]net.IP, error)) *AddrManager {
+	am := AddrManager{
+		peersFile:      filepath.Join(dataDir, &quot;peers.json&quot;),
+		lookupFunc:     lookupFunc,
+		rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		quit:           make(chan struct{}),
+		localAddresses: make(map[string]*localAddress),
+		version:        serialisationVersion,
+	}
+	am.reset()
+	return &amp;am
+}
+</code></pre>
+
+<h2 id="二-启动">二、启动</h2>
+
+<ul>
+<li>通过started字段保证一个addrManager只能start一次</li>
+<li>loadPeers()就是读取硬盘上保存的peer信息到内存中</li>
+
+<li><p>addressHander 启动一个协程处理周期性的持久化和</p>
+
+<pre><code class="language-go">// Start begins the core address handler which manages a pool of known
+// addresses, timeouts, and interval based writes.
+func (a *AddrManager) Start() {
+    // Already started?
+    if atomic.AddInt32(&amp;a.started, 1) != 1 {
+        return
+    }
+
+    log.Trace(&quot;Starting address manager&quot;)
+
+    // Load peers we already know about from file.
+    a.loadPeers()
+
+    // Start the address ticker to save addresses periodically.
+    a.wg.Add(1)
+    go a.addressHandler()
+}
+</code></pre>
+
+<h2 id="三-停止">三、停止</h2>
+
+<ul>
+<li>stop的时候通过close channel 通知并等待子协程（处理持久化任务）的退出</li>
+</ul>
+
+<pre><code class="language-go">// Stop gracefully shuts down the address manager by stopping the main handler.
+func (a *AddrManager) Stop() error {
+    if atomic.AddInt32(&amp;a.shutdown, 1) != 1 {
+        log.Warnf(&quot;Address manager is already in the process of &quot; +
+            &quot;shutting down&quot;)
+        return nil
+    }
+
+    log.Infof(&quot;Address manager shutting down&quot;)
+    close(a.quit)
+    a.wg.Wait()
+    return nil
+}
+
+// addressHandler is the main handler for the address manager.  It must be run
+// as a goroutine.
+func (a *AddrManager) addressHandler() {
+    dumpAddressTicker := time.NewTicker(dumpAddressInterval)
+    defer dumpAddressTicker.Stop()
+out:
+    for {
+        select {
+        case &lt;-dumpAddressTicker.C:
+            a.savePeers()
+
+        case &lt;-a.quit:
+            break out
+        }
+    }
+    a.savePeers()
+    a.wg.Done()
+    log.Trace(&quot;Address handler done&quot;)
+}
+</code></pre></li>
+</ul>
+
+<h2 id="四-获取地址">四、获取地址</h2>
+
+<ul>
+<li>用了自己的随机算法选取部分地址返回</li>
+
+<li><p>这个随机算法简单的说就是，先根据百分比确定返回的数量max，然后选中第i个，并与i-n之间的随机一个交换，i从0依次递增到max-1，这样一共选出来max个</p>
+
+<pre><code class="language-go">// AddressCache returns the current address cache.  It must be treated as
+// read-only (but since it is a copy now, this is not as dangerous).
+func (a *AddrManager) AddressCache() []*wire.NetAddress {
+    allAddr := a.getAddresses()
+
+    numAddresses := len(allAddr) * getAddrPercent / 100
+    if numAddresses &gt; getAddrMax {
+        numAddresses = getAddrMax
+    }
+
+    // Fisher-Yates shuffle the array. We only need to do the first
+    // `numAddresses' since we are throwing the rest.
+    for i := 0; i &lt; numAddresses; i++ {
+        // pick a number between current index and the end
+        j := rand.Intn(len(allAddr)-i) + i
+        allAddr[i], allAddr[j] = allAddr[j], allAddr[i]
+    }
+
+    // slice off the limit we are willing to share.
+    return allAddr[0:numAddresses]
+}
+
+</code></pre></li>
+</ul>
+
+        </div>
+
+        <footer class="post-footer">
+            
+            <span class="post-categories">
+                
+                <a href="https://tpkeeper.github.io/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90" rel="tag">btcd 源码分析</a>
+                
+            </span>
+            
+
+            
+            <span class="post-tags">
+                
+                <a href="https://tpkeeper.github.io/tags/btcd" rel="tag">btcd</a>&emsp;
+                
+            </span>
+            
+        </footer>
+        
+<table cellspacing="15" style="width:100%; border: none;">
+    <tr>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+        <td style="text-align: center; border: none; padding: 0px;">
+        </td>
+    </tr>
+</table>
+
+        
+	
+	
+	<h4>Related Posts</h4>
+	<ol style="margin-left: 30px; list-style-type: decimal;">
+		
+		<li><strong><a href="/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a></strong></li>
+		
+	</ol>
+	
+
+    </article>
+
+    
+    <nav class="navigation post-navigation" role="navigation">
+        <div class="nav-links">
+            <div class="nav-previous">
+                
+                <a class="previous" href="https://tpkeeper.github.io/btcd-src-start/"> btcd 源码分析系列 - 1 - 启动分析</a>
+                
+            </div>
+            <div class="nav-next">
+                
+                <a class="next" href="https://tpkeeper.github.io/btcd-src-connmanager/"> btcd 源码分析系列：3 - connmanager</a>
+                
+            </div>
+        </div>
+    </nav>
+    <section>
+        
+    </section>
+    
+
+</main>
+
+
+        <div class="sidebar1 widgets columns-1">
+
+    <aside>
+    
+</aside>
+    <aside class="widget widget_categories">
+        <h2>Categories</h2>
+        <ul class="widget__list"><li class="cat-item cat-item-2">
+                <a href="/categories/btcd-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">btcd 源码分析 (7)</a>
+            </li><li class="cat-item cat-item-2">
+                <a href="/categories/hd-wallet-%e7%b3%bb%e5%88%97">HD Wallet 系列 (1)</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_tag_cloud">
+        <h2>Tags</h2>
+        <div class="tagcloud"><a class="tag-cloud-link" href="/tags/btcd" title="btcd" style="font-size: 12pt;">btcd</a>&emsp;<a class="tag-cloud-link" href="/tags/hd-wallet" title="hd-wallet" style="font-size: 12pt;">HD Wallet</a>&emsp;
+        </div>
+    </aside>
+
+    <aside class="widget widget_recent_entries">
+        <h2>Recent Posts</h2>
+        <ul>
+            <li>
+                <a href="/hd-wallet-overview/">HD Wallet 系列：概述</a>
+            </li>
+            <li>
+                <a href="/btcd-src-rpc/">btcd 源码分析系列：7 - rpc</a>
+            </li>
+            <li>
+                <a href="/btcd-src-mempool/">btcd 源码分析系列：6 - mempool</a>
+            </li>
+            <li>
+                <a href="/btcd-src-wire/">btcd源码分析系列：5 - p2p网络的消息协议</a>
+            </li>
+            <li>
+                <a href="/btcd-src-peer/">btcd 源码分析系列：4 - p2p网络的peer</a>
+            </li>
+            <li>
+                <a href="/btcd-src-connmanager/">btcd 源码分析系列：3 - connmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-src-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
+            </li>
+            <li>
+                <a href="/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a>
+            </li>
+        </ul>
+    </aside>
+
+    <aside class="widget widget_archive">
+        <h2>Archives</h2>
+        <ul>
+        </ul>
+    </aside>
+
+</div>
+        </div>
+        </div>
+<footer role="contentinfo" class="document-footer contentinfo widgets columns-1">
+
+    <aside class="widget widget_text">
+        <div class="textwidget">
+            <p>© 大远的博客 / Powered by <a href="https://gohugo.io" target="_blank">Hugo</a> with theme <a href="https://github.com/tosi29/inkblotty" target="_blank">Inkblotty</a></p>
+        </div>
+    </aside>
+</footer>
+</div>
+
+    </body>
+</html>
