@@ -5,7 +5,7 @@
     <link>https://tpkeeper.github.io/categories/hd-wallet-%E7%B3%BB%E5%88%97/</link>
     <description>Recent content in HD Wallet 系列 on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>zh-CN</language>
     <lastBuildDate>Sat, 31 Aug 2019 17:04:19 +0800</lastBuildDate>
     
 	<atom:link href="https://tpkeeper.github.io/categories/hd-wallet-%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
@@ -17,7 +17,12 @@
       <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
       
       <guid>https://tpkeeper.github.io/hd-wallet-overview/</guid>
-      <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系如下： 助记词与种子之间可以双向转换 种子公钥与地址之间只能单向 主要涉及到的bip协议： bip32 hd 钱包核心提案，定义分层概念和算法 bip39 定义助记词种子转换规则 bip44 定义 5 层路径规则 bip45 定义多签地址生成规则</description>
+      <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理
+ 助记词、种子、公钥、地址之间的关系如下：
+ 助记词与种子之间可以双向转换 种子公钥与地址之间只能单向  主要涉及到的bip协议：
+ bip32 hd 钱包核心提案，定义分层概念和算法
+ bip39 定义助记词种子转换规则
+ bip44 定义 5 层路径规则</description>
     </item>
     
   </channel>
