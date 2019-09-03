@@ -2,101 +2,96 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on 大远的博客</title>
-    <link>https://tpkeeper.github.io/post/</link>
+    <link>http://www.tpkeep.com/post/</link>
     <description>Recent content in Posts on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <lastBuildDate>Sat, 31 Aug 2019 17:04:19 +0800</lastBuildDate>
     
-	<atom:link href="https://tpkeeper.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://www.tpkeep.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>HD Wallet 系列：概述</title>
-      <link>https://tpkeeper.github.io/hd-wallet-overview/</link>
+      <link>http://www.tpkeep.com/post/hd-wallet-overview/</link>
       <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/hd-wallet-overview/</guid>
+      <guid>http://www.tpkeep.com/post/hd-wallet-overview/</guid>
       <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理
  助记词、种子、公钥、地址之间的关系如下：
  助记词与种子之间可以双向转换 种子公钥与地址之间只能单向  主要涉及到的bip协议：
- bip32 hd 钱包核心提案，定义分层概念和算法
- bip39 定义助记词种子转换规则
- bip44 定义 5 层路径规则</description>
+ bip32 hd 钱包核心提案，定义分层概念和算法</description>
     </item>
     
     <item>
       <title>btcd 源码分析系列：7 - rpc</title>
-      <link>https://tpkeeper.github.io/btcd-src-rpc/</link>
+      <link>http://www.tpkeep.com/blog/btcd-src-rpc/</link>
       <pubDate>Fri, 30 Aug 2019 17:04:40 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-rpc/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-rpc/</guid>
       <description>参考：btcd
-  btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求 http/websocket是传输协议，json是序列化协议。  一、start  启动一个server,监听路径&amp;rdquo;/&amp;ldquo;和&amp;rdquo;/ws&amp;rdquo;,分别对应http/websocket。 通过chedkAuth()函数认证，基于Basic authentication 通过limitConnections（）对单个地址的并发连接数量做限制
-rpcServeMux.HandleFunc(&amp;quot;/&amp;quot;, func(w http.</description>
+  btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求 http/websocket是传输协议，json是序列化协议。  一、start  启动一个server,监听路径&amp;rdquo;/&amp;ldquo;和&amp;rdquo;/ws&amp;rdquo;,分别对应http/websocket。 通过chedkAuth()函数认证，基于Basic authentication 通过limitConnections（）对单个地址的并发连接数量做限制</description>
     </item>
     
     <item>
       <title>btcd 源码分析系列：6 - mempool</title>
-      <link>https://tpkeeper.github.io/btcd-src-mempool/</link>
+      <link>http://www.tpkeep.com/blog/btcd-src-mempool/</link>
       <pubDate>Fri, 30 Aug 2019 17:04:31 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-mempool/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-mempool/</guid>
       <description>参考：btcd
   btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。 utxo和block index存储于leveldb中，而不是本文讨论的mempool 被插入之前要进行一系列的正确性验证（通过mabeAcceptTransaction）。 如果是orphan tx（即在main chain和mempool里找不到input的所属交易tx）会暂时插入到orphans pool（通过ProcessTransaction）。 当新的block连接到主链时，会把block中的tx从mempool中移除，相应的也会转移orphans pool中依赖此block的tx到mempool中（通过MabeAcceptTransaction） 当block从主链脱离时，会重新处理block里的tx(通过MabeAcceptTransaction)  一、创建mempool对象  在server被创建的时候调用此方法生成一个mempool对象 可以看到，pool用来存储正常的tx，orphans存储orphan tx</description>
     </item>
     
     <item>
       <title>btcd源码分析系列：5 - p2p网络的消息协议</title>
-      <link>https://tpkeeper.github.io/btcd-src-wire/</link>
+      <link>http://www.tpkeep.com/blog/btcd-src-wire/</link>
       <pubDate>Fri, 30 Aug 2019 17:04:19 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-wire/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-wire/</guid>
       <description>参考：protocol document 、btcd
-  协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc定义的协议有很多，包括p2p之间通信协议、交易认证协议、pow共识协议等等。本文主要分析p2p网络的消息协议及代码实现 btc 的p2p网络的传输层支持tcp、udp、onion，应用层使用的即是本文讨论的消息协议  一、Message 一次通信以message为单位，具体结构如上图： 代码实现：
-（1）通用接口定义 // Message is an interface that describes a bitcoin message.</description>
+  协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc定义的协议有很多，包括p2p之间通信协议、交易认证协议、pow共识协议等等。本文主要分析p2p网络的消息协议及代码实现 btc 的p2p网络的传输层支持tcp、udp、onion，应用层使用的即是本文讨论的消息协议  一、Message 一次通信以message为单位，具体结构如上图： 代码实现：</description>
     </item>
     
     <item>
       <title>btcd 源码分析系列：4 - p2p网络的peer</title>
-      <link>https://tpkeeper.github.io/btcd-src-peer/</link>
+      <link>http://www.tpkeep.com/blog/btcd-src-peer/</link>
       <pubDate>Fri, 30 Aug 2019 17:04:14 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-peer/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-peer/</guid>
       <description>参考：btcd
-  btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。  一、创建peer对象 peer具体分为两种： * inbound 当connmanager监听到其他节点的请求时创建 * outbound 当connmanager主动连接其他节点时创建 * 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化
-// NewInboundPeer returns a new inbound bitcoin peer.</description>
+  btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。  一、创建peer对象 peer具体分为两种： * inbound 当connmanager监听到其他节点的请求时创建 * outbound 当connmanager主动连接其他节点时创建 * 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</description>
     </item>
     
     <item>
       <title>btcd 源码分析系列：3 - connmanager</title>
-      <link>https://tpkeeper.github.io/btcd-src-connmanager/</link>
+      <link>http://www.tpkeep.com/blog/btcd-src-connmanager/</link>
       <pubDate>Fri, 30 Aug 2019 17:03:47 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-connmanager/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-connmanager/</guid>
       <description>参考：btcd
   connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理，实际上这些回调函数是由server实现的，它们会根据conn生成对应的peer，交由peer处理之后的逻辑 默认outbound peer数量为8 节点发现  address database （第一次启动时为空） -addnode -connect (手动) dns seed （通过dns获取addr） hard-coded seeds（代码中的seed） getaddr from other peers （通过其他节点同步）   一、创建connmanager对象  主要是根据传入的config结构体参数返回一个指针，config结构体主要 包含一些回调方法和[]listener,这样便于灵活实现和调用  // New returns a new connection manager.</description>
     </item>
     
     <item>
-      <title>btcd 源码分析系列：2 - addrmanager</title>
-      <link>https://tpkeeper.github.io/btcd-src-addrmanager/</link>
-      <pubDate>Fri, 30 Aug 2019 17:03:29 +0800</pubDate>
+      <title>btcd 源码分析系列 - 1 - 启动分析</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-start/</link>
+      <pubDate>Fri, 30 Aug 2019 13:56:08 +0800</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-addrmanager/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-start/</guid>
       <description>参考：btcd
-  addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读取该json文件，将保存的节点信息读取到内存中 btc运行的过程中，每过一段时间（十分钟）就持久化一次，以备下次启动时使用 btc退出时，会再次持久化一次  一、创建addrmanager对象 // New returns a new bitcoin address manager.</description>
+ 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等）
+ loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.</description>
     </item>
     
     <item>
-      <title>btcd 源码分析系列 - 1 - 启动分析</title>
-      <link>https://tpkeeper.github.io/btcd-src-start/</link>
-      <pubDate>Fri, 30 Aug 2019 13:56:08 +0800</pubDate>
+      <title>btcd 源码分析系列：2 - addrmanager</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-addrmanager/</link>
+      <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://tpkeeper.github.io/btcd-src-start/</guid>
+      <guid>http://www.tpkeep.com/blog/btcd-src-addrmanager/</guid>
       <description>参考：btcd
- 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等）
- loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.start() 启动server  func btcdMain(serverChan chan&amp;lt;- *server) error { // Load configuration and parse command line.</description>
+  addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读取该json文件，将保存的节点信息读取到内存中 btc运行的过程中，每过一段时间（十分钟）就持久化一次，以备下次启动时使用 btc退出时，会再次持久化一次  一、创建addrmanager对象 // New returns a new bitcoin address manager.</description>
     </item>
     
   </channel>
