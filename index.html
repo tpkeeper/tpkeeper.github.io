@@ -82,7 +82,7 @@
                             
                             <div class="post-content">
                                 参考 bip39
-  定义了助记词的生成规则 定义了由助记词导出种子的规则 定义了助记词 wordlist，目前包含7种语言，每种 2048个单词 助记词到种子的推导是单向的  助记词的生成  产生一个随机数作为熵 entropy，长度为 128-256 bits，必须为 32 bits 的整数倍 然后在 entropy 尾部 append 校验位，校验位即entropy 的 sha256 的前几位，位数如下：     entropy checksum entropy+checksum mnemonic     128 4 132 12   160 5 165 15   192 6 198 18   224 7 231 21   256 8 264 24     然后 将 entropy+checksum 按 11 bits 分组，每组 11bits，大小为 0 ~ 2^11-1 即 0 ~ 2047，刚好映射 wordlist 里的单词 单词以空格隔开转换为字符串  助记词生成种子  准备： 参数 1 作为密码：助记词字符串 参数 2 作为盐：&rdquo;mnemonic&rdquo;+passphrase（可选的）， 参数 3 作为循环次数： 2048 ， 参数 4 作为 hash 函数：HMAC-SHA512 参数 5 作为派生key长度：512bits……
+  定义了助记词的生成规则 定义了由助记词导出种子的规则 定义了助记词 wordlist，目前包含7种语言，每种 2048个单词 助记词到种子的推导是单向的  一、助记词的生成  产生一个随机数作为熵 entropy，长度为 128-256 bits，必须为 32 bits 的整数倍 然后在 entropy 尾部 append 校验位，校验位即entropy 的 sha256 的前几位，位数如下：     entropy checksum entropy+checksum mnemonic     128 4 132 12   160 5 165 15   192 6 198 18   224 7 231 21   256 8 264 24     然后 将 entropy+checksum 按 11 bits 分组，每组 11bits，大小为 0 ~ 2^11-1 即 0 ~ 2047，刚好映射 wordlist 里的单词 单词以空格隔开转换为字符串  二、助记词生成种子  准备： 参数 1 作为密码：助记词字符串 参数 2 作为盐：&rdquo;mnemonic&rdquo;+passphrase（可选的）， 参数 3 作为循环次数： 2048 ， 参数 4 作为 hash 函数：HMAC-SHA512 参数 5 作为派生key长度：512bits……
                             </div>
                             <p class="readmore"><a href="http://www.tpkeep.com/blog/hd-wallet-mnemonic/">阅读全文</a></p>
                         </article>
@@ -111,6 +111,30 @@
  bip32 hd 钱包核心提案，定义分层概念和算法……
                             </div>
                             <p class="readmore"><a href="http://www.tpkeep.com/blog/hd-wallet-overview/">阅读全文</a></p>
+                        </article>
+                    
+                        <article class="post">
+                            <header>
+                                <h1 class="post-title">
+                                    <a href="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/" title="HD Wallet 系列：种子与公钥" >HD Wallet 系列：种子与公钥</a>
+                                </h1>
+                            </header>
+                            <date class="post-meta meta-date">
+                                2019年8月31日
+                            </date>
+                            
+                            <div class="post-meta">
+                                <span>|</span>
+                                
+                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97">HD Wallet 系列</a></span>
+                                
+                            </div>
+                            
+                            <div class="post-content">
+                                参考 bip32、bip44
+  定义了种子生成树状密钥对的算法与规则 定义了5层路径规则，可兼容多账号多币种  一、密钥扩展算法 1.……
+                            </div>
+                            <p class="readmore"><a href="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/">阅读全文</a></p>
                         </article>
                     
                         <article class="post">
@@ -274,33 +298,29 @@
                             <p class="readmore"><a href="http://www.tpkeep.com/about/">阅读全文</a></p>
                         </article>
                     
-                        <article class="post">
-                            <header>
-                                <h1 class="post-title">
-                                    <a href="http://www.tpkeep.com/blog/btcd-src-addrmanager/" title="btcd 源码分析系列：2 - addrmanager" >btcd 源码分析系列：2 - addrmanager</a>
-                                </h1>
-                            </header>
-                            <date class="post-meta meta-date">
-                                2019年8月30日
-                            </date>
-                            
-                            <div class="post-meta">
-                                <span>|</span>
-                                
-                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">btcd 源码分析</a></span>
-                                
-                            </div>
-                            
-                            <div class="post-content">
-                                参考：btcd
-  addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读取该json文件，将保存的节点信息读取到内存中 btc运行的过程中，每过一段时间（十分钟）就持久化一次，以备下次启动时使用 btc退出时，会再次持久化一次  一、创建addrmanager对象 // New returns a new bitcoin address manager.……
-                            </div>
-                            <p class="readmore"><a href="http://www.tpkeep.com/blog/btcd-src-addrmanager/">阅读全文</a></p>
-                        </article>
-                    
                     
 
 
+
+<ol class="page-navigator">
+    
+
+    
+    <li  class="current">
+        <a href="http://www.tpkeep.com/">1</a>
+    </li>
+    
+    <li >
+        <a href="http://www.tpkeep.com/page/2/">2</a>
+    </li>
+    
+
+    
+    <li class="next">
+        <a href="http://www.tpkeep.com/page/2/">下一页</a>
+    </li>
+    
+</ol>
 
 
 
@@ -327,6 +347,10 @@
     
     <li>
         <a href="http://www.tpkeep.com/blog/hd-wallet-overview/" title="HD Wallet 系列：概述">HD Wallet 系列：概述</a>
+    </li>
+    
+    <li>
+        <a href="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/" title="HD Wallet 系列：种子与公钥">HD Wallet 系列：种子与公钥</a>
     </li>
     
     <li>
@@ -371,7 +395,7 @@
     </li>
     
     <li>
-        <a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97/">hd-wallet-系列(2)</a>
+        <a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97/">hd-wallet-系列(3)</a>
     </li>
     
 </ul>

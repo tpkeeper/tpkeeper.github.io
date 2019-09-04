@@ -64,6 +64,116 @@
 
 <div id="body">
         
+        <div id="virtual_toc_list" style="display: none">
+            <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#一-助记词的生成">一、助记词的生成</a></li>
+<li><a href="#二-助记词生成种子">二、助记词生成种子</a></li>
+<li><a href="#三-代码实战">三、代码实战</a></li>
+</ul></li>
+</ul>
+</nav>
+        </div>
+        <div id="float_toc_div" style="margin: 10px;border: 1px solid gray;z-index:99999;display: none;">
+            <header style="background-color: #f3f3f3;color: black;border-bottom: 1px solid gray;padding: 10px 10px 10px 10px;">
+                <strong id="toc_btn_open" style="color: black;font-size: large;">目录</strong>
+                <strong id="toc_btn_close" style="color: black;font-size: large;float: right">╳</strong>
+            </header>
+            <div id="toc_list" style="background-color: #f3f3f3;color: black;padding: 10px;">
+        
+            </div>
+        </div>
+        <style type="text/css">
+            #float_toc_div {
+                position: fixed;
+                display: none;
+                 
+                height: auto;
+                font-size: 13px;
+            }
+        
+            #toc_list a:hover,
+            #toc_list a:active {
+                color: #ba3925;
+            }
+        </style>
+        <script>
+            window.onload = function () {
+                let tocNavElem = document.getElementById("TableOfContents");
+                let floatTocDivElem = document.getElementById("float_toc_div");
+                let tocListElem = floatTocDivElem.getElementsByTagName('div')[0];
+                let colGroupElem = document.getElementById("body").getElementsByClassName("col-group")[0]
+                let floatTocWidth = (document.body.clientWidth - colGroupElem.offsetWidth) / 2 - 16;
+                var useFloatToc = false;
+
+                if (floatTocWidth >= 100) {
+                    useFloatToc = true;
+                    document.getElementById("toc_list").appendChild(tocNavElem);
+                    floatTocDivElem.style.display = 'block';
+                    floatTocDivElem.style.width = floatTocWidth + 'px';
+                    top();
+                    floatTocDivElem.style.left = '0px';
+
+                    function top() {
+                        if (document.getElementsByClassName('container')[0].offsetWidth <= 720) {
+                            floatTocDivElem.style.top = '0px';
+                        } else {
+                            floatTocDivElem.style.top = window.innerHeight / 9 + 'px';
+                        }
+                    }
+
+                    function ishide() {
+                        if (document.getElementsByClassName('container')[0].offsetWidth <= 720) {
+                            floatTocDivElem.style.top = '0px';
+                        } else {
+                            floatTocDivElem.style.display = 'block';
+                        }
+                    }
+
+                    window.onscroll = function () {
+                        ishide();
+                        if ((document.documentElement.scrollTop != 0) && (floatTocDivElem.style.display == 'block')) {
+                            top();
+                        }
+                    };
+
+                    window.onresize = function () {
+                        ishide();
+                    }
+
+                    document.getElementById("toc_btn_open").addEventListener('click', function () {
+                        switch (tocListElem.style.display) {
+                            case "none":
+                                document.getElementById("toc_btn_close").style.display = "";
+                                tocListElem.style.display = "";
+                                floatTocDivElem.getElementsByTagName("header")[0].style.borderBottom = "1px solid gray";
+                                break;
+                            default:
+                                break;
+                        }
+                    }, false);
+
+                    document.getElementById("toc_btn_close").addEventListener('click', function () {
+                        switch (tocListElem.style.display) {
+                            case "":
+                                document.getElementById("toc_btn_close").style.display = "none";
+                                tocListElem.style.display = "none";
+                                floatTocDivElem.getElementsByTagName("header")[0].style.borderBottom = "";
+                                break;
+                            default:
+                                break;
+                        }
+                    }, false);
+                } else {
+                    let fixedTocElem = document.getElementsByClassName("toc-article")[0];
+                    fixedTocElem.appendChild(tocNavElem);
+                    fixedTocElem.parentElement.style.display = "";
+                }
+                document.getElementById("virtual_toc_list").remove();
+            };   
+        </script>
         
     <div class="container">
         <div class="col-group">
@@ -91,6 +201,12 @@
                         </div>
                         
                         
+                        <div class="clear" style="display: none">
+                            <div class="toc-article">
+                                <div class="toc-title">文章目录</div>
+                            </div>
+                        </div>
+                        
                         <div class="post-content">
                             
 
@@ -105,7 +221,7 @@
 <li>助记词到种子的推导是单向的</li>
 </ul>
 
-<h2 id="助记词的生成">助记词的生成</h2>
+<h2 id="一-助记词的生成">一、助记词的生成</h2>
 
 <ol>
 <li>产生一个随机数作为熵 entropy，长度为 128-256 bits，必须为 32 bits 的整数倍</li>
@@ -165,7 +281,7 @@
 <li>单词以空格隔开转换为字符串</li>
 </ol>
 
-<h2 id="助记词生成种子">助记词生成种子</h2>
+<h2 id="二-助记词生成种子">二、助记词生成种子</h2>
 
 <ol>
 <li><p>准备：
@@ -177,6 +293,32 @@
 
 <li><p>将参数传入 PBKDF2 函数，得到 512 bits 的 seeds</p></li>
 </ol>
+
+<h2 id="三-代码实战">三、代码实战</h2>
+
+<p>代码参考：<a href="https://github.com/tpkeeper/addrtool/blob/master/mnemonic_test.go">https://github.com/tpkeeper/addrtool/blob/master/mnemonic_test.go</a></p>
+
+<pre><code class="language-go">func TestGenMnemonic(t *testing.T) {
+    //生成熵
+    entropyBytes,_:=bip39.NewEntropy(128)
+    t.Log(&quot;entropyBytes：&quot;,entropyBytes)
+
+    //生成助记词
+    mnemonic,_:=bip39.NewMnemonic(entropyBytes)
+    t.Log(&quot;mnemonic：&quot;,mnemonic)
+}
+func TestMnemonicToSeed(t *testing.T) {
+    mnemonic :=&quot;chef fiction deputy stage pudding pink skirt often decade drift music loop&quot;
+    //助记词生成种子 password 为空
+    seed:=bip39.NewSeed(mnemonic,&quot;&quot;)
+    t.Log(&quot;seed：&quot;,hex.EncodeToString(seed))
+}
+
+//output:
+//entropyBytes： [158 45 139 248 16 245 71 178 223 231 241 118 0 211 244 134]
+//mnemonic： owner hobby wrap capable federal sunny legend wreck invite alley wood aspect
+//seed： 04ef53d66b17fdfb6538c5d183f0b0569fc1c79d07f044f7670c3038aff411e5abcbe8c457b584d0c1e3504ab94fb311f9097a793c20dfc746a87087ed5dc119
+</code></pre>
 
                         </div>
 
@@ -200,13 +342,13 @@
         
         <li><a href="/blog/hd-wallet-overview/">HD Wallet 系列：概述</a></li>
         
+        <li><a href="/blog/hd-wallet-seedtopubkey/">HD Wallet 系列：种子与公钥</a></li>
+        
         <li><a href="/blog/btcd-src-rpc/">btcd 源码分析系列：7 - rpc</a></li>
         
         <li><a href="/blog/btcd-src-mempool/">btcd 源码分析系列：6 - mempool</a></li>
         
         <li><a href="/blog/btcd-src-wire/">btcd源码分析系列：5 - p2p网络的消息协议</a></li>
-        
-        <li><a href="/blog/btcd-src-peer/">btcd 源码分析系列：4 - p2p网络的peer</a></li>
         
     </ul>
 </div>
@@ -252,6 +394,10 @@
     </li>
     
     <li>
+        <a href="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/" title="HD Wallet 系列：种子与公钥">HD Wallet 系列：种子与公钥</a>
+    </li>
+    
+    <li>
         <a href="http://www.tpkeep.com/blog/btcd-src-rpc/" title="btcd 源码分析系列：7 - rpc">btcd 源码分析系列：7 - rpc</a>
     </li>
     
@@ -293,7 +439,7 @@
     </li>
     
     <li>
-        <a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97/">hd-wallet-系列(2)</a>
+        <a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97/">hd-wallet-系列(3)</a>
     </li>
     
 </ul>

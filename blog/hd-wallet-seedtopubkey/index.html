@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>btcd 源码分析系列：4 - p2p网络的peer | 大远的思维时空</title>
-    <meta property="og:title" content="btcd 源码分析系列：4 - p2p网络的peer - 大远的思维时空">
+    <title>HD Wallet 系列：种子与公钥 | 大远的思维时空</title>
+    <meta property="og:title" content="HD Wallet 系列：种子与公钥 - 大远的思维时空">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-08-30T17:04:14&#43;08:00">
+    <meta property="article:published_time" content="2019-08-31T17:04:19&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2019-08-30T17:04:14&#43;08:00">
+    <meta property="article:modified_time" content="2019-08-31T17:04:19&#43;08:00">
         
     <meta name="Keywords" content="大远,golang,btcd,区块链,hd wallet,加密与解密">
-    <meta name="description" content="btcd 源码分析系列：4 - p2p网络的peer">
+    <meta name="description" content="HD Wallet 系列：种子与公钥">
         
     <meta name="author" content="大远">
-    <meta property="og:url" content="http://www.tpkeep.com/blog/btcd-src-peer/">
+    <meta property="og:url" content="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -69,11 +69,18 @@
 <ul>
 <li>
 <ul>
-<li><a href="#一-创建peer对象">一、创建peer对象</a></li>
-<li><a href="#二-启动peer">二、启动peer</a></li>
-<li><a href="#三-交换协议version-inbound端">三、交换协议version（inbound端）</a></li>
-<li><a href="#发送消息">发送消息</a></li>
-<li><a href="#接收消息">接收消息</a></li>
+<li><a href="#一-密钥扩展算法">一、密钥扩展算法</a>
+<ul>
+<li><a href="#1-概念">1. 概念</a></li>
+<li><a href="#2-可生成的规则">2. 可生成的规则：</a></li>
+<li><a href="#3-具体过程">3. 具体过程</a></li>
+</ul></li>
+<li><a href="#二-5层路径规则">二、5层路径规则</a>
+<ul>
+<li><a href="#1-路径含义">1. 路径含义</a></li>
+<li><a href="#2-获取公钥">2. 获取公钥</a></li>
+</ul></li>
+<li><a href="#三-代码实战">三、代码实战</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -184,16 +191,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">btcd 源码分析系列：4 - p2p网络的peer</h1>
+                            <h1 class="post-title">HD Wallet 系列：种子与公钥</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2019年8月30日
+                            2019年8月31日
                         </date>
                         
                         <div class="post-meta">
                             <span>|</span>
                             
-                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">btcd 源码分析</a></span>
+                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97">HD Wallet 系列</a></span>
                             
                         </div>
                         
@@ -213,421 +220,101 @@
                             
 
 <blockquote>
-<p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/peer">btcd</a></p>
+<p>参考 <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a>、<a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">bip44</a></p>
 </blockquote>
 
 <ul>
-<li>btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。</li>
+<li>定义了种子生成树状密钥对的算法与规则</li>
+<li>定义了5层路径规则，可兼容多账号多币种</li>
 </ul>
 
-<h2 id="一-创建peer对象">一、创建peer对象</h2>
+<h2 id="一-密钥扩展算法">一、密钥扩展算法</h2>
 
-<p>peer具体分为两种：
-* inbound 当connmanager监听到其他节点的请求时创建
-* outbound 当connmanager主动连接其他节点时创建
-* 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</p>
-
-<pre><code class="language-go">// NewInboundPeer returns a new inbound bitcoin peer. Use Start to begin
-// processing incoming and outgoing messages.
-func NewInboundPeer(cfg *Config) *Peer {
-	return newPeerBase(cfg, true)
-}
-
-// NewOutboundPeer returns a new outbound bitcoin peer.
-func NewOutboundPeer(cfg *Config, addr string) (*Peer, error) {
-	p := newPeerBase(cfg, false)
-	p.addr = addr
-
-	host, portStr, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	port, err := strconv.ParseUint(portStr, 10, 16)
-	if err != nil {
-		return nil, err
-	}
-
-	if cfg.HostToNetAddress != nil {
-		na, err := cfg.HostToNetAddress(host, uint16(port), 0)
-		if err != nil {
-			return nil, err
-		}
-		p.na = na
-	} else {
-		p.na = wire.NewNetAddressIPPort(net.ParseIP(host), uint16(port), 0)
-	}
-
-	return p, nil
-}
-
-
-// newPeerBase returns a new base bitcoin peer based on the inbound flag.  This
-// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
-// setup needed by both types of peers.
-func newPeerBase(origCfg *Config, inbound bool) *Peer {
-	// Default to the max supported protocol version if not specified by the
-	// caller.
-	cfg := *origCfg // Copy to avoid mutating caller.
-	if cfg.ProtocolVersion == 0 {
-		cfg.ProtocolVersion = MaxProtocolVersion
-	}
-
-	// Set the chain parameters to testnet if the caller did not specify any.
-	if cfg.ChainParams == nil {
-		cfg.ChainParams = &amp;chaincfg.TestNet3Params
-	}
-
-	// Set the trickle interval if a non-positive value is specified.
-	if cfg.TrickleInterval &lt;= 0 {
-		cfg.TrickleInterval = DefaultTrickleInterval
-	}
-
-	p := Peer{
-		inbound:         inbound,
-		wireEncoding:    wire.BaseEncoding,
-		knownInventory:  newMruInventoryMap(maxKnownInventory),
-		stallControl:    make(chan stallControlMsg, 1), // nonblocking sync
-		outputQueue:     make(chan outMsg, outputBufferSize),
-		sendQueue:       make(chan outMsg, 1),   // nonblocking sync
-		sendDoneQueue:   make(chan struct{}, 1), // nonblocking sync
-		outputInvChan:   make(chan *wire.InvVect, outputBufferSize),
-		inQuit:          make(chan struct{}),
-		queueQuit:       make(chan struct{}),
-		outQuit:         make(chan struct{}),
-		quit:            make(chan struct{}),
-		cfg:             cfg, // Copy so caller can't mutate.
-		services:        cfg.Services,
-		protocolVersion: cfg.ProtocolVersion,
-	}
-	return &amp;p
-}
-
-</code></pre>
-
-<h2 id="二-启动peer">二、启动peer</h2>
-
-<p>启动顺序
-1. 通过versionMsg交换协议版本，进行protocol version判断（如果是outbound先发送自己的version再读取对方的，如果是inbound则反之）
-2. 如果version握手成功，启动其他handler goroutine
-    * p.stallHandler() 处理消息超时
-    * p.inHandler() 处理接收的消息
-    * p.queueHandler() 处理消息发送队列
-    * p.outHandler() 处理发送的消息
-    * p.pingHandler() 发送周期心跳
-3. 最后发送verAck确认，完成握手</p>
-
-<pre><code class="language-go">// start begins processing input and output messages.
-func (p *Peer) start() error {
-	log.Tracef(&quot;Starting peer %s&quot;, p)
-
-	negotiateErr := make(chan error, 1)
-	go func() {
-		if p.inbound {
-			negotiateErr &lt;- p.negotiateInboundProtocol()
-		} else {
-			negotiateErr &lt;- p.negotiateOutboundProtocol()
-		}
-	}()
-
-	// Negotiate the protocol within the specified negotiateTimeout.
-	select {
-	case err := &lt;-negotiateErr:
-		if err != nil {
-			p.Disconnect()
-			return err
-		}
-	case &lt;-time.After(negotiateTimeout):
-		p.Disconnect()
-		return errors.New(&quot;protocol negotiation timeout&quot;)
-	}
-	log.Debugf(&quot;Connected to %s&quot;, p.Addr())
-
-	// The protocol has been negotiated successfully so start processing input
-	// and output messages.
-	go p.stallHandler()
-	go p.inHandler()
-	go p.queueHandler()
-	go p.outHandler()
-	go p.pingHandler()
-
-	// Send our verack message now that the IO processing machinery has started.
-	p.QueueMessage(wire.NewMsgVerAck(), nil)
-	return nil
-}
-</code></pre>
-
-<h2 id="三-交换协议version-inbound端">三、交换协议version（inbound端）</h2>
-
-<p>主要流程：
-* 读取接收的协议
-* 发送自己的协议</p>
-
-<p>检测协议过程：
-* 检测nonce（防止跟自己建立连接）
-* 填充peer的基础信息（block高度，id，代理、services，address等）
-* 回调onVersion()方法
-* 判断版本是否符合要求</p>
-
-<pre><code class="language-go">// negotiateInboundProtocol waits to receive a version message from the peer
-// then sends our version message. If the events do not occur in that order then
-// it returns an error.
-func (p *Peer) negotiateInboundProtocol() error {
-	if err := p.readRemoteVersionMsg(); err != nil {
-		return err
-	}
-
-	return p.writeLocalVersionMsg()
-}
-
-
-// readRemoteVersionMsg waits for the next message to arrive from the remote
-// peer.  If the next message is not a version message or the version is not
-// acceptable then return an error.
-func (p *Peer) readRemoteVersionMsg() error {
-	// Read their version message.
-	remoteMsg, _, err := p.readMessage(wire.LatestEncoding)
-	if err != nil {
-		return err
-	}
-
-	// Notify and disconnect clients if the first message is not a version
-	// message.
-	msg, ok := remoteMsg.(*wire.MsgVersion)
-	if !ok {
-		reason := &quot;a version message must precede all others&quot;
-		rejectMsg := wire.NewMsgReject(msg.Command(), wire.RejectMalformed,
-			reason)
-		_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
-		return errors.New(reason)
-	}
-
-	// Detect self connections.
-	if !allowSelfConns &amp;&amp; sentNonces.Exists(msg.Nonce) {
-		return errors.New(&quot;disconnecting peer connected to self&quot;)
-	}
-
-	// Negotiate the protocol version and set the services to what the remote
-	// peer advertised.
-	p.flagsMtx.Lock()
-	p.advertisedProtoVer = uint32(msg.ProtocolVersion)
-	p.protocolVersion = minUint32(p.protocolVersion, p.advertisedProtoVer)
-	p.versionKnown = true
-	p.services = msg.Services
-	p.flagsMtx.Unlock()
-	log.Debugf(&quot;Negotiated protocol version %d for peer %s&quot;,
-		p.protocolVersion, p)
-
-	// Updating a bunch of stats including block based stats, and the
-	// peer's time offset.
-	p.statsMtx.Lock()
-	p.lastBlock = msg.LastBlock
-	p.startingHeight = msg.LastBlock
-	p.timeOffset = msg.Timestamp.Unix() - time.Now().Unix()
-	p.statsMtx.Unlock()
-
-	// Set the peer's ID, user agent, and potentially the flag which
-	// specifies the witness support is enabled.
-	p.flagsMtx.Lock()
-	p.id = atomic.AddInt32(&amp;nodeCount, 1)
-	p.userAgent = msg.UserAgent
-
-	// Determine if the peer would like to receive witness data with
-	// transactions, or not.
-	if p.services&amp;wire.SFNodeWitness == wire.SFNodeWitness {
-		p.witnessEnabled = true
-	}
-	p.flagsMtx.Unlock()
-
-	// Once the version message has been exchanged, we're able to determine
-	// if this peer knows how to encode witness data over the wire
-	// protocol. If so, then we'll switch to a decoding mode which is
-	// prepared for the new transaction format introduced as part of
-	// BIP0144.
-	if p.services&amp;wire.SFNodeWitness == wire.SFNodeWitness {
-		p.wireEncoding = wire.WitnessEncoding
-	}
-
-	// Invoke the callback if specified.
-	if p.cfg.Listeners.OnVersion != nil {
-		rejectMsg := p.cfg.Listeners.OnVersion(p, msg)
-		if rejectMsg != nil {
-			_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
-			return errors.New(rejectMsg.Reason)
-		}
-	}
-
-	// Notify and disconnect clients that have a protocol version that is
-	// too old.
-	//
-	// NOTE: If minAcceptableProtocolVersion is raised to be higher than
-	// wire.RejectVersion, this should send a reject packet before
-	// disconnecting.
-	if uint32(msg.ProtocolVersion) &lt; MinAcceptableProtocolVersion {
-		// Send a reject message indicating the protocol version is
-		// obsolete and wait for the message to be sent before
-		// disconnecting.
-		reason := fmt.Sprintf(&quot;protocol version must be %d or greater&quot;,
-			MinAcceptableProtocolVersion)
-		rejectMsg := wire.NewMsgReject(msg.Command(), wire.RejectObsolete,
-			reason)
-		_ = p.writeMessage(rejectMsg, wire.LatestEncoding)
-		return errors.New(reason)
-	}
-
-	return nil
-}
-
-</code></pre>
-
-<h2 id="发送消息">发送消息</h2>
+<h3 id="1-概念">1. 概念</h3>
 
 <ul>
-<li>发送消息的直接入口是QueueMessage()方法</li>
-<li>outMesage 被发送到了outputQueue队列（带缓冲的channel）</li>
-<li>然后再由queueHandler发给sendQueue</li>
-<li>outHandler 对sendQueue处理
+<li><p>private extended  key ：</p>
 
-<ul>
-<li>发给 stallContol</li>
-<li>发给peer</li>
-</ul></li>
-<li>stallhandler 对stallContol 处理
-```go
-// QueueMessage adds the passed bitcoin message to the peer send queue.
-//
-// This function is safe for concurrent access.
-func (p *Peer) QueueMessage(msg wire.Message, doneChan chan&lt;- struct{}) {
-	p.QueueMessageWithEncoding(msg, doneChan, wire.BaseEncoding)
-}</li>
+<p>(k , c) k为私钥，c为chaincode</p></li>
+
+<li><p>public extended  key  ：</p>
+
+<p>(K , c) K为公钥，c为chaincode</p></li>
+
+<li><p>Child key derivation functions：</p>
+
+<p>CKD(extended key , index)
+normal child keys 范围: 0-2^31-1
+hardened child keys 范围: 2^31 - 2^32-1</p></li>
 </ul>
 
-<p>// This function is safe for concurrent access.
-func (p *Peer) QueueMessageWithEncoding(msg wire.Message, doneChan chan&lt;- struct{},
-	encoding wire.MessageEncoding) {</p>
-
-<p>	// Avoid risk of deadlock if goroutine already exited.  The goroutine
-	// we will be sending to hangs around until it knows for a fact that
-	// it is marked as disconnected and <em>then</em> it drains the channels.
-	if !p.Connected() {
-		if doneChan != nil {
-			go func() {
-				doneChan &lt;- struct{}{}
-			}()
-		}
-		return
-	}
-	p.outputQueue &lt;- outMsg{msg: msg, encoding: encoding, doneChan: doneChan}
-}</p>
-
-<pre><code>```go
-p := Peer{
-		inbound:         inbound,
-		wireEncoding:    wire.BaseEncoding,
-		knownInventory:  newMruInventoryMap(maxKnownInventory),
-		stallControl:    make(chan stallControlMsg, 1), // nonblocking sync
-		outputQueue:     make(chan outMsg, outputBufferSize),
-		sendQueue:       make(chan outMsg, 1),   // nonblocking sync
-		sendDoneQueue:   make(chan struct{}, 1), // nonblocking sync
-		outputInvChan:   make(chan *wire.InvVect, outputBufferSize),
-		inQuit:          make(chan struct{}),
-		queueQuit:       make(chan struct{}),
-		outQuit:         make(chan struct{}),
-		quit:            make(chan struct{}),
-		cfg:             cfg, // Copy so caller can't mutate.
-		services:        cfg.Services,
-		protocolVersion: cfg.ProtocolVersion,
-	}
-</code></pre>
-
-<h2 id="接收消息">接收消息</h2>
+<h3 id="2-可生成的规则">2. 可生成的规则：</h3>
 
 <ul>
-<li>通过inHandler,监听peer消息</li>
-<li>向stallControl发送 sccReceiveMessage</li>
-<li>向stallControl发送 sccHandlerStart</li>
-<li>调用onXXX相应消息，并通过queueMessage发送结果</li>
-<li>向stallContol 发送 sccHandlerDone</li>
+<li>Private extended key -&gt; Hardened child private extended key</li>
+<li>Private extended key -&gt; Non-hardened child private extended key</li>
+<li>Public extended key -&gt; Non-hardened child public extended key</li>
+<li>Public extended key -&gt; Hardened child public extended key (不允许)</li>
 </ul>
 
-<pre><code class="language-go">// inHandler handles all incoming messages for the peer.  It must be run as a
-// goroutine.
-func (p *Peer) inHandler() {
-	// The timer is stopped when a new message is received and reset after it
-	// is processed.
-	idleTimer := time.AfterFunc(idleTimeout, func() {
-		log.Warnf(&quot;Peer %s no answer for %s -- disconnecting&quot;, p, idleTimeout)
-		p.Disconnect()
-	})
+<h3 id="3-具体过程">3. 具体过程</h3>
 
-out:
-	for atomic.LoadInt32(&amp;p.disconnect) == 0 {
-		// Read a message and stop the idle timer as soon as the read
-		// is done.  The timer is reset below for the next iteration if
-		// needed.
-		rmsg, buf, err := p.readMessage(p.wireEncoding)
-		idleTimer.Stop()
-		if err != nil {
-			// In order to allow regression tests with malformed messages, don't
-			// disconnect the peer when we're in regression test mode and the
-			// error is one of the allowed errors.
-			if p.isAllowedReadError(err) {
-				log.Errorf(&quot;Allowed test error from %s: %v&quot;, p, err)
-				idleTimer.Reset(idleTimeout)
-				continue
-			}
+<ol>
+<li>计算 HMAC-SHA512(&ldquo;Bitcoin seed&rdquo; , seed(128-512bits)) 获取512bits</li>
+<li>将 1 的结果分为L和R，各占32字节，分别作为master extended Key 的private key和chaincode，得到master extended Key(private extended key)</li>
+<li>通过 CKD(extended key , index) 方法派扩展密钥对</li>
+</ol>
 
-			// Only log the error and send reject message if the
-			// local peer is not forcibly disconnecting and the
-			// remote peer has not disconnected.
-			if p.shouldHandleReadError(err) {
-				errMsg := fmt.Sprintf(&quot;Can't read message from %s: %v&quot;, p, err)
-				if err != io.ErrUnexpectedEOF {
-					log.Errorf(errMsg)
-				}
+<h2 id="二-5层路径规则">二、5层路径规则</h2>
 
-				// Push a reject message for the malformed message and wait for
-				// the message to be sent before disconnecting.
-				//
-				// NOTE: Ideally this would include the command in the header if
-				// at least that much of the message was valid, but that is not
-				// currently exposed by wire, so just used malformed for the
-				// command.
-				p.PushRejectMsg(&quot;malformed&quot;, wire.RejectMalformed, errMsg, nil,
-					true)
-			}
-			break out
-		}
-		atomic.StoreInt64(&amp;p.lastRecv, time.Now().Unix())
-		p.stallControl &lt;- stallControlMsg{sccReceiveMessage, rmsg}
+<h3 id="1-路径含义">1. 路径含义</h3>
 
-		// Handle each supported message type.
-		p.stallControl &lt;- stallControlMsg{sccHandlerStart, rmsg}
-		switch msg := rmsg.(type) {
-		case *wire.MsgVersion:
-			// Limit to one version message per peer.
-			p.PushRejectMsg(msg.Command(), wire.RejectDuplicate,
-				&quot;duplicate version message&quot;, nil, true)
-			break out
+<p><strong>路径：m/purpse’/coin_type’/account’/change/address_index（‘ 表示hardencode index 需要大于或等于 2^31）</strong></p>
 
-		case *wire.MsgVerAck:
+<p>m：主扩展密钥
+purpose： bip44/bip45
+coin_type： 币种
+account： 钱包账户
+change： 0 对外 / 1 找零
+address_index： 地址索引</p>
 
-			// No read lock is necessary because verAckReceived is not written
-			// to in any other goroutine.
-			if p.verAckReceived {
-				log.Infof(&quot;Already received 'verack' from peer %v -- &quot;+
-					&quot;disconnecting&quot;, p)
-				break out
-			}
-			p.flagsMtx.Lock()
-			p.verAckReceived = true
-			p.flagsMtx.Unlock()
-			if p.cfg.Listeners.OnVerAck != nil {
-				p.cfg.Listeners.OnVerAck(p, msg)
-			}
-            
-            
-            ....
+<pre><code class="language-mermaid">graph TD
+A[masterNode] --&gt;B(BIP44)
+B --&gt;C[coinType 0]
+B --&gt;D[coinType 10]
+C --&gt; E[account 0]
+D --&gt; F[account 0]
+E --&gt; G[change 0]
+E --&gt; H[change 1]
+G --&gt; I[address 0]
+G --&gt; J[address 1]
+</code></pre>
+
+<h3 id="2-获取公钥">2. 获取公钥</h3>
+
+<p>通过层层扩展，拿到第五层的扩展密钥 (k,c)，其中的k即为privkey,然后结合椭圆曲线的算法即可得到pubKey</p>
+
+<h2 id="三-代码实战">三、代码实战</h2>
+
+<p>代码参考: <a href="https://github.com/tpkeeper/addrtool/blob/master/address_test.go">https://github.com/tpkeeper/addrtool/blob/master/address_test.go</a></p>
+
+<pre><code class="language-golang">func TestSeedToPubkey(t *testing.T) {
+    seed := &quot;04ef53d66b17fdfb6538c5d183f0b0569fc1c79d07f044f7670c3038aff411e5abcbe8c457b584d0c1e3504ab94fb311f9097a793c20dfc746a87087ed5dc119&quot;
+    hexByte, _ := hex.DecodeString(seed)
+    //m
+    masterExtKey, _ := bip32.NewMasterKey(hexByte)
+    //m/purpose'
+    purposeExtKey,_:=masterExtKey.NewChildKey(bip32.FirstHardenedChild+44)
+    //m/purpose'/cointype'
+    coinTypeExtKey,_:=purposeExtKey.NewChildKey(bip32.FirstHardenedChild+0)
+    //m/purpose'/cointype'/account'
+    accountExtKey,_:=coinTypeExtKey.NewChildKey(bip32.FirstHardenedChild+0)
+    //m/purpose'/cointype'/account'/change
+    changeExtKey,_:=accountExtKey.NewChildKey(0)
+    //m/purpose'/cointype'/account'/change/addrIndex
+    addrIndex0ExtKey,_:=changeExtKey.NewChildKey(0)
+    //pubkey
+    t.Log(hex.EncodeToString(addrIndex0ExtKey.PublicKey().Key))
 }
 </code></pre>
 
@@ -637,7 +324,7 @@ out:
 <div class="post-archive">
     <ul class="post-copyright">
         <li><strong>原文作者：</strong><a rel="author" href="http://www.tpkeep.com">大远</a></li>
-        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/btcd-src-peer/">http://www.tpkeep.com/blog/btcd-src-peer/</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/">http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/</a></li>
         <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
     </ul>
 </div>
@@ -651,13 +338,15 @@ out:
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/blog/btcd-src-connmanager/">btcd 源码分析系列：3 - connmanager</a></li>
+        <li><a href="/blog/hd-wallet-mnemonic/">HD Wallet 系列：助记词与种子</a></li>
         
-        <li><a href="/blog/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a></li>
+        <li><a href="/blog/hd-wallet-overview/">HD Wallet 系列：概述</a></li>
         
-        <li><a href="/blog/btcd-src-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></li>
+        <li><a href="/blog/btcd-src-rpc/">btcd 源码分析系列：7 - rpc</a></li>
         
-        <li><a href="/about/">关于</a></li>
+        <li><a href="/blog/btcd-src-mempool/">btcd 源码分析系列：6 - mempool</a></li>
+        
+        <li><a href="/blog/btcd-src-wire/">btcd源码分析系列：5 - p2p网络的消息协议</a></li>
         
     </ul>
 </div>
@@ -667,7 +356,7 @@ out:
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="http://www.tpkeep.com/tags/btcd">btcd</a></li>
+                                <li><a href="http://www.tpkeep.com/tags/hd-wallet">HD Wallet</a></li>
                                 
                             </ul>
                             
