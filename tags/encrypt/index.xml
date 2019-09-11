@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Encrypt on 大远的思维时空</title>
+    <link>http://www.tpkeep.com/tags/encrypt/</link>
+    <description>Recent content in Encrypt on 大远的思维时空</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 02 Sep 2019 17:04:19 +0800</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/tags/encrypt/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>加密与解密系列：概述</title>
+      <link>http://www.tpkeep.com/blog/encryption-overview/</link>
+      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
+      <description>根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给出参考代码，便于进一步理解。
+ 对称加密算法  DES（Data Encryption Standard） 三重DES（triple-DES） AES（Advanced Encryption Standard）Rijndael  上边三种算法都只能加密固定长度的一个字节分组，故也可以叫做分组密码。如果要加密大段明文，还需要对明文迭代进行加密，不同的迭代方式就称为模式，主要有以下几种：</description>
+    </item>
+    
+  </channel>
+</rss>
