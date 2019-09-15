@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>btcd源码分析系列：5 - p2p网络的消息协议 | 大远的思维时空</title>
-    <meta property="og:title" content="btcd源码分析系列：5 - p2p网络的消息协议 - 大远的思维时空">
+    <title>加密与解密系列：对称加密 | 大远的思维时空</title>
+    <meta property="og:title" content="加密与解密系列：对称加密 - 大远的思维时空">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-08-30T17:04:19&#43;08:00">
+    <meta property="article:published_time" content="2019-09-02T17:04:19&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2019-08-30T17:04:19&#43;08:00">
+    <meta property="article:modified_time" content="2019-09-02T17:04:19&#43;08:00">
         
     <meta name="Keywords" content="大远,golang,btcd,区块链,hd wallet,加密与解密">
-    <meta name="description" content="btcd源码分析系列：5 - p2p网络的消息协议">
+    <meta name="description" content="加密与解密系列：对称加密">
         
     <meta name="author" content="大远">
-    <meta property="og:url" content="http://www.tpkeep.com/blog/btcd-src-wire/">
+    <meta property="og:url" content="http://www.tpkeep.com/blog/encryption-symmetric/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -69,16 +69,16 @@
 <ul>
 <li>
 <ul>
-<li><a href="#一-message">一、Message</a>
+<li><a href="#des">DES</a></li>
+<li><a href="#三重des">三重DES</a></li>
+<li><a href="#aes">AES</a></li>
+<li><a href="#迭代模式">迭代模式</a>
 <ul>
-<li><a href="#1-通用接口定义">（1）通用接口定义</a></li>
-<li><a href="#2-通用header">（2）通用header</a></li>
-<li><a href="#3-发送">（3）发送</a></li>
-</ul></li>
-<li><a href="#二-具体消息举例-tx">二、具体消息举例：Tx</a>
-<ul>
-<li><a href="#1-定义tx结构体">（1）定义tx结构体</a></li>
-<li><a href="#2-接口实现">（2） 接口实现</a></li>
+<li><a href="#ecb模式">ECB模式</a></li>
+<li><a href="#cbc模式">CBC模式</a></li>
+<li><a href="#cfb模式">CFB模式</a></li>
+<li><a href="#ofb模式">OFB模式</a></li>
+<li><a href="#ctr模式">CTR模式</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -190,16 +190,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">btcd源码分析系列：5 - p2p网络的消息协议</h1>
+                            <h1 class="post-title">加密与解密系列：对称加密</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2019年8月30日
+                            2019年9月2日
                         </date>
                         
                         <div class="post-meta">
                             <span>|</span>
                             
-                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">btcd 源码分析</a></span>
+                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97">加密与解密系列</a></span>
                             
                         </div>
                         
@@ -218,165 +218,196 @@
                         <div class="post-content">
                             
 
-<blockquote>
-<p>参考：<a href="https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure">protocol document</a> 、<a href="https://github.com/btcsuite/btcd/tree/master/wire">btcd</a></p>
-</blockquote>
+<p>本文讨论的对称加密算法主要包括DES、3DES、AES</p>
 
-<ul>
-<li>协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc定义的协议有很多，包括p2p之间通信协议、交易认证协议、pow共识协议等等。本文主要分析<strong>p2p网络的消息协议及代码实现</strong></li>
-<li>btc 的p2p网络的传输层支持tcp、udp、onion，应用层使用的即是本文讨论的消息协议</li>
-</ul>
+<h2 id="des">DES</h2>
 
-<h2 id="一-message">一、Message</h2>
+<p>明文：64bit
+密文：64bit
+密钥：56/64bit（加入校验位的时候为64bit）</p>
 
-<p>一次通信以message为单位，具体结构如上图：
-<img src="en-resource://database/532:1" alt="d018cee1eb87aabcbc1bd44609e2beb3.png" /></p>
-
-<p><strong>代码实现：</strong></p>
-
-<h3 id="1-通用接口定义">（1）通用接口定义</h3>
-
-<pre><code class="language-go">// Message is an interface that describes a bitcoin message.  A type that
-// implements Message has complete control over the representation of its data
-// and may therefore contain additional or fewer fields than those which
-// are used directly in the protocol encoded message.
-type Message interface {
-	BtcDecode(io.Reader, uint32, MessageEncoding) error
-	BtcEncode(io.Writer, uint32, MessageEncoding) error
-	Command() string
-	MaxPayloadLength(uint32) uint32
-}
-</code></pre>
-
-<p>message 接口，定义通用方法，由具体的消息类型去实现
-* BtcDecode BtcEnode 将结构化的消息体序列化为字节流 <strong>(对应payload)</strong> 或者将字节流实例化为某种消息格式
-* Commd 返回具体消息的命令字符串，标识不同的命令
-* MaxPayloadLength 最大payload 长度</p>
-
-<h3 id="2-通用header">（2）通用header</h3>
-
-<p><strong>Magic bytes</strong> are used as a way to identify the separate messages sent between nodes on the bitcoin network.</p>
-
-<pre><code class="language-go">// messageHeader defines the header structure for all bitcoin protocol messages.
-type messageHeader struct {
-	magic    BitcoinNet // 4 bytes
-	command  string     // 12 bytes
-	length   uint32     // 4 bytes
-	checksum [4]byte    // 4 bytes
-}
-</code></pre>
-
-<p>message header 结构体，定义通用部分字段</p>
-
-<h3 id="3-发送">（3）发送</h3>
-
-<pre><code class="language-go">func WriteMessageN(w io.Writer, msg Message, pver uint32, hcnet CurrencyNet) (int, error) {
-	totalBytes := 0
-
-	// Enforce max command size.
-	var command [CommandSize]byte
-	cmd := msg.Command()
-	if len(cmd) &gt; CommandSize {
-		str := fmt.Sprintf(&quot;command [%s] is too long [max %v]&quot;,
-			cmd, CommandSize)
-		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
-	}
-	copy(command[:], []byte(cmd))
-
-	// Encode the message payload.
-	var bw bytes.Buffer
-	err := msg.BtcEncode(&amp;bw, pver)
-	if err != nil {
-		return totalBytes, err
-	}
-	payload := bw.Bytes()
-	lenp := len(payload)
-
-	// Enforce maximum overall message payload.
-	if lenp &gt; MaxMessagePayload {
-		str := fmt.Sprintf(&quot;message payload is too large - encoded &quot;+
-			&quot;%d bytes, but maximum message payload is %d bytes&quot;,
-			lenp, MaxMessagePayload)
-		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
-	}
-
-	// Enforce maximum message payload based on the message type.
-	mpl := msg.MaxPayloadLength(pver)
-	if uint32(lenp) &gt; mpl {
-		str := fmt.Sprintf(&quot;message payload is too large - encoded &quot;+
-			&quot;%d bytes, but maximum message payload size for &quot;+
-			&quot;messages of type [%s] is %d.&quot;, lenp, cmd, mpl)
-		return totalBytes, messageError(&quot;WriteMessage&quot;, str)
-	}
-
-	// Create header for the message.
-	hdr := messageHeader{}
-	hdr.magic = hcnet
-	hdr.command = cmd
-	hdr.length = uint32(lenp)
-	copy(hdr.checksum[:], chainhash.HashB(payload)[0:4])
-
-	// Encode the header for the message.  This is done to a buffer
-	// rather than directly to the writer since writeElements doesn't
-	// return the number of bytes written.
-	hw := bytes.NewBuffer(make([]byte, 0, MessageHeaderSize))
-	writeElements(hw, hdr.magic, command, hdr.length, hdr.checksum)
-
-	// Write header.
-	n, err := w.Write(hw.Bytes())
-	totalBytes += n
-	if err != nil {
-		return totalBytes, err
-	}
-
-	// Write payload.
-	n, err = w.Write(payload)
-	totalBytes += n
-	return totalBytes, err
-}
-</code></pre>
-
-<p>发送message时，先发送header再发送payload</p>
-
-<h2 id="二-具体消息举例-tx">二、具体消息举例：Tx</h2>
-
-<p><img src="en-resource://database/568:1" alt="99cea19d9cefbb3d00df0c5331f6458e.png" /></p>
-
-<p><strong>代码实现：</strong></p>
-
-<h3 id="1-定义tx结构体">（1）定义tx结构体</h3>
-
-<pre><code class="language-go">// MsgTx implements the Message interface and represents a bitcoin tx message.
-// It is used to deliver transaction information in response to a getdata
-// message (MsgGetData) for a given transaction.
-//
-// Use the AddTxIn and AddTxOut functions to build up the list of transaction
-// inputs and outputs.
-type MsgTx struct {
-	Version  int32
-	TxIn     []*TxIn
-	TxOut    []*TxOut
-	LockTime uint32
-}
-</code></pre>
-
-<h3 id="2-接口实现">（2） 接口实现</h3>
-
-<pre><code class="language-go">// Command returns the protocol command string for the message.  This is part
-// of the Message interface implementation.
-func (msg *MsgTx) Command() string {
-	return CmdTx
-}
-
-// MaxPayloadLength returns the maximum length the payload can be for the
-// receiver.  This is part of the Message interface implementation.
-func (msg *MsgTx) MaxPayloadLength(pver uint32) uint32 {
-	return MaxBlockPayload
-}
+<pre><code class="language-mermaid">graph TD
+A[明文64bit] --&gt;C(DES加密)
+B[密钥56bit] --&gt; C
+C --&gt;D[密文64bit]
 
 </code></pre>
 
-<p>BtcDecode BtcEnode 不再赘述，具体可参考 <a href="https://github.com/btcsuite/btcd/blob/master/wire/msgtx.go">btcd</a></p>
+<p>DES 使用的是 Feistel 结构来加密的，一共需要16轮，每一轮的加密过程如下图所示：
+* 子密钥在每一轮中都是不一样的
+* 每一轮之间会将左侧和右侧对调（右侧没有加密）
+* 解密的过程就是将输出用相同的子密钥再走一遍
+* 如果加密的子密钥顺序是key1 key2 key3，则解密的子密钥为key3 key2 key1
+* 轮函数可以设计为不可逆函数如hash，对解密没有影响</p>
+
+<pre><code class="language-mermaid">graph TD
+INPUT[输入 64bit] --&gt; L[左侧 32bit] 
+INPUT --&gt; R[右侧 32bit]
+
+L--&gt;XOR(异或运算)
+
+R --&gt; |先经过子密钥+轮函数f 搅拌|XOR
+
+XOR --&gt; L2[加密后的左侧 32bit]
+R--&gt; R1[右侧32bit]
+L2 --&gt; OUT[输出 64bit]
+R1 --&gt; OUT
+
+</code></pre>
+
+<p>代码实战：</p>
+
+<pre><code class="language-golang">func TestDesEncrypt(t *testing.T) {
+    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
+    cipherBlock,err:=des.NewCipher(key)
+    if err!=nil{
+        t.Error(err)
+    }
+    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
+    encrptDst :=make([]byte,len(src))
+    cipherBlock.Encrypt(encrptDst,src)
+    t.Log(encrptDst)
+    plainDst:=make([]byte,len(encrptDst))
+    cipherBlock.Decrypt(plainDst, encrptDst)
+    t.Log(plainDst)
+}
+
+//out: [206 173 55 61 184 14 171 248]
+//out: [1 2 3 4 5 6 7 8]
+</code></pre>
+
+<h2 id="三重des">三重DES</h2>
+
+<p>明文：64bit
+密文：64bit
+密钥：56/64 * 3 bit（加入校验位的时候为64bit）</p>
+
+<p>为了增加DES的强度，明文经过3次 DES 处理后变成最后的密文，因此密钥长度为 <sup>56</sup>&frasl;<sub>64</sub> * 3 bit。3次DES处理并不是简单的3次加密的过程，而是加密、解密、加密，解密的过程相应的就是解密、解密、解密。这样设计是因为在3个密钥相同时，可以兼容DES算法</p>
+
+<pre><code class="language-mermaid">graph TD
+A[明文] --&gt;|密钥1| B(DES加密)
+B --&gt; |密钥2| C(DES解密)
+C --&gt; |密钥3| D(DES加密)
+D --&gt; E(密文)
+
+
+
+A1[密文] --&gt;|密钥3| B1(DES解密)
+B1 --&gt; |密钥2| C1(DES加密)
+C1 --&gt; |密钥1| D1(DES解密)
+D1--&gt; E1(明文)
+</code></pre>
+
+<p>代码实战：</p>
+
+<pre><code class="language-golang">func TestTripleDesEncrypt(t *testing.T) {
+    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
+    0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
+    cipherBlock,err:=des.NewTripleDESCipher(key)
+    if err!=nil{
+        t.Error(err)
+    }
+    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
+    encrptDst :=make([]byte,len(src))
+    cipherBlock.Encrypt(encrptDst,src)
+    t.Log(encrptDst)
+    plainDst:=make([]byte,len(encrptDst))
+    cipherBlock.Decrypt(plainDst, encrptDst)
+    t.Log(plainDst)
+}
+
+//此处3个密钥相同，兼容DES
+//out: [206 173 55 61 184 14 171 248]
+//out: [1 2 3 4 5 6 7 8]
+</code></pre>
+
+<h2 id="aes">AES</h2>
+
+<p>明文：128 bit
+密文：128 bit
+密钥：128/192/256 bit （分别需要10/12/14轮）</p>
+
+<p>AES标准的算法是Rijindale，它的加密过程并没有使用DES的feistel结构，而是使用了一种新的SPN结构，需要10-14轮计算，每一轮计算过程如下：
+加密：SubBytes -&gt; ShiftRows -&gt; MixColums -&gt; AddRoundKey
+解密：AddRoundkey -&gt; InvMixColums -&gt; InvShiftRows -&gt; InvSubBytes (Inv代表逆运算)</p>
+
+<p>SubBytes：以字节大小为索引，与替换表中字节映射
+ShiftRows：以4字节为一行，共四行，第n行向左平移n个字节
+MixColums：对每一列进行矩阵运算，共四列
+AddRoundKey：与轮密钥异或运算</p>
+
+<p>代码实战：</p>
+
+<pre><code class="language-golang">func TestAesEncrypt(t *testing.T){
+    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
+    cipherBlock,err:=aes.NewCipher(key)
+    if err!=nil{
+        t.Error(err)
+    }
+    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
+    encrptDst :=make([]byte,len(src))
+    cipherBlock.Encrypt(encrptDst,src)
+    t.Log(encrptDst)
+    plainDst:=make([]byte,len(encrptDst))
+    cipherBlock.Decrypt(plainDst, encrptDst)
+    t.Log(plainDst)
+}
+
+//out [19 7 34 196 163 153 225 186 223 245 40 131 80 80 70 203]
+//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
+</code></pre>
+
+<h2 id="迭代模式">迭代模式</h2>
+
+<p>以上讨论的三种加密算法都是分组密码，每次只能处理特定长度的一块数据，例如DES和3DES能处理的这块数据长度为 8 bytes，AES的为 16 bytes。而我们的明文基本上都是大于这个长度，这就需要我们将明文的内容进行分组并迭代加密，这个迭代加密的方式就是模式。</p>
+
+<h3 id="ecb模式">ECB模式</h3>
+
+<p>电子密码本模式（electronic codebook ），最简单的模式，将明文分组直接作为加密算法的输入，加密算法的输出直接作为密文分组。</p>
+
+<h3 id="cbc模式">CBC模式</h3>
+
+<p>密文分组链接模式（Cipher Block Chaining），密文之间是链状的，明文分组跟上个密文分组异或之后作为加密算法的输入，加密算法的输出作为密文分组。第一个明文分组加密时需要一个初始化向量。</p>
+
+<h3 id="cfb模式">CFB模式</h3>
+
+<p>密文反馈模式（Cipher FeedBack）,上一个密文分组作为下一个加密算法的输入，加密算法的输出与明文分组异或结果作为密文分组。同样需要一个初始化向量</p>
+
+<h3 id="ofb模式">OFB模式</h3>
+
+<p>输出反馈模式（OutPut FeedBack）,上一个加密算法的输出作为下一个加密算法的输入，明文与加密算法的输出异或作为密文分组。需要初始化向量</p>
+
+<h3 id="ctr模式">CTR模式</h3>
+
+<p>计数器模式（Counter），将计数器作为加密算法的输入，加密算法的输出与明文分组异或作为密文分组，计数器是累加的。需要一个初始的计数器值</p>
+
+<p><strong>以上各种模式，ECB不推荐使用</strong></p>
+
+<p>代码实战：</p>
+
+<pre><code class="language-golang">func TestCBCMode(t *testing.T) {
+    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
+    cipherBlock,err:=aes.NewCipher(key)
+    if err!=nil{
+        t.Error(err)
+    }
+    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
+    inv:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
+    cbcEncrypter:=cipher.NewCBCEncrypter(cipherBlock,inv)
+    encrptDst :=make([]byte,len(src))
+    cbcEncrypter.CryptBlocks(encrptDst,src)
+    t.Log(encrptDst)
+
+    plainDst:=make([]byte,len(encrptDst))
+    cbcDecrypter:=cipher.NewCBCDecrypter(cipherBlock,inv)
+    cbcDecrypter.CryptBlocks(plainDst,encrptDst)
+    t.Log(plainDst)
+}
+
+//out [182 174 175 250 117 45 192 139 81 99 151 49 118 26 237 0 98 117 59 208 145 166 116 62 43 199 115 70 250 251 56 226]
+//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
+
+</code></pre>
 
                         </div>
 
@@ -384,7 +415,7 @@ func (msg *MsgTx) MaxPayloadLength(pver uint32) uint32 {
 <div class="post-archive">
     <ul class="post-copyright">
         <li><strong>原文作者：</strong><a rel="author" href="http://www.tpkeep.com">大远</a></li>
-        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/btcd-src-wire/">http://www.tpkeep.com/blog/btcd-src-wire/</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/encryption-symmetric/">http://www.tpkeep.com/blog/encryption-symmetric/</a></li>
         <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
     </ul>
 </div>
@@ -398,15 +429,15 @@ func (msg *MsgTx) MaxPayloadLength(pver uint32) uint32 {
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/blog/btcd-src-peer/">btcd 源码分析系列：4 - p2p网络的peer</a></li>
+        <li><a href="/blog/encryption-overview/">加密与解密系列：概述</a></li>
         
-        <li><a href="/blog/btcd-src-connmanager/">btcd 源码分析系列：3 - connmanager</a></li>
+        <li><a href="/blog/hd-wallet-pubkeytoaddr/">HD Wallet 系列：公钥与地址</a></li>
         
-        <li><a href="/blog/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a></li>
+        <li><a href="/blog/hd-wallet-seedtopubkey/">HD Wallet 系列：种子与公钥</a></li>
         
-        <li><a href="/blog/btcd-src-addrmanager/">btcd 源码分析系列：2 - addrmanager</a></li>
+        <li><a href="/blog/hd-wallet-mnemonic/">HD Wallet 系列：助记词与种子</a></li>
         
-        <li><a href="/about/">关于</a></li>
+        <li><a href="/blog/hd-wallet-overview/">HD Wallet 系列：概述</a></li>
         
     </ul>
 </div>
@@ -416,7 +447,7 @@ func (msg *MsgTx) MaxPayloadLength(pver uint32) uint32 {
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="http://www.tpkeep.com/tags/btcd">btcd</a></li>
+                                <li><a href="http://www.tpkeep.com/tags/encrypt">Encrypt</a></li>
                                 
                             </ul>
                             

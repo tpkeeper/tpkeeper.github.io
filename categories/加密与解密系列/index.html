@@ -76,6 +76,31 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
+                                    <a href="http://www.tpkeep.com/blog/encryption-symmetric/">加密与解密系列：对称加密</a>
+                                </h1>
+                            </header>
+                            <date class="post-meta meta-date">
+                                2019年9月2日
+                            </date>
+                            
+                            <div class="post-meta meta-category">
+                                |
+                                
+                                    <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97">加密与解密系列</a>
+                                
+                            </div>
+                            
+                            <div class="post-content">
+                                本文讨论的对称加密算法主要包括DES、3DES、AES
+DES 明文：64bit 密文：64bit 密钥：56/64bit（加入校验位的时候为64bit）
+graph TD A[明文64bit] --&gt;C(DES加密) B[密钥56bit] --&gt; C C --&gt;D[密文64bit]  DES 使用的是 Feistel 结构来加密的，一共需要16轮，每一轮的加密过程如下图所示： * 子密钥在每一轮中都是不一样的 * 每一轮之间会将左侧和右侧对调（右侧没有加密） * 解密的过程就是将输出用相同的子密钥再走一遍 * 如果加密的子密钥顺序是key1 key2 key3，则解密的子密钥为key3 key2 key1 * 轮函数可以设计为不可逆函数如hash，对解密没有影响……
+                                <p class="readmore"><a href="http://www.tpkeep.com/blog/encryption-symmetric/">阅读全文</a></p>
+                            </div>
+                        </article>
+                    
+                        <article class="post">
+                            <header>
+                                <h1 class="post-title">
                                     <a href="http://www.tpkeep.com/blog/encryption-overview/">加密与解密系列：概述</a>
                                 </h1>
                             </header>
@@ -122,6 +147,10 @@
 <ul class="widget-list">
     
     <li>
+        <a href="http://www.tpkeep.com/blog/encryption-symmetric/" title="加密与解密系列：对称加密">加密与解密系列：对称加密</a>
+    </li>
+    
+    <li>
         <a href="http://www.tpkeep.com/blog/encryption-overview/" title="加密与解密系列：概述">加密与解密系列：概述</a>
     </li>
     
@@ -157,10 +186,6 @@
         <a href="http://www.tpkeep.com/blog/btcd-src-peer/" title="btcd 源码分析系列：4 - p2p网络的peer">btcd 源码分析系列：4 - p2p网络的peer</a>
     </li>
     
-    <li>
-        <a href="http://www.tpkeep.com/blog/btcd-src-connmanager/" title="btcd 源码分析系列：3 - connmanager">btcd 源码分析系列：3 - connmanager</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -179,7 +204,7 @@
     </li>
     
     <li>
-        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(1)</a>
+        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(2)</a>
     </li>
     
 </ul>
