@@ -18,7 +18,9 @@
       
       <guid>http://www.tpkeep.com/blog/encryption-symmetric/</guid>
       <description>本文讨论的对称加密算法主要包括 DES、3DES、AES
-DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit） 其设计思想充分体现了香农提出的混淆和扩散原则</description>
+DES 明文：64 bit
+密文：64 bit
+密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）</description>
     </item>
     
     <item>
@@ -28,7 +30,7 @@ DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个�
       
       <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
       <description>根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给出参考代码，便于进一步理解。
- 对称加密算法  DES（Data Encryption Standard） 三重DES（triple-DES） AES（Advanced Encryption Standard）Rijndael  上边三种算法都只能加密固定长度的一个字节分组，故也可以叫做分组密码。如果要加密大段明文，还需要对明文迭代进行加密，不同的迭代方式就称为模式，主要有以下几种：</description>
+对称加密算法  DES（Data Encryption Standard） 三重DES（triple-DES） AES（Advanced Encryption Standard）Rijndael  上边三种算法都只能加密固定长度的一个字节分组，故也可以叫做分组密码。如果要加密大段明文，还需要对明文迭代进行加密，不同的迭代方式就称为模式，主要有以下几种：</description>
     </item>
     
   </channel>

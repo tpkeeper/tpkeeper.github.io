@@ -222,9 +222,9 @@
 
 <h2 id="des">DES</h2>
 
-<p>明文：64 bit
-密文：64 bit
-密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）
+<p>明文：64 bit<br />
+密文：64 bit<br />
+密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）<br />
 其设计思想充分体现了香农提出的混淆和扩散原则</p>
 
 <p><img src="/image/des0.png" alt="des0.png" /></p>
@@ -276,8 +276,8 @@
 
 <h2 id="三重des">三重DES</h2>
 
-<p>明文：64 bit
-密文：64 bit
+<p>明文：64 bit<br />
+密文：64 bit<br />
 密钥：56/64 * 3 bit（加入校验位的时候为64 bit）</p>
 
 <p>为了增加 DES 的强度，明文经过 3 次 DES 处理后变成最后的密文，因此密钥长度为 <sup>56</sup>&frasl;<sub>64</sub> * 3 bit。3 次 DES 处理并不是简单的 3 次加密的过程，而是加密、解密、加密，解密的过程相应的就是解密、解密、解密。这样设计是因为在 3 个密钥相同时，可以兼容 DES 算法</p>
@@ -309,8 +309,8 @@
 
 <h2 id="aes">AES</h2>
 
-<p>明文：128 bit
-密文：128 bit
+<p>明文：128 bit<br />
+密文：128 bit<br />
 密钥：128/192/256 bit （分别需要10/12/14轮）</p>
 
 <p>AES 标准最后评选出的算法是 Rijindale 算法，该算法支持密钥 128/192/256 bit ，分别需要 10/12/14 轮，本文讨论的是 128 bit密钥。它的加密过程并没有使用 DES 的 feistel 结构，而是使用了一种新的 SPN 结构，需要 10-14 轮计算，如下图：</p>
@@ -330,8 +330,8 @@
 
 <ul>
 <li>最后一轮没有列混淆</li>
-<li>加密时：SubBytes -&gt; ShiftRows -&gt; MixColums -&gt; AddRoundKey
-解密时：AddRoundkey -&gt; InvMixColums -&gt; InvShiftRows -&gt; InvSubBytes (Inv代表逆运算)</li>
+<li>加密时：SubBytes -&gt; ShiftRows -&gt; MixColums -&gt; AddRoundKey</li>
+<li>解密时：AddRoundkey -&gt; InvMixColums -&gt; InvShiftRows -&gt; InvSubBytes (Inv代表逆运算)</li>
 </ul>
 
 <p>golang 代码实战：</p>
