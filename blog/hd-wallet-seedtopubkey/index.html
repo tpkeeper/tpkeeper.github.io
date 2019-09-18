@@ -219,9 +219,7 @@
                         <div class="post-content">
                             
 
-<blockquote>
 <p>参考 <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a>、<a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">bip44</a></p>
-</blockquote>
 
 <ul>
 <li>定义了种子生成树状密钥对的算法与规则</li>
@@ -271,11 +269,11 @@ hardened child keys 范围: 2^31 - 2^32-1</p></li>
 
 <p><strong>路径：m/purpse’/coin_type’/account’/change/address_index（‘ 表示hardencode index 需要大于或等于 2^31）</strong></p>
 
-<p>m：主扩展密钥
-purpose： bip44/bip45
-coin_type： 币种
-account： 钱包账户
-change： 0 对外 / 1 找零
+<p>m：主扩展密钥<br />
+purpose： bip44/bip45<br />
+coin_type： 币种<br />
+account： 钱包账户<br />
+change： 0 对外 / 1 找零<br />
 address_index： 地址索引</p>
 
 <pre><code class="language-mermaid">graph TD
