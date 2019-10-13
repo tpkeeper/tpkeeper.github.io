@@ -66,6 +66,30 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
+                                    <a href="http://www.tpkeep.com/blog/btcd-src-peer/" title="btcd 源码分析系列：4 - p2p网络的peer" >btcd 源码分析系列：4 - p2p网络的peer</a>
+                                </h1>
+                            </header>
+                            <date class="post-meta meta-date">
+                                2019年8月30日
+                            </date>
+                            
+                            <div class="post-meta">
+                                <span>|</span>
+                                
+                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">btcd 源码分析</a></span>
+                                
+                            </div>
+                            
+                            <div class="post-content">
+                                参考：btcd
+  btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。  一、创建peer对象 peer具体分为两种： * inbound 当connmanager监听到其他节点的请求时创建 * outbound 当connmanager主动连接其他节点时创建 * 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化……
+                            </div>
+                            <p class="readmore"><a href="http://www.tpkeep.com/blog/btcd-src-peer/">阅读全文</a></p>
+                        </article>
+                    
+                        <article class="post">
+                            <header>
+                                <h1 class="post-title">
                                     <a href="http://www.tpkeep.com/blog/btcd-src-connmanager/" title="btcd 源码分析系列：3 - connmanager" >btcd 源码分析系列：3 - connmanager</a>
                                 </h1>
                             </header>
@@ -196,6 +220,10 @@
 <ul class="widget-list">
     
     <li>
+        <a href="http://www.tpkeep.com/blog/encryption-asymmetric/" title="加密与解密系列：非对称加密">加密与解密系列：非对称加密</a>
+    </li>
+    
+    <li>
         <a href="http://www.tpkeep.com/blog/encryption-symmetric/" title="加密与解密系列：对称加密">加密与解密系列：对称加密</a>
     </li>
     
@@ -231,10 +259,6 @@
         <a href="http://www.tpkeep.com/blog/btcd-src-wire/" title="btcd源码分析系列：5 - p2p网络的消息协议">btcd源码分析系列：5 - p2p网络的消息协议</a>
     </li>
     
-    <li>
-        <a href="http://www.tpkeep.com/blog/btcd-src-peer/" title="btcd 源码分析系列：4 - p2p网络的peer">btcd 源码分析系列：4 - p2p网络的peer</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -253,7 +277,7 @@
     </li>
     
     <li>
-        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(2)</a>
+        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(3)</a>
     </li>
     
 </ul>

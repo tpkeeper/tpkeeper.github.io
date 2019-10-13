@@ -72,6 +72,8 @@
 <li><a href="#对称加密算法">对称加密算法</a></li>
 <li><a href="#非对称加密算法">非对称加密算法</a></li>
 <li><a href="#散列函数">散列函数</a></li>
+<li><a href="#常见术语">常见术语</a></li>
+<li><a href="#参考代码合集">参考代码合集</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -240,19 +242,43 @@
 <h2 id="散列函数">散列函数</h2>
 
 <ul>
-<li>MD4（Message Digest）</li>
-<li>MD5</li>
-<li>SHA-1</li>
+<li>MD4（Message Digest）：128 bit，不安全</li>
+<li>MD5 ：128 bit，不安全</li>
+<li>SHA-1 ：160 bit，不安全，山大王小云攻破 message，长度上限 2^64 bit</li>
 <li>SHA-2
 
 <ul>
-<li>SHA-256</li>
-<li>SHA-384</li>
-<li>SHA-512</li>
+<li>SHA-256 ：256 bit，message 长度上限 2^64 bit</li>
+<li>SHA-384 ：384 bit，message 长度上限 2^128 bit</li>
+<li>SHA-512 ：512 bit，message 长度上限 2^128 bit</li>
 </ul></li>
-<li>RIPEMD-160（区块链中有使用）</li>
-<li>SHA-3（Keccak）</li>
+<li>RIPEMD-160 ：160 bit</li>
+<li>SHA-3（Keccak）：理论可以生成任何长度散列值，message 长度无限制
+
+<ul>
+<li>SHA3-224</li>
+<li>SHA3-256</li>
+<li>SHA3-384</li>
+<li>SHA3-512</li>
+</ul></li>
 </ul>
+
+<h2 id="常见术语">常见术语</h2>
+
+<ul>
+<li>EC, Elliptic Curve, 椭圆曲线</li>
+<li>ECC, Elliptic Curve Cryptography, 椭圆曲线密码学</li>
+<li>ECDSA, Elliptic Curve Digital Signature Algorithm, 椭圆曲线数字签名算法</li>
+<li>DH, Diffie-Hellman Key Exchange, Diffie-Hellman 密钥交换</li>
+<li>ECDH, Elliptic Curve Diffie-Hellman Key Exchange, 椭圆曲线 Diffie-Hellman 密钥交换</li>
+<li>IES, Integrated Encryption Schema, 集成加密框架</li>
+<li>ECIES, Elliptic Curve Integrated Encryption Schema, 椭圆曲线集成加密框架</li>
+<li>KDF, Key Derivation Function, 密钥(私钥)生成函数</li>
+</ul>
+
+<h2 id="参考代码合集">参考代码合集</h2>
+
+<p><a href="https://github.com/tpkeeper/crypto">https://github.com/tpkeeper/crypto</a></p>
 
                         </div>
 
@@ -320,6 +346,10 @@
 <ul class="widget-list">
     
     <li>
+        <a href="http://www.tpkeep.com/blog/encryption-asymmetric/" title="加密与解密系列：非对称加密">加密与解密系列：非对称加密</a>
+    </li>
+    
+    <li>
         <a href="http://www.tpkeep.com/blog/encryption-symmetric/" title="加密与解密系列：对称加密">加密与解密系列：对称加密</a>
     </li>
     
@@ -355,10 +385,6 @@
         <a href="http://www.tpkeep.com/blog/btcd-src-wire/" title="btcd源码分析系列：5 - p2p网络的消息协议">btcd源码分析系列：5 - p2p网络的消息协议</a>
     </li>
     
-    <li>
-        <a href="http://www.tpkeep.com/blog/btcd-src-peer/" title="btcd 源码分析系列：4 - p2p网络的peer">btcd 源码分析系列：4 - p2p网络的peer</a>
-    </li>
-    
 </ul>
     </section>
 
@@ -377,7 +403,7 @@
     </li>
     
     <li>
-        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(2)</a>
+        <a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97/">加密与解密系列(3)</a>
     </li>
     
 </ul>

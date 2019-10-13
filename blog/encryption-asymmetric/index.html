@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>HD Wallet 系列：公钥与地址 | 大远的思维时空</title>
-    <meta property="og:title" content="HD Wallet 系列：公钥与地址 - 大远的思维时空">
+    <title>加密与解密系列：非对称加密 | 大远的思维时空</title>
+    <meta property="og:title" content="加密与解密系列：非对称加密 - 大远的思维时空">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-09-01T17:04:19&#43;08:00">
+    <meta property="article:published_time" content="2019-09-09T17:04:19&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2019-09-01T17:04:19&#43;08:00">
+    <meta property="article:modified_time" content="2019-09-09T17:04:19&#43;08:00">
         
     <meta name="Keywords" content="大远,golang,btcd,区块链,hd wallet,加密与解密">
-    <meta name="description" content="HD Wallet 系列：公钥与地址">
+    <meta name="description" content="加密与解密系列：非对称加密">
         
     <meta name="author" content="大远">
-    <meta property="og:url" content="http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/">
+    <meta property="og:url" content="http://www.tpkeep.com/blog/encryption-asymmetric/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -69,9 +69,21 @@
 <ul>
 <li>
 <ul>
-<li><a href="#一-地址的格式">一、地址的格式</a></li>
-<li><a href="#二-代码实战">二、代码实战</a></li>
-<li><a href="#三-base58前缀目录一览">三、base58前缀目录一览</a></li>
+<li><a href="#rsa">RSA</a></li>
+<li><a href="#ecc">ECC</a>
+<ul>
+<li><a href="#secp256k1曲线">secp256k1曲线</a>
+<ul>
+<li><a href="#基本参数">基本参数：</a></li>
+<li><a href="#私钥生成公钥原理">私钥生成公钥原理：</a></li>
+<li><a href="#签名原理-参数-privkey-msg">签名原理：参数 privkey、msg</a></li>
+<li><a href="#验签原理-参数-pubkey-x-y-signature-r-s-msg">验签原理：参数 pubkey(x,y)、signature{r,s}、msg</a></li>
+<li><a href="#pubkey-recovery">pubkey recovery</a></li>
+<li><a href="#注意点">注意点</a></li>
+</ul></li>
+<li><a href="#edwards-曲线">edwards 曲线</a></li>
+<li><a href="#schnorr-曲线">schnorr 曲线</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
@@ -182,16 +194,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">HD Wallet 系列：公钥与地址</h1>
+                            <h1 class="post-title">加密与解密系列：非对称加密</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2019年9月1日
+                            2019年9月9日
                         </date>
                         
                         <div class="post-meta">
                             <span>|</span>
                             
-                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/hd-wallet-%E7%B3%BB%E5%88%97">HD Wallet 系列</a></span>
+                                <span class="meta-category"><a href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97">加密与解密系列</a></span>
                             
                         </div>
                         
@@ -210,41 +222,168 @@
                         <div class="post-content">
                             
 
-<p>简单的理解，地址就是公钥/脚本哈希值的base58格式</p>
+<p>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密</p>
 
-<h2 id="一-地址的格式">一、地址的格式</h2>
+<p>本文主要介绍 RSA 跟 ECC 这两种非对称加密算法</p>
 
-<ul>
-<li>P2PKH (Pay To PubKey Hash) 格式的地址</li>
-</ul>
+<h2 id="rsa">RSA</h2>
 
-<p><img src="/image/p2pkh_addr.png" alt="p2pkh_addr.png" /></p>
+<p>安全建立在基于大整数的因数分解问题（即对 N 的质因数分解求 p、q）</p>
 
-<ul>
-<li>P2SH (Pay To Script Hash) 格式的地址</li>
-</ul>
+<p><strong>密文 = 明文^E mod N</strong></p>
 
-<p><img src="/image/p2sh_addr.png" alt="p2sh_addr.png" /></p>
+<p>对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥</p>
 
-<p>前缀占用一个字节，表示不同的网络
-校验占用4个字节
-使用base58可以更友好的显示，增加的校验还可以防止用户输入错误，bip32中也是这种格式来显示扩展密钥</p>
+<p><strong>明文 = 密文^D mode N</strong></p>
 
-<h2 id="二-代码实战">二、代码实战</h2>
+<p>对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥</p>
 
-<p>代码参考：<a href="https://github.com/tpkeeper/addrtool/blob/master/address.go">https://github.com/tpkeeper/addrtool/blob/master/address.go</a></p>
+<p>生成密钥对过程：</p>
 
-<pre><code class="language-golang">func PubkeyToAddress(key []byte,netId byte)(string){
-    hash160Bytes:=btcutil.Hash160(key)
-    return base58.CheckEncode(hash160Bytes,netId)
+<ol>
+<li>生成 N
+N = p * q ( p和q为质数 )
+L = lcm(p-1,q-1) ( lcm 为求最小公倍数 )</li>
+<li>生成 E
+1 &lt; E &lt; L
+gcd(E,L)=1 ( gcd 为求最大公约数 )</li>
+<li>生成 D
+1 &lt; D &lt; L
+E * D mod L = 1</li>
+</ol>
+
+<p>代码实战：</p>
+
+<pre><code class="language-golang">func TestRsa(t *testing.T) {
+    privKey,err:=rsa.GenerateKey(rand.Reader,2048)
+    if err!=nil{
+        t.Error(err)
+    }
+    msg:=[]byte(&quot;hello rsa&quot;)
+    cryptMsg,err:=rsa.EncryptPKCS1v15(rand.Reader,&amp;privKey.PublicKey,msg)
+    if err!=nil{
+        t.Error(err)
+    }
+    t.Log(cryptMsg)
+    t.Log(string(cryptMsg))
+
+    plainText,err:=rsa.DecryptPKCS1v15(rand.Reader,privKey,cryptMsg)
+    if err!=nil{
+        t.Error(plainText)
+    }
+    t.Log(string(plainText))
+    
 }
+//out [26 121 84 128 49 42 253 29 97 62 206 6 92 79 200 147 175 46 140 105 218 61 76 230 70 189 147 176 203 112 215 209 166 130 171 244 100 110 180 12 122 17 143 26 92 161 121 141 128 162 105 127 224 124 84 95 109 241 77 215 110 175 55 118 47 54 118 229 108 32 5 119 238 225 81 14 1 33 128 36 233 51 133 110 23 33 253 3 165 148 21 97 188 36 186 191 154 44 181 30 179 5 250 49 238 129 110 188 171 217 58 101 39 221 235 158 51 5 198 3 168 36 170 91 58 212 85 97 31 242 252 5 84 105 196 244 123 20 190 174 26 197 215 80 212 72 128 63 226 162 137 209 2 254 101 210 3 55 2 247 19 146 46 97 74 106 140 78 38 48 60 85 192 35 180 225 206 125 88 231 86 48 91 105 140 97 210 211 69 189 86 23 92 238 139 216 125 139 6 123 13 203 47 33 249 98 149 107 6 40 80 220 29 43 148 167 47 31 22 187 137 114 200 55 252 104 79 201 233 5 155 75 37 178 74 121 45 180 178 22 96 72 60 231 147 116 43 121 15 130 201 72 52 28 148 200]
+
+//out hello rsa
 </code></pre>
 
-<h2 id="三-base58前缀目录一览">三、base58前缀目录一览</h2>
+<h2 id="ecc">ECC</h2>
 
-<p>xpub xprv 代表的就是bip32中的扩展密钥即extended key</p>
+<p>基于椭圆曲线的非对称加密，跟 rsa 相比，密钥更短，强度更高</p>
 
-<p><img src="/image/base58pre.png" alt="base58pre.png" /></p>
+<p>安全建立在基于椭圆曲线的离散对数问题</p>
+
+<ol>
+<li>二元三次曲线 <strong>y^2 = (x^3 + a * x + b)mod p</strong> （其中p为大质数，y^2 的值在0和p-1之间）</li>
+<li>定义的运算 K=kG</li>
+<li>已知 K G，求 k 比较难</li>
+</ol>
+
+<h3 id="secp256k1曲线">secp256k1曲线</h3>
+
+<h4 id="基本参数">基本参数：</h4>
+
+<ul>
+<li><p>离散曲线： y^2 = (x^3 + 7) mod p（其中x和y都是整形保证了离散，mod 保证了y在32字节大小之内）
+p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+a=0
+b=7</p></li>
+
+<li><p>基点 G
+G(&ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&rdquo;,
+&ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&rdquo;)</p></li>
+
+<li><p>点的集合 { nG }
+即 {G，2G，3G，&hellip; ，nG}，nG=O，O 为无穷远点
+n=&ldquo;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&rdquo;</p></li>
+</ul>
+
+<h4 id="私钥生成公钥原理">私钥生成公钥原理：</h4>
+
+<p>在上边的离散的椭圆曲线上，定义一套运算规则：</p>
+
+<blockquote>
+<p>加法：P+Q = R</p>
+
+<p>乘法： K=kG</p>
+</blockquote>
+
+<p>k 为私钥，K 为公钥{r,s}，G为曲线上一点。</p>
+
+<p>由 k、G 算 K 简单，由 K、G 推出 k 极难。</p>
+
+<h4 id="签名原理-参数-privkey-msg">签名原理：参数 privkey、msg</h4>
+
+<ol>
+<li>hash=hash(msg) 对消息明文计算 hash</li>
+<li>k1=random(privkey,hash) 生成随机数范围 [1,n-1]</li>
+<li>计算点 (x1,y1)=k1 * G</li>
+<li>r=x1 mod n</li>
+<li>z=hashtoint(hash)</li>
+<li>s=( k1^-1 *  (z + r * privkey) ) mod n</li>
+<li>得到 signature{r,s}</li>
+</ol>
+
+<h4 id="验签原理-参数-pubkey-x-y-signature-r-s-msg">验签原理：参数 pubkey(x,y)、signature{r,s}、msg</h4>
+
+<ol>
+<li>验证 r s 范围[1,n-1]</li>
+<li>hash=hash(msg) 对消息明文计算 hash</li>
+<li>z=hashtoint(hash)</li>
+<li>u1 = z * s^-1 mod n  ， u2 = r * s^-1 mod n</li>
+<li>(x1,y1)=u1 * G +u2 * Pubkey(x,y)</li>
+<li>if (x1,y1)==O 则签名不正确</li>
+<li>if r==x1 mod n 则签名正确<br /></li>
+</ol>
+
+<h4 id="pubkey-recovery">pubkey recovery</h4>
+
+<p>从签名信息中恢复公钥</p>
+
+<p>比特币跟以太坊都有实现，但最终的签名信息序列化格式不同</p>
+
+<blockquote>
+<p>// btc 中的格式</p>
+
+<p>&lt;(byte of 27+public key solution)+4 if compressed &gt;&lt; padded bytes for
+signature R&gt;<padded bytes for signature S></p>
+
+<p>// 以太坊中的格式</p>
+
+<p>[R || S || V] format where V is 0 or 1.</p>
+</blockquote>
+
+<p>以太坊中的 go 实现也引用了btcd的代码，所以需要转换一下，具体可参考以太坊代码signature_nocgo.go</p>
+
+<p>另：btc签名脚本中同时含有签名和公钥</p>
+
+<h4 id="注意点">注意点</h4>
+
+<p><strong>公钥长度：</strong>
+  * compressed： 65 byte （1+32+32）
+  * uncompressed： 33 byte （1+32 ）</p>
+
+<h3 id="edwards-曲线">edwards 曲线</h3>
+
+<p>爱德华曲线 x^2 + y^2 = 1 + d * x^2 * y^2</p>
+
+<p>ed25519曲线 -x^2 + y^2 = 1 - (<sup>121665</sup>&frasl;<sub>121666</sub>) *  x^2 * y^2</p>
+
+<h3 id="schnorr-曲线">schnorr 曲线</h3>
+
+<p>聚合多个签名消息，降低存储</p>
 
                         </div>
 
@@ -252,7 +391,7 @@
 <div class="post-archive">
     <ul class="post-copyright">
         <li><strong>原文作者：</strong><a rel="author" href="http://www.tpkeep.com">大远</a></li>
-        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/">http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="http://www.tpkeep.com/blog/encryption-asymmetric/">http://www.tpkeep.com/blog/encryption-asymmetric/</a></li>
         <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li>
     </ul>
 </div>
@@ -266,15 +405,15 @@
     <h2>See Also</h2>
     <ul class="listing">
         
+        <li><a href="/blog/encryption-symmetric/">加密与解密系列：对称加密</a></li>
+        
+        <li><a href="/blog/encryption-overview/">加密与解密系列：概述</a></li>
+        
+        <li><a href="/blog/hd-wallet-pubkeytoaddr/">HD Wallet 系列：公钥与地址</a></li>
+        
         <li><a href="/blog/hd-wallet-seedtopubkey/">HD Wallet 系列：种子与公钥</a></li>
         
         <li><a href="/blog/hd-wallet-mnemonic/">HD Wallet 系列：助记词与种子</a></li>
-        
-        <li><a href="/blog/hd-wallet-overview/">HD Wallet 系列：概述</a></li>
-        
-        <li><a href="/blog/btcd-src-rpc/">btcd 源码分析系列：7 - rpc</a></li>
-        
-        <li><a href="/blog/btcd-src-mempool/">btcd 源码分析系列：6 - mempool</a></li>
         
     </ul>
 </div>
@@ -284,7 +423,7 @@
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="http://www.tpkeep.com/tags/hd-wallet">HD Wallet</a></li>
+                                <li><a href="http://www.tpkeep.com/tags/encrypt">Encrypt</a></li>
                                 
                             </ul>
                             
