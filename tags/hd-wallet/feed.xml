@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HD Wallet on 大远的博客</title>
+    <link>http://www.tpkeep.com/tags/hd-wallet/</link>
+    <description>Recent content in HD Wallet on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sun, 01 Sep 2019 17:04:19 +0800</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/tags/hd-wallet/feed.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>HD Wallet 系列：公钥与地址</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/</link>
+      <pubDate>Sun, 01 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/</guid>
+      <description>简单的理解，地址就是公钥/脚本哈希值的base58格式 一、地址的格式 P2PKH (Pay To PubKey Hash) 格式的地址 P2SH (Pay To Script Hash) 格式的地址 前缀占用一个字节，表示不同的网络</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：种子与公钥</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/</link>
+      <pubDate>Sun, 01 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/</guid>
+      <description>参考 bip32、bip44 定义了种子生成树状密钥对的算法与规则 定义了5层路径规则，可兼容多账号多币种 一、密钥扩展算法 1. 概念 private extended key ： (k , c) k为</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：助记词与种子</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-mnemonic/</link>
+      <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-mnemonic/</guid>
+      <description>参考 bip39 定义了助记词的生成规则 定义了由助记词导出种子的规则 定义了助记词 wordlist，目前包含7种语言，每种 2048个单词 助记词到种子的推导</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：概述</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-overview/</link>
+      <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-overview/</guid>
+      <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系如下： 助记词与种子公钥与</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on 大远的博客</title>
+    <link>http://www.tpkeep.com/post/</link>
+    <description>Recent content in Posts on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 09 Sep 2019 17:04:19 +0800</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/post/feed.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>加密与解密系列：非对称加密</title>
+      <link>http://www.tpkeep.com/blog/encryption-asymmetric/</link>
+      <pubDate>Mon, 09 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-asymmetric/</guid>
+      <description>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 定义：单向函数 函数 f() 是一个单向函数，当且仅当</description>
+    </item>
+    
+    <item>
+      <title>加密与解密系列：对称加密</title>
+      <link>http://www.tpkeep.com/blog/encryption-symmetric/</link>
+      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-symmetric/</guid>
+      <description>本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit</description>
+    </item>
+    
+    <item>
+      <title>加密与解密系列：概述</title>
+      <link>http://www.tpkeep.com/blog/encryption-overview/</link>
+      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
+      <description>根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：公钥与地址</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/</link>
+      <pubDate>Sun, 01 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-pubkeytoaddr/</guid>
+      <description>简单的理解，地址就是公钥/脚本哈希值的base58格式 一、地址的格式 P2PKH (Pay To PubKey Hash) 格式的地址 P2SH (Pay To Script Hash) 格式的地址 前缀占用一个字节，表示不同的网络</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：种子与公钥</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/</link>
+      <pubDate>Sun, 01 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-seedtopubkey/</guid>
+      <description>参考 bip32、bip44 定义了种子生成树状密钥对的算法与规则 定义了5层路径规则，可兼容多账号多币种 一、密钥扩展算法 1. 概念 private extended key ： (k , c) k为</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：助记词与种子</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-mnemonic/</link>
+      <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-mnemonic/</guid>
+      <description>参考 bip39 定义了助记词的生成规则 定义了由助记词导出种子的规则 定义了助记词 wordlist，目前包含7种语言，每种 2048个单词 助记词到种子的推导</description>
+    </item>
+    
+    <item>
+      <title>HD Wallet 系列：概述</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-overview/</link>
+      <pubDate>Sat, 31 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-overview/</guid>
+      <description>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系如下： 助记词与种子公钥与</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列：7 - rpc</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-rpc/</link>
+      <pubDate>Fri, 30 Aug 2019 17:04:40 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-rpc/</guid>
+      <description>参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列：6 - mempool</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-mempool/</link>
+      <pubDate>Fri, 30 Aug 2019 17:04:31 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-mempool/</guid>
+      <description>参考：btcd btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。 utxo和block index存储于leveldb中，而</description>
+    </item>
+    
+    <item>
+      <title>btcd源码分析系列：5 - p2p网络的消息协议</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-wire/</link>
+      <pubDate>Fri, 30 Aug 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-wire/</guid>
+      <description>参考：protocol document 、btcd 协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列：4 - p2p网络的peer</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-peer/</link>
+      <pubDate>Fri, 30 Aug 2019 17:04:14 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-peer/</guid>
+      <description>参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列：3 - connmanager</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-connmanager/</link>
+      <pubDate>Fri, 30 Aug 2019 17:03:47 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-connmanager/</guid>
+      <description>参考：btcd connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列 - 1 - 启动分析</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-start/</link>
+      <pubDate>Fri, 30 Aug 2019 13:56:08 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-start/</guid>
+      <description>参考：btcd 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等） loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.start() 启动s</description>
+    </item>
+    
+    <item>
+      <title>btcd 源码分析系列：2 - addrmanager</title>
+      <link>http://www.tpkeep.com/blog/btcd-src-addrmanager/</link>
+      <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/btcd-src-addrmanager/</guid>
+      <description>参考：btcd addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读</description>
+    </item>
+    
+  </channel>
+</rss>
