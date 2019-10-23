@@ -2,13 +2,13 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>密码学系列：对称加密 - 大远的博客</title>
+  <title>密码学系列：签名 - 大远的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit">
+  <meta name="description" content="签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥：">
   
-  <meta itemprop="name" content="密码学系列：对称加密 - 大远的博客">
-  <meta itemprop="description" content="本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit">
+  <meta itemprop="name" content="密码学系列：签名 - 大远的博客">
+  <meta itemprop="description" content="签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥：">
   <meta itemprop="image" content="http://www.tpkeep.com/img/author.jpg">
   
   
@@ -62,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://www.tpkeep.com/blog/encryption-symmetric/" title="密码学系列：对称加密" itemprop="url">密码学系列：对称加密</a>
+      <a href="http://www.tpkeep.com/blog/encryption-signature/" title="密码学系列：签名" itemprop="url">密码学系列：签名</a>
   </h1>
   <p class="article-author">By
     
@@ -70,7 +70,7 @@
     
   </p>
   <p class="article-time">
-    <time datetime="2019-09-02 17:04:19 &#43;0800 CST" itemprop="datePublished">2019年09月02日</time>
+    <time datetime="2019-09-11 17:04:19 &#43;0800 CST" itemprop="datePublished">2019年09月11日</time>
   </p>
 </header>
 
@@ -82,17 +82,10 @@
 <ul>
 <li>
 <ul>
-<li><a href="#des">DES</a></li>
-<li><a href="#三重des">三重DES</a></li>
-<li><a href="#aes">AES</a></li>
-<li><a href="#迭代模式">迭代模式</a>
-<ul>
-<li><a href="#ecb-模式">ECB 模式</a></li>
-<li><a href="#cbc-模式">CBC 模式</a></li>
-<li><a href="#cfb-模式">CFB 模式</a></li>
-<li><a href="#ofb-模式">OFB 模式</a></li>
-<li><a href="#ctr-模式">CTR 模式</a></li>
-</ul></li>
+<li><a href="#rsa签名">RSA签名</a></li>
+<li><a href="#dsa">DSA</a></li>
+<li><a href="#ecdsa">ECDSA</a></li>
+<li><a href="#schnorr">Schnorr</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -100,194 +93,202 @@
     
     
 
-<p>本文讨论的对称加密算法主要包括 DES、3DES、AES</p>
+<p>签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr  签名算法。</p>
 
-<h2 id="des">DES</h2>
+<h2 id="rsa签名">RSA签名</h2>
 
-<p>明文：64 bit<br />
-密文：64 bit<br />
-密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）<br />
-其设计思想充分体现了香农提出的混淆和扩散原则</p>
+<p>安全性建立在大数分解问题</p>
 
-<p><img src="/image/des0.png" alt="des0.png" /></p>
+<p>公钥：E、N
+私钥：D、N
+签名：签名 = 消息^D mod N
+验证：消息&rsquo; = 签名^E mod N ，如果消息&rsquo;==消息则验证成功</p>
 
-<p>DES 使用的是 Feistel 结构来加密的，一共需要 16 轮，加密过程如下：</p>
+<h2 id="dsa">DSA</h2>
 
-<ol>
-<li>将明文进行初始置换（通过置换表）</li>
-<li>将置换后的数据分为左右 L1 R1 各 32 bit</li>
-<li>将 48 bit 的子密钥与 R1 作为轮函数F的输入</li>
-<li>将 L1 与轮函数的输出异或运算，得到 L1密文</li>
-<li>将 L1 密文与 R1 交换位置，分别作为下一轮的 R2，L2</li>
-<li>将 2-5 再重复 15 次</li>
-<li>将 L17 R17 交换位置，并拼接为 64bit 数据</li>
-<li>将 64bit 数据进行逆初始置换，得到最终密文</li>
-</ol>
+<p>由NIST(美国国家标准技术研究所)1991年制定的数字签名技术规范，是Schnorr算法的变体。</p>
 
-<p>需要注意的是：</p>
+<p>安全性建立在离散对数问题</p>
 
-<ul>
-<li>子密钥在每一轮中都是不一样的</li>
-<li>每一轮之间会将左侧和右侧对调（右侧没有加密）</li>
-<li>解密的过程就是将输出用相同的子密钥再走一遍，如果加密的子密钥顺序是key1 key2 key3，则解密的子密钥为key3 key2 key1</li>
-<li>轮函数可以设计为不可逆函数如hash，对解密没有影响</li>
-</ul>
-
-<p><img src="/image/des.png" alt="des.png" /></p>
-
-<p>golang 代码实战：</p>
-
-<pre><code class="language-golang">func TestDesEncrypt(t *testing.T) {
-    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
-    cipherBlock,err:=des.NewCipher(key)
-    if err!=nil{
-        t.Error(err)
-    }
-    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
-    encrptDst :=make([]byte,len(src))
-    cipherBlock.Encrypt(encrptDst,src)
-    t.Log(encrptDst)
-    plainDst:=make([]byte,len(encrptDst))
-    cipherBlock.Decrypt(plainDst, encrptDst)
-    t.Log(plainDst)
-}
-
-//out: [206 173 55 61 184 14 171 248]
-//out: [1 2 3 4 5 6 7 8]
-</code></pre>
-
-<h2 id="三重des">三重DES</h2>
-
-<p>明文：64 bit<br />
-密文：64 bit<br />
-密钥：56/64 * 3 bit（加入校验位的时候为64 bit）</p>
-
-<p>为了增加 DES 的强度，明文经过 3 次 DES 处理后变成最后的密文，因此密钥长度为 <sup>56</sup>&frasl;<sub>64</sub> * 3 bit。3 次 DES 处理并不是简单的 3 次加密的过程，而是加密、解密、加密，解密的过程相应的就是解密、解密、解密。这样设计是因为在 3 个密钥相同时，可以兼容 DES 算法</p>
-
-<p><img src="/image/3des.png" alt="3des.png" /></p>
-
-<p>golang 代码实战：</p>
-
-<pre><code class="language-golang">func TestTripleDesEncrypt(t *testing.T) {
-    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
-    0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
-    cipherBlock,err:=des.NewTripleDESCipher(key)
-    if err!=nil{
-        t.Error(err)
-    }
-    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
-    encrptDst :=make([]byte,len(src))
-    cipherBlock.Encrypt(encrptDst,src)
-    t.Log(encrptDst)
-    plainDst:=make([]byte,len(encrptDst))
-    cipherBlock.Decrypt(plainDst, encrptDst)
-    t.Log(plainDst)
-}
-
-//此处3个密钥相同，兼容DES
-//out: [206 173 55 61 184 14 171 248]
-//out: [1 2 3 4 5 6 7 8]
-</code></pre>
-
-<h2 id="aes">AES</h2>
-
-<p>明文：128 bit<br />
-密文：128 bit<br />
-密钥：128/192/256 bit （分别需要10/12/14轮）</p>
-
-<p>AES 标准最后评选出的算法是 Rijindale 算法，该算法支持密钥 128/192/256 bit ，分别需要 10/12/14 轮，本文讨论的是 128 bit密钥。它的加密过程并没有使用 DES 的 feistel 结构，而是使用了一种新的 SPN 结构，需要 10-14 轮计算，如下图：</p>
-
-<p><img src="/image/aes.png" alt="aes.png" /></p>
-
-<p>其中每一轮计算过程如下：</p>
+<p>密钥生成(1024bits)：</p>
 
 <ol>
-<li>SubBytes（字节替换）：以字节大小为索引，与s_box表中字节映射</li>
-<li>ShiftRows（行移位-扩散）：从上到下从左到右的顺序组成 4 * 4 数组，从 0 行开始，第 n 行向左平移 n 个字节</li>
-<li>MixColums（列混肴-扩散）：对每一列进行矩阵运算，共四列</li>
-<li>AddRoundKey（轮密钥加）：与轮密钥即子密钥异或运算</li>
+<li>生成素数 p，$2^{1023} &lt; p &lt; 2^{1024}$</li>
+<li>找到 p-1 的一个素数 q，且 $2^{159} &lt; q &lt; 2^{160}$</li>
+<li>找到 ord(a)=q 的元素 a，a 生成了拥有 q 个元素的子群</li>
+<li>生成随机数，0 &lt; d &lt; q</li>
+<li>b = $a^d$ mod p</li>
+<li>则密钥对为：$k<em>{pub}$ = (p,q,a,b)，$k</em>{pri}$ = (d)</li>
 </ol>
 
-<p>需要注意的是：</p>
+<p>签名生成：</p>
+
+<ol>
+<li>随机生成一个整数最为随机的临时密钥 $k_E$，且满足 0 &lt; $k_E$ &lt; q。</li>
+<li>计算 r = ($a^{k_E}$ mod p) mod q</li>
+<li>计算 s = (SHA(x)+d * r)$k_E^{-1}$ mod q</li>
+</ol>
+
+<p>签名的验证：</p>
+
+<ol>
+<li>计算辅助值 w = $s^{-1}$ mod q</li>
+<li>计算辅助值 $u_1$ = w * SHA(x) mod q</li>
+<li>计算辅助值 $u_2$ = w * r mod q</li>
+<li>v = ($a^{u_1} * b^{u_2}$ mod p) mod q</li>
+<li>v&rsquo; = r mod q，如果 v == v&rsquo; 则签名正确</li>
+</ol>
+
+<p>Golang SDK dsa 签名过程代码：</p>
+
+<pre><code>for attempts = 10; attempts &gt; 0; attempts-- {
+        k := new(big.Int)
+        buf := make([]byte, n)
+        for {
+            _, err = io.ReadFull(rand, buf)
+            if err != nil {
+                return
+            }
+            //生成随机数密钥
+            k.SetBytes(buf)
+            // priv.Q must be &gt;= 128 because the test above
+            // requires it to be &gt; 0 and that
+            //    ceil(log_2(Q)) mod 8 = 0
+            // Thus this loop will quickly terminate.
+            if k.Sign() &gt; 0 &amp;&amp; k.Cmp(priv.Q) &lt; 0 {
+                break
+            }
+        }
+
+        //求密钥的逆
+        kInv := fermatInverse(k, priv.Q)
+
+        //计算 r
+        r = new(big.Int).Exp(priv.G, k, priv.P)
+        r.Mod(r, priv.Q)
+
+        if r.Sign() == 0 {
+            continue
+        }
+
+        z := k.SetBytes(hash)
+
+        //计算s
+        s = new(big.Int).Mul(priv.X, r)
+        s.Add(s, z)
+        s.Mod(s, priv.Q)
+        s.Mul(s, kInv)
+        s.Mod(s, priv.Q)
+
+        if s.Sign() != 0 {
+            break
+        }
+    }
+</code></pre>
+
+<h2 id="ecdsa">ECDSA</h2>
+
+<p>安全性建立在基于椭圆曲线的离散对数问题</p>
+
+<p>密钥的生成：</p>
+
+<ol>
+<li><p>使用曲线 E</p>
 
 <ul>
-<li>最后一轮没有列混淆</li>
-<li>加密时：SubBytes -&gt; ShiftRows -&gt; MixColums -&gt; AddRoundKey</li>
-<li>解密时：AddRoundkey -&gt; InvMixColums -&gt; InvShiftRows -&gt; InvSubBytes (Inv代表逆运算)</li>
-</ul>
+<li>模数为 p</li>
+<li>系数为 a 和 b</li>
+<li>生成元为 G，G 生成的循环群的阶(即元素的个数)为 n
+<br /></li>
+</ul></li>
 
-<p>golang 代码实战：</p>
+<li><p>选择一个随机数 d，0 &lt; d &lt; n</p></li>
 
-<pre><code class="language-golang">func TestAesEncrypt(t *testing.T){
-    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
-    cipherBlock,err:=aes.NewCipher(key)
-    if err!=nil{
-        t.Error(err)
+<li><p>计算 K = dG</p></li>
+
+<li><p>密钥对则为：$k<em>{pub}$ = (K)，$k</em>{pri}$ = (d)</p></li>
+</ol>
+
+<p>签名的生成(x 为消息)：</p>
+
+<ol>
+<li>随机生成一个整数最为临时密钥 $k_E$，且 0 &lt; $k_E$ &lt; q。</li>
+<li>$R_{(x_R,y_R)}$ = $k_E$G</li>
+<li>r = $x_R$ mod n</li>
+<li>s = (hash(x)+d * r)$k_E^{-1}$ mod n</li>
+</ol>
+
+<p>签名的验证：</p>
+
+<ol>
+<li>计算辅助值 w = $s^{-1}$ mod n</li>
+<li>计算辅助值 $u_1$ = w * hash(x) mod n</li>
+<li>计算辅助值 $u_2$ = w * r mod n</li>
+<li>$P_(x_P,y_P)$ = $u_1$G + $u_2$K</li>
+<li>如果 $x_P$ == r mod n，则签名有效</li>
+</ol>
+
+<p>Golang SDK ecdsa 签名过程代码：</p>
+
+<pre><code>for {
+        for {
+            k, err = randFieldElement(c, csprng)  //生成临时密钥
+            if err != nil {
+                r = nil
+                return
+            }
+
+            //计算 k的逆
+            if in, ok := priv.Curve.(invertible); ok {
+                kInv = in.Inverse(k)
+            } else {
+                kInv = fermatInverse(k, N) // N != 0
+            }
+
+            //计算 r
+            r, _ = priv.Curve.ScalarBaseMult(k.Bytes())
+            r.Mod(r, N)
+            if r.Sign() != 0 {
+                break
+            }
+        }
+
+        e := hashToInt(hash, c)
+        //计算 s
+        s = new(big.Int).Mul(priv.D, r)
+        s.Add(s, e)
+        s.Mul(s, kInv)
+        s.Mod(s, N) // N != 0
+        if s.Sign() != 0 {
+            break
+        }
     }
-    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
-    encrptDst :=make([]byte,len(src))
-    cipherBlock.Encrypt(encrptDst,src)
-    t.Log(encrptDst)
-    plainDst:=make([]byte,len(encrptDst))
-    cipherBlock.Decrypt(plainDst, encrptDst)
-    t.Log(plainDst)
-}
-
-//out [19 7 34 196 163 153 225 186 223 245 40 131 80 80 70 203]
-//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
 </code></pre>
 
-<h2 id="迭代模式">迭代模式</h2>
+<p><strong>pubkey recovery：</strong></p>
 
-<p>以上讨论的三种加密算法都是分组密码，每次只能处理特定长度的一块数据，例如 DES 和 3DES 能处理的这块数据长度为 8 bytes，AES 的为 16 bytes。而我们的日常需要加密的明文基本上都是大于这个长度，这就需要我们将明文的内容进行分组并迭代加密，这个迭代加密的方式就是模式。</p>
+<p>从签名信息中恢复公钥</p>
 
-<h3 id="ecb-模式">ECB 模式</h3>
+<p>比特币跟以太坊都有实现，但最终的签名信息序列化格式不同</p>
 
-<p>电子密码本模式（electronic codebook ），最简单的模式，将明文分组直接作为加密算法的输入，加密算法的输出直接作为密文分组。</p>
+<blockquote>
+<p>// btc 中的格式
+&lt;(byte of 27+public key solution)+4 if compressed &gt;&lt; padded bytes for
+signature R&gt;<padded bytes for signature S></p>
 
-<h3 id="cbc-模式">CBC 模式</h3>
+<p>// 以太坊中的格式
+[R || S || V] format where V is 0 or 1.</p>
+</blockquote>
 
-<p>密文分组链接模式（Cipher Block Chaining），密文之间是链状的，明文分组跟上个密文分组异或之后作为加密算法的输入，加密算法的输出作为密文分组。第一个明文分组加密时需要一个初始化向量。</p>
+<p>以太坊中的 go 实现也引用了btcd的代码，所以需要转换一下，具体可参考以太坊代码signature_nocgo.go</p>
 
-<h3 id="cfb-模式">CFB 模式</h3>
+<p>另：btc签名脚本中同时含有签名和公钥</p>
 
-<p>密文反馈模式（Cipher FeedBack）,上一个密文分组作为下一个加密算法的输入，加密算法的输出与明文分组异或结果作为密文分组。同样需要一个初始化向量</p>
+<p><strong>公钥长度：</strong>
+  * compressed： 65 byte （1+32+32）
+  * uncompressed： 33 byte （1+32 ）</p>
 
-<h3 id="ofb-模式">OFB 模式</h3>
-
-<p>输出反馈模式（OutPut FeedBack）,上一个加密算法的输出作为下一个加密算法的输入，明文与加密算法的输出异或作为密文分组。需要初始化向量</p>
-
-<h3 id="ctr-模式">CTR 模式</h3>
-
-<p>计数器模式（Counter），将计数器作为加密算法的输入，加密算法的输出与明文分组异或作为密文分组，计数器是累加的。需要一个初始的计数器值</p>
-
-<p><strong>以上各种模式，ECB 不推荐使用</strong></p>
-
-<p>golang 代码实战：</p>
-
-<pre><code class="language-golang">func TestCBCMode(t *testing.T) {
-    key:=[]byte{0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01}
-    cipherBlock,err:=aes.NewCipher(key)
-    if err!=nil{
-        t.Error(err)
-    }
-    src:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
-    inv:=[]byte{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08}
-    cbcEncrypter:=cipher.NewCBCEncrypter(cipherBlock,inv)
-    encrptDst :=make([]byte,len(src))
-    cbcEncrypter.CryptBlocks(encrptDst,src)
-    t.Log(encrptDst)
-
-    plainDst:=make([]byte,len(encrptDst))
-    cbcDecrypter:=cipher.NewCBCDecrypter(cipherBlock,inv)
-    cbcDecrypter.CryptBlocks(plainDst,encrptDst)
-    t.Log(plainDst)
-}
-
-//out [182 174 175 250 117 45 192 139 81 99 151 49 118 26 237 0 98 117 59 208 145 166 116 62 43 199 115 70 250 251 56 226]
-//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
-
-</code></pre>
+<h2 id="schnorr">Schnorr</h2>
 
     
 	</div>
@@ -315,7 +316,7 @@
 
 
   <div class="article-share" id="share">
-    <div data-url="http://www.tpkeep.com/blog/encryption-symmetric/" data-title="密码学系列：对称加密" data-tsina="" class="share clearfix">
+    <div data-url="http://www.tpkeep.com/blog/encryption-signature/" data-title="密码学系列：签名" data-tsina="" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -337,8 +338,8 @@
 
 
 var disqus_config = function () {
-this.page.url = "http://www.tpkeep.com/blog/encryption-symmetric/";
-this.page.identifier = "http://www.tpkeep.com/blog/encryption-symmetric/";
+this.page.url = "http://www.tpkeep.com/blog/encryption-signature/";
+this.page.identifier = "http://www.tpkeep.com/blog/encryption-signature/";
 };
 (function() { 
 var d = document, s = d.createElement('script');

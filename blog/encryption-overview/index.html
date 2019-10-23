@@ -2,13 +2,13 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>加密与解密系列：概述 - 大远的博客</title>
+  <title>密码学系列：概述 - 大远的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
   
-  <meta name="description" content="根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给">
+  <meta name="description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、">
   
-  <meta itemprop="name" content="加密与解密系列：概述 - 大远的博客">
-  <meta itemprop="description" content="根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给">
+  <meta itemprop="name" content="密码学系列：概述 - 大远的博客">
+  <meta itemprop="description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、">
   <meta itemprop="image" content="http://www.tpkeep.com/img/author.jpg">
   
   
@@ -62,7 +62,7 @@
 	<article itemprop="articleBody">
     <header class="article-info clearfix">
   <h1 itemprop="name">
-      <a href="http://www.tpkeep.com/blog/encryption-overview/" title="加密与解密系列：概述" itemprop="url">加密与解密系列：概述</a>
+      <a href="http://www.tpkeep.com/blog/encryption-overview/" title="密码学系列：概述" itemprop="url">密码学系列：概述</a>
   </h1>
   <p class="article-author">By
     
@@ -84,7 +84,9 @@
 <ul>
 <li><a href="#对称加密算法">对称加密算法</a></li>
 <li><a href="#非对称加密算法">非对称加密算法</a></li>
-<li><a href="#散列函数">散列函数</a></li>
+<li><a href="#密钥交换算法">密钥交换算法</a></li>
+<li><a href="#签名算法">签名算法</a></li>
+<li><a href="#常用的散列函数">常用的散列函数</a></li>
 <li><a href="#常见术语">常见术语</a></li>
 <li><a href="#密码学相关书籍">密码学相关书籍</a></li>
 <li><a href="#参考代码合集">参考代码合集</a></li>
@@ -95,9 +97,16 @@
     
     
 
-<p>根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给出参考代码，便于进一步理解。</p>
+<p>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、密钥协商、签名等，也在讨论范围之内。</p>
+
+<ul>
+<li>将现实世界的东西映射为比特序列的操作为编码</li>
+<li>将表示明文的比特序列转换为表示密码的比特序列为加密</li>
+</ul>
 
 <h2 id="对称加密算法">对称加密算法</h2>
+
+<p>常用的对称加密算法：</p>
 
 <ul>
 <li>DES（Data Encryption Standard）</li>
@@ -126,7 +135,7 @@
 
 <p>特点：</p>
 
-<p>需要极其复杂的计算，因此相比对称加密速度比较慢</p>
+<p>需要极其复杂的计算，因此相比对称加密速度比较慢（速度是对称加密的几百分之一）</p>
 
 <p>主要应用：</p>
 
@@ -136,18 +145,34 @@
 <li>加解密（RSA、ECC）</li>
 </ul>
 
-<h2 id="散列函数">散列函数</h2>
+<h2 id="密钥交换算法">密钥交换算法</h2>
+
+<ul>
+<li>Diff-Hellman 密钥交换(DHKE)</li>
+<li>ECDH</li>
+</ul>
+
+<h2 id="签名算法">签名算法</h2>
+
+<ul>
+<li>RSA数字签名 (基于大数的分解问题)</li>
+<li>DSA (基于离散对数问题)</li>
+<li>ECDSA (基于椭圆曲线的推广的离散对数问题)</li>
+<li>Schnorr</li>
+</ul>
+
+<h2 id="常用的散列函数">常用的散列函数</h2>
 
 <ul>
 <li>MD4（Message Digest）：128 bit，不安全</li>
 <li>MD5 ：128 bit，不安全</li>
-<li>SHA-1 ：160 bit，不安全，山大王小云攻破 message，长度上限 2^64 bit</li>
+<li>SHA-1 ：160 bit，不安全，山大王小云攻破 message，长度上限 2^64 -1 bit</li>
 <li>SHA-2
 
 <ul>
-<li>SHA-256 ：256 bit，message 长度上限 2^64 bit</li>
-<li>SHA-384 ：384 bit，message 长度上限 2^128 bit</li>
-<li>SHA-512 ：512 bit，message 长度上限 2^128 bit</li>
+<li>SHA-256 ：256 bit，message 长度上限 2^64 - 1 bit</li>
+<li>SHA-384 ：384 bit，message 长度上限 2^128 - 1 bit</li>
+<li>SHA-512 ：512 bit，message 长度上限 2^128 -1 bit</li>
 </ul></li>
 <li>RIPEMD-160 ：160 bit</li>
 <li>SHA-3（Keccak）：理论可以生成任何长度散列值，message 长度无限制
@@ -175,10 +200,13 @@
 
 <h2 id="密码学相关书籍">密码学相关书籍</h2>
 
-<p>《图解密码技术》- 结城浩 著
-《深入浅出密码学》- Christof Paar / Jan Pelzl 著 马小婷 译
-《应用密码学：协议、算法与C源程序》- Bruce Schneier 著
-《公钥密码学的数学基础》- 王小云 著</p>
+<p>《图解密码技术》- 结城浩 著</p>
+
+<p>《深入浅出密码学》- Christof Paar / Jan Pelzl 著 马小婷 译</p>
+
+<p>《应用密码学：协议、算法与C源程序》- Bruce Schneier 著</p>
+
+<p>《公钥密码学的数学基础》- 王小云 著</p>
 
 <h2 id="参考代码合集">参考代码合集</h2>
 
@@ -203,14 +231,14 @@
 <div class="article-categories">
   <span></span>
   
-  <a class="article-category-link" href="http://www.tpkeep.com/categories/%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E7%B3%BB%E5%88%97">加密与解密系列</a>
+  <a class="article-category-link" href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97">密码学系列</a>
   
 </div>
 
 
 
   <div class="article-share" id="share">
-    <div data-url="http://www.tpkeep.com/blog/encryption-overview/" data-title="加密与解密系列：概述" data-tsina="" class="share clearfix">
+    <div data-url="http://www.tpkeep.com/blog/encryption-overview/" data-title="密码学系列：概述" data-tsina="" class="share clearfix">
     </div>
   </div>
 </footer>
@@ -269,7 +297,7 @@ xhr.send(null);
     
     <li><a href="http://www.tpkeep.com/categories/hd-wallet-%e7%b3%bb%e5%88%97" title="hd-wallet-系列">hd-wallet-系列<sup>4</sup></a></li>
     
-    <li><a href="http://www.tpkeep.com/categories/%e5%8a%a0%e5%af%86%e4%b8%8e%e8%a7%a3%e5%af%86%e7%b3%bb%e5%88%97" title="加密与解密系列">加密与解密系列<sup>3</sup></a></li>
+    <li><a href="http://www.tpkeep.com/categories/%e5%af%86%e7%a0%81%e5%ad%a6%e7%b3%bb%e5%88%97" title="密码学系列">密码学系列<sup>4</sup></a></li>
     
   </ul>
 </div>
@@ -284,7 +312,7 @@ xhr.send(null);
       
 			<li><a href="http://www.tpkeep.com/tags/btcd" title="btcd">btcd<sup>7</sup></a></li>
       
-			<li><a href="http://www.tpkeep.com/tags/encrypt" title="encrypt">encrypt<sup>3</sup></a></li>
+			<li><a href="http://www.tpkeep.com/tags/encrypt" title="encrypt">encrypt<sup>4</sup></a></li>
       
 			<li><a href="http://www.tpkeep.com/tags/hd-wallet" title="hd-wallet">hd-wallet<sup>4</sup></a></li>
       
@@ -300,7 +328,7 @@ xhr.send(null);
       
       
       <li class="archive-list-item">
-        <a class="archive-list-link" href="http://www.tpkeep.com/post/#2019-09">2019年09月</a><span class="archive-list-count">5</span>
+        <a class="archive-list-link" href="http://www.tpkeep.com/post/#2019-09">2019年09月</a><span class="archive-list-count">6</span>
       </li>
       
       

@@ -6,22 +6,31 @@
     <description>Recent content in Posts on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Mon, 09 Sep 2019 17:04:19 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 11 Sep 2019 17:04:19 +0800</lastBuildDate>
     
 	<atom:link href="http://www.tpkeep.com/post/feed.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>加密与解密系列：非对称加密</title>
+      <title>密码学系列：签名</title>
+      <link>http://www.tpkeep.com/blog/encryption-signature/</link>
+      <pubDate>Wed, 11 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-signature/</guid>
+      <description>签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥：</description>
+    </item>
+    
+    <item>
+      <title>密码学系列：非对称加密</title>
       <link>http://www.tpkeep.com/blog/encryption-asymmetric/</link>
       <pubDate>Mon, 09 Sep 2019 17:04:19 +0800</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-asymmetric/</guid>
-      <description>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 定义：单向函数 函数 f() 是一个单向函数，当且仅当</description>
+      <description>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅</description>
     </item>
     
     <item>
-      <title>加密与解密系列：对称加密</title>
+      <title>密码学系列：对称加密</title>
       <link>http://www.tpkeep.com/blog/encryption-symmetric/</link>
       <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
       
@@ -30,12 +39,12 @@
     </item>
     
     <item>
-      <title>加密与解密系列：概述</title>
+      <title>密码学系列：概述</title>
       <link>http://www.tpkeep.com/blog/encryption-overview/</link>
       <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
-      <description>根据密钥的类型一般可以分为对称加密和非对称加密，而同一类型又有不同的算法实现，本系列文章将对这两种类型的涉及到的加密算法分别分析，并在最后给</description>
+      <description>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、</description>
     </item>
     
     <item>
