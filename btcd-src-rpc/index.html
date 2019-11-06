@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"default"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: true,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="参考：btcd  btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求 http&#x2F;websocket是传输协议，json是序列化协议。">
+<meta name="keywords" content="btcd">
+<meta property="og:type" content="article">
+<meta property="og:title" content="btcd 源码分析系列：7 - rpc">
+<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;btcd-src-rpc&#x2F;index.html">
+<meta property="og:site_name" content="tpkeeper">
+<meta property="og:description" content="参考：btcd  btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求 http&#x2F;websocket是传输协议，json是序列化协议。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-03T03:57:14.840Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://tpkeep.com/btcd-src-rpc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>btcd 源码分析系列：7 - rpc | tpkeeper</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">tpkeeper</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">啥都不懂</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/tpkeeper" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tpkeep.com/blog/btcd-src-rpc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.jpg">
+      <meta itemprop="name" content="tpkeeper">
+      <meta itemprop="description" content="专注于Golang、Web后端、区块链">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tpkeeper">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          btcd 源码分析系列：7 - rpc
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-30 09:04:40" itemprop="dateCreated datePublished" datetime="2019-08-30T09:04:40+08:00">2019-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-03 11:57:14" itemprop="dateModified" datetime="2019-09-03T11:57:14+08:00">2019-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">btcd 源码分析</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/rpcserver.go" target="_blank" rel="noopener">btcd</a></p>
+</blockquote><ul>
+<li>btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。</li>
+<li>websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求</li>
+<li>http/websocket是传输协议，json是序列化协议。</li>
+</ul><a id="more"></a>
+
+<h2 id="一、start"><a href="#一、start" class="headerlink" title="一、start"></a>一、start</h2><ul>
+<li><p>启动一个server,监听路径”/“和”/ws”,分别对应http/websocket。</p>
+</li>
+<li><p>通过chedkAuth()函数认证，基于Basic authentication</p>
+</li>
+<li><p>通过limitConnections（）对单个地址的并发连接数量做限制</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">rpcServeMux.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">    w.Header().Set(<span class="string">"Connection"</span>, <span class="string">"close"</span>)</span><br><span class="line">    w.Header().Set(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>)</span><br><span class="line">    r.Close = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Limit the number of connections to max allowed.</span></span><br><span class="line">    <span class="keyword">if</span> s.limitConnections(w, r.RemoteAddr) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Keep track of the number of connected clients.</span></span><br><span class="line">    s.incrementClients()</span><br><span class="line">    <span class="keyword">defer</span> s.decrementClients()</span><br><span class="line">    _, isAdmin, err := s.checkAuth(r, <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        jsonAuthFail(w)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Read and respond to the request.</span></span><br><span class="line">    s.jsonRPCRead(w, r, isAdmin)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Websocket endpoint.</span></span><br><span class="line">rpcServeMux.HandleFunc(<span class="string">"/ws"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">    authenticated, isAdmin, err := s.checkAuth(r, <span class="literal">false</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        jsonAuthFail(w)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Attempt to upgrade the connection to a websocket connection</span></span><br><span class="line">    <span class="comment">// using the default size for read/write buffers.</span></span><br><span class="line">    ws, err := websocket.Upgrade(w, r, <span class="literal">nil</span>, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> _, ok := err.(websocket.HandshakeError); !ok &#123;</span><br><span class="line">            rpcsLog.Errorf(<span class="string">"Unexpected websocket error: %v"</span>,</span><br><span class="line">                err)</span><br><span class="line">        &#125;</span><br><span class="line">        http.Error(w, <span class="string">"400 Bad Request."</span>, http.StatusBadRequest)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    s.WebsocketHandler(ws, r.RemoteAddr, authenticated, isAdmin)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="二、解析参数"><a href="#二、解析参数" class="headerlink" title="二、解析参数"></a>二、解析参数</h2><ul>
+<li><p>通过对body进行unmarshal，可以直接拿到此结构</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Request <span class="keyword">struct</span> &#123;</span><br><span class="line">    Jsonrpc <span class="keyword">string</span>            <span class="string">`json:"jsonrpc"`</span></span><br><span class="line">    Method  <span class="keyword">string</span>            <span class="string">`json:"method"`</span></span><br><span class="line">    Params  []json.RawMessage <span class="string">`json:"params"`</span></span><br><span class="line">    ID      <span class="keyword">interface</span>&#123;&#125;       <span class="string">`json:"id"`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>进一步通过反射拿到此结构体，cmd对应method cmd（实际上就是参数）的结构体反射值</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> parsedRPCCmd <span class="keyword">struct</span> &#123;</span><br><span class="line">    id     <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">    method <span class="keyword">string</span></span><br><span class="line">    cmd    <span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">    err    *hcjson.RPCError</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>一个具体的method,对应的cmd结构体，也就是method的参数</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CreateRawTransactionCmd defines the createrawtransaction JSON-RPC command.</span></span><br><span class="line"><span class="keyword">type</span> CreateRawTransactionCmd <span class="keyword">struct</span> &#123;</span><br><span class="line">    Inputs   []TransactionInput</span><br><span class="line">    Amounts  <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">float64</span> <span class="string">`jsonrpcusage:"&#123;\"address\":amount,...&#125;"`</span> <span class="comment">// In HC</span></span><br><span class="line">    LockTime *<span class="keyword">int64</span></span><br><span class="line">    PayLoad  *<span class="keyword">string</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h2 id="三、执行"><a href="#三、执行" class="headerlink" title="三、执行"></a>三、执行</h2><ul>
+<li><p>通过method找到相应的handler，传入之前拿到的参数，并执行</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *rpcServer)</span> <span class="title">standardCmdResult</span><span class="params">(cmd *parsedRPCCmd, closeChan &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span> <span class="params">(<span class="keyword">interface</span>&#123;&#125;, error)</span></span> &#123;</span><br><span class="line">    handler, ok := rpcHandlers[cmd.method]</span><br><span class="line">    <span class="keyword">if</span> ok &#123;</span><br><span class="line">        <span class="keyword">goto</span> handled</span><br><span class="line">    &#125;</span><br><span class="line">    _, ok = rpcAskWallet[cmd.method]</span><br><span class="line">    <span class="keyword">if</span> ok &#123;</span><br><span class="line">        handler = handleAskWallet</span><br><span class="line">        <span class="keyword">goto</span> handled</span><br><span class="line">    &#125;</span><br><span class="line">    _, ok = rpcUnimplemented[cmd.method]</span><br><span class="line">    <span class="keyword">if</span> ok &#123;</span><br><span class="line">        handler = handleUnimplemented</span><br><span class="line">        <span class="keyword">goto</span> handled</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, hcjson.ErrRPCMethodNotFound</span><br><span class="line">handled:</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> handler(s, cmd.cmd, closeChan)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>具体的执行方法</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// handleCreateRawTransaction handles createrawtransaction commands.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleCreateRawTransaction</span><span class="params">(s *rpcServer, cmd <span class="keyword">interface</span>&#123;&#125;, closeChan &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span> <span class="params">(<span class="keyword">interface</span>&#123;&#125;, error)</span></span> &#123;</span><br><span class="line">    c := cmd.(*hcjson.CreateRawTransactionCmd)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Validate the locktime, if given.</span></span><br><span class="line">    <span class="keyword">if</span> c.LockTime != <span class="literal">nil</span> &amp;&amp;</span><br><span class="line">        (*c.LockTime &lt; <span class="number">0</span> ||</span><br><span class="line">            *c.LockTime &gt; <span class="keyword">int64</span>(wire.MaxTxInSequenceNum)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, rpcInvalidError(<span class="string">"Locktime out of range"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Add all transaction inputs to a new transaction after performing</span></span><br><span class="line">    <span class="comment">// some validity checks.</span></span><br><span class="line">    mtx := wire.NewMsgTx()</span><br><span class="line">    <span class="keyword">for</span> _, input := <span class="keyword">range</span> c.Inputs &#123;</span><br><span class="line">        txHash, err := chainhash.NewHashFromStr(input.Txid)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>, rpcDecodeHexError(input.Txid)</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="四、返回"><a href="#四、返回" class="headerlink" title="四、返回"></a>四、返回</h2><ul>
+<li><p>最后将结果序列化并返回，responseID=requestID</p>
+  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Marshal the response.</span></span><br><span class="line">msg, err := createMarshalledReply(responseID, result, jsonErr)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    rpcsLog.Errorf(<span class="string">"Failed to marshal reply: %v"</span>, err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Write the response.</span></span><br><span class="line">err = s.writeHTTPResponseHeaders(r, w.Header(), http.StatusOK, buf)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    rpcsLog.Error(err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> _, err := buf.Write(msg); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    rpcsLog.Errorf(<span class="string">"Failed to write marshalled reply: %v"</span>, err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/btcd/" rel="tag"># btcd</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/btcd-src-mempool/" rel="next" title="btcd 源码分析系列：6 - mempool">
+                  <i class="fa fa-chevron-left"></i> btcd 源码分析系列：6 - mempool
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/hd-wallet-overview/" rel="prev" title="HD Wallet 系列：概述">
+                  HD Wallet 系列：概述 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、start"><span class="nav-number">1.</span> <span class="nav-text">一、start</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、解析参数"><span class="nav-number">2.</span> <span class="nav-text">二、解析参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、执行"><span class="nav-number">3.</span> <span class="nav-text">三、执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、返回"><span class="nav-number">4.</span> <span class="nav-text">四、返回</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="tpkeeper"
+    src="/blog/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">tpkeeper</p>
+  <div class="site-description" itemprop="description">专注于Golang、Web后端、区块链</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tpkeeper</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+<script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script>
+<script src="/blog/js/schemes/pisces.js"></script>
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

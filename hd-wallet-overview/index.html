@@ -52,17 +52,20 @@
   };
 </script>
 
-  <meta name="description" content="专注于Golang、Web后端、区块链">
-<meta name="keywords" content="golang,btc,以太坊,区块链">
-<meta property="og:type" content="website">
-<meta property="og:title" content="tpkeeper">
-<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;categories&#x2F;HD-Wallet-%E7%B3%BB%E5%88%97&#x2F;index.html">
+  <meta name="description" content="分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理助记词、种子、公钥、地址之间的关系如下： 助记词与种子公钥与地址之间只能单向推导 主要涉及到的bip协议： bip32 hd 钱包核心提案，定义分层概念和算法   bip39 定义助记词生成规则和导出种子规则  bip44 定义 5 层路径规则  bip45 定义多签地址生成规则">
+<meta name="keywords" content="HD Wallet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HD Wallet 系列：概述">
+<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;hd-wallet-overview&#x2F;index.html">
 <meta property="og:site_name" content="tpkeeper">
-<meta property="og:description" content="专注于Golang、Web后端、区块链">
+<meta property="og:description" content="分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理助记词、种子、公钥、地址之间的关系如下： 助记词与种子公钥与地址之间只能单向推导 主要涉及到的bip协议： bip32 hd 钱包核心提案，定义分层概念和算法   bip39 定义助记词生成规则和导出种子规则  bip44 定义 5 层路径规则  bip45 定义多签地址生成规则">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;hd-wallet-overview&#x2F;image&#x2F;seed-addr-rlt.png">
+<meta property="og:updated_time" content="2019-11-06T06:42:33.789Z">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;hd-wallet-overview&#x2F;image&#x2F;seed-addr-rlt.png">
 
-<link rel="canonical" href="http://tpkeep.com/categories/HD-Wallet-%E7%B3%BB%E5%88%97/">
+<link rel="canonical" href="http://tpkeep.com/hd-wallet-overview/">
 
 
 <script id="page-configurations">
@@ -70,13 +73,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false,
+    isPost: true,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>分类: HD Wallet 系列 | tpkeeper</title>
+  <title>HD Wallet 系列：概述 | tpkeeper</title>
   
 
 
@@ -189,110 +192,128 @@
           <div class="content">
             
 
+  <div class="posts-expand">
+      
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">HD Wallet 系列
-          <small>分类</small>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tpkeep.com/blog/hd-wallet-overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.jpg">
+      <meta itemprop="name" content="tpkeeper">
+      <meta itemprop="description" content="专注于Golang、Web后端、区块链">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tpkeeper">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          HD Wallet 系列：概述
         </h2>
-      </div>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-31 09:04:19" itemprop="dateCreated datePublished" datetime="2019-08-31T09:04:19+08:00">2019-08-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-06 14:42:33" itemprop="dateModified" datetime="2019-11-06T14:42:33+08:00">2019-11-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/HD-Wallet-%E7%B3%BB%E5%88%97/" itemprop="url" rel="index">
+                    <span itemprop="name">HD Wallet 系列</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <h2 class="collection-header">2019</h2>
-    </div>
+        <p>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理</p><p><strong>助记词、种子、公钥、地址之间的关系如下：</strong></p><ul>
+<li>助记词与种子公钥与地址之间只能单向推导</li>
+</ul><p><img alt="seed-addr-rlt.png" data-src="image/seed-addr-rlt.png"></p><p><strong>主要涉及到的bip协议：</strong></p><ol>
+<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki" target="_blank" rel="noopener">bip32</a> hd 钱包核心提案，定义分层概念和算法 </p>
+</li>
+<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki" target="_blank" rel="noopener">bip39</a> 定义助记词生成规则和导出种子规则</p>
+</li>
+<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki" target="_blank" rel="noopener">bip44</a> 定义 5 层路径规则</p>
+</li>
+<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0045.mediawiki" target="_blank" rel="noopener">bip45</a> 定义多签地址生成规则</p>
+</li>
+</ol><a id="more"></a>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-09-01T17:04:19+08:00"
-              content="2019-09-01">
-          09-01
-        </time>
-      </div>
 
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-pubkeytoaddr/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：公钥与地址</span>
-          </a>
-      </h3>
 
-    </header>
-  </article>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-09-01T17:04:19+08:00"
-              content="2019-09-01">
-          09-01
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-seedtopubkey/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：种子与公钥</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-08-31T17:04:19+08:00"
-              content="2019-08-31">
-          08-31
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-mnemonic/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：助记词与种子</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-08-31T09:04:19+08:00"
-              content="2019-08-31">
-          08-31
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-overview/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：概述</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
+<p>在该系列文章中，我将对上述协议分别展开讨论与分析，并且在最后会通过代码示例来帮助我们更好的理解协议的内容。</p>
 
     </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/HD-Wallet/" rel="tag"># HD Wallet</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/btcd-src-rpc/" rel="next" title="btcd 源码分析系列：7 - rpc">
+                  <i class="fa fa-chevron-left"></i> btcd 源码分析系列：7 - rpc
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/hd-wallet-mnemonic/" rel="prev" title="HD Wallet 系列：助记词与种子">
+                  HD Wallet 系列：助记词与种子 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
   </div>
-  
-  
-  
-
-  
-
 
 
           </div>

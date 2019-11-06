@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"default"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: true,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="参考 bip32、bip44 定义了种子生成树状密钥对的算法与规则 定义了5层路径规则，可兼容多账号多币种 一、密钥扩展算法1. 概念 private extended  key ：   (k , c) k为私钥，c为chaincode  public extended  key  ：   (K , c) K为公钥，c为chaincode  Child key derivation functio">
+<meta name="keywords" content="HD Wallet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HD Wallet 系列：种子与公钥">
+<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;hd-wallet-seedtopubkey&#x2F;index.html">
+<meta property="og:site_name" content="tpkeeper">
+<meta property="og:description" content="参考 bip32、bip44 定义了种子生成树状密钥对的算法与规则 定义了5层路径规则，可兼容多账号多币种 一、密钥扩展算法1. 概念 private extended  key ：   (k , c) k为私钥，c为chaincode  public extended  key  ：   (K , c) K为公钥，c为chaincode  Child key derivation functio">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-06T03:52:57.433Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://tpkeep.com/hd-wallet-seedtopubkey/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>HD Wallet 系列：种子与公钥 | tpkeeper</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">tpkeeper</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">啥都不懂</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/tpkeeper" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tpkeep.com/blog/hd-wallet-seedtopubkey/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.jpg">
+      <meta itemprop="name" content="tpkeeper">
+      <meta itemprop="description" content="专注于Golang、Web后端、区块链">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tpkeeper">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          HD Wallet 系列：种子与公钥
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-01 17:04:19" itemprop="dateCreated datePublished" datetime="2019-09-01T17:04:19+08:00">2019-09-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-06 11:52:57" itemprop="dateModified" datetime="2019-11-06T11:52:57+08:00">2019-11-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/HD-Wallet-%E7%B3%BB%E5%88%97/" itemprop="url" rel="index">
+                    <span itemprop="name">HD Wallet 系列</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>参考 <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki" target="_blank" rel="noopener">bip32</a>、<a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki" target="_blank" rel="noopener">bip44</a></p><ul>
+<li>定义了种子生成树状密钥对的算法与规则</li>
+<li>定义了5层路径规则，可兼容多账号多币种</li>
+</ul><h2 id="一、密钥扩展算法"><a href="#一、密钥扩展算法" class="headerlink" title="一、密钥扩展算法"></a>一、密钥扩展算法</h2><h3 id="1-概念"><a href="#1-概念" class="headerlink" title="1. 概念"></a>1. 概念</h3><ul>
+<li><p>private extended  key ：</p>
+<p>  (k , c) k为私钥，c为chaincode</p>
+</li>
+<li><p>public extended  key  ：</p>
+<p>  (K , c) K为公钥，c为chaincode</p>
+</li>
+<li><p>Child key derivation functions：</p>
+<p>  CKD(extended key , index)<br>  normal child keys 范围: 0-2^31-1<br>  hardened child keys 范围: 2^31 - 2^32-1</p>
+</li>
+</ul><a id="more"></a>
+
+
+<h3 id="2-可生成的规则："><a href="#2-可生成的规则：" class="headerlink" title="2. 可生成的规则："></a>2. 可生成的规则：</h3><ul>
+<li>Private extended key -&gt; Hardened child private extended key</li>
+<li>Private extended key -&gt; Non-hardened child private extended key</li>
+<li>Public extended key -&gt; Non-hardened child public extended key</li>
+<li>Public extended key -&gt; Hardened child public extended key (不允许) </li>
+</ul>
+<h3 id="3-具体过程"><a href="#3-具体过程" class="headerlink" title="3. 具体过程"></a>3. 具体过程</h3><ol>
+<li>计算 HMAC-SHA512(“Bitcoin seed” , seed(128-512bits)) 获取512bits</li>
+<li>将 1 的结果分为L和R，各占32字节，分别作为master extended Key 的private key和chaincode，得到master extended Key(private extended key)</li>
+<li>通过 CKD(extended key , index) 方法派扩展密钥对</li>
+</ol>
+<h2 id="二、5层路径规则"><a href="#二、5层路径规则" class="headerlink" title="二、5层路径规则"></a>二、5层路径规则</h2><h3 id="1-路径含义"><a href="#1-路径含义" class="headerlink" title="1. 路径含义"></a>1. 路径含义</h3><p><strong>路径：m/purpse’/coin_type’/account’/change/address_index（‘ 表示hardencode index 需要大于或等于 2^31）</strong></p>
+<p>m：主扩展密钥<br>purpose： bip44/bip45<br>coin_type： 币种<br>account： 钱包账户<br>change： 0 对外 / 1 找零<br>address_index： 地址索引  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">A[masterNode] --&gt;B(BIP44)</span><br><span class="line">B --&gt;C[coinType 0]</span><br><span class="line">B --&gt;D[coinType 10]</span><br><span class="line">C --&gt; E[account 0]</span><br><span class="line">D --&gt; F[account 0]</span><br><span class="line">E --&gt; G[change 0]</span><br><span class="line">E --&gt; H[change 1]</span><br><span class="line">G --&gt; I[address 0]</span><br><span class="line">G --&gt; J[address 1]</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-获取公钥"><a href="#2-获取公钥" class="headerlink" title="2. 获取公钥"></a>2. 获取公钥</h3><p>通过层层扩展，拿到第五层的扩展密钥 (k,c)，其中的k即为privkey,然后结合椭圆曲线的算法即可得到pubKey</p>
+<h2 id="三、代码实战"><a href="#三、代码实战" class="headerlink" title="三、代码实战"></a>三、代码实战</h2><p>代码参考: <a href="https://github.com/tpkeeper/addrtool/blob/master/address_test.go" target="_blank" rel="noopener">https://github.com/tpkeeper/addrtool/blob/master/address_test.go</a></p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestSeedToPubkey</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	seed := <span class="string">"04ef53d66b17fdfb6538c5d183f0b0569fc1c79d07f044f7670c3038aff411e5abcbe8c457b584d0c1e3504ab94fb311f9097a793c20dfc746a87087ed5dc119"</span></span><br><span class="line">	hexByte, _ := hex.DecodeString(seed)</span><br><span class="line">	<span class="comment">//m</span></span><br><span class="line">	masterExtKey, _ := bip32.NewMasterKey(hexByte)</span><br><span class="line">	<span class="comment">//m/purpose'</span></span><br><span class="line">	purposeExtKey,_:=masterExtKey.NewChildKey(bip32.FirstHardenedChild+<span class="number">44</span>)</span><br><span class="line">	<span class="comment">//m/purpose'/cointype'</span></span><br><span class="line">	coinTypeExtKey,_:=purposeExtKey.NewChildKey(bip32.FirstHardenedChild+<span class="number">0</span>)</span><br><span class="line">	<span class="comment">//m/purpose'/cointype'/account'</span></span><br><span class="line">	accountExtKey,_:=coinTypeExtKey.NewChildKey(bip32.FirstHardenedChild+<span class="number">0</span>)</span><br><span class="line">	<span class="comment">//m/purpose'/cointype'/account'/change</span></span><br><span class="line">	changeExtKey,_:=accountExtKey.NewChildKey(<span class="number">0</span>)</span><br><span class="line">	<span class="comment">//m/purpose'/cointype'/account'/change/addrIndex</span></span><br><span class="line">	addrIndex0ExtKey,_:=changeExtKey.NewChildKey(<span class="number">0</span>)</span><br><span class="line">	<span class="comment">//pubkey</span></span><br><span class="line">	t.Log(hex.EncodeToString(addrIndex0ExtKey.PublicKey().Key))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/HD-Wallet/" rel="tag"># HD Wallet</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/hd-wallet-mnemonic/" rel="next" title="HD Wallet 系列：助记词与种子">
+                  <i class="fa fa-chevron-left"></i> HD Wallet 系列：助记词与种子
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/hd-wallet-pubkeytoaddr/" rel="prev" title="HD Wallet 系列：公钥与地址">
+                  HD Wallet 系列：公钥与地址 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、密钥扩展算法"><span class="nav-number">1.</span> <span class="nav-text">一、密钥扩展算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-概念"><span class="nav-number">1.1.</span> <span class="nav-text">1. 概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-可生成的规则："><span class="nav-number">1.2.</span> <span class="nav-text">2. 可生成的规则：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-具体过程"><span class="nav-number">1.3.</span> <span class="nav-text">3. 具体过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、5层路径规则"><span class="nav-number">2.</span> <span class="nav-text">二、5层路径规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-路径含义"><span class="nav-number">2.1.</span> <span class="nav-text">1. 路径含义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-获取公钥"><span class="nav-number">2.2.</span> <span class="nav-text">2. 获取公钥</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、代码实战"><span class="nav-number">3.</span> <span class="nav-text">三、代码实战</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="tpkeeper"
+    src="/blog/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">tpkeeper</p>
+  <div class="site-description" itemprop="description">专注于Golang、Web后端、区块链</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tpkeeper</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+<script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script>
+<script src="/blog/js/schemes/pisces.js"></script>
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

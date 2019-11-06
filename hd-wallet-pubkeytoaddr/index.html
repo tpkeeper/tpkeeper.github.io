@@ -52,17 +52,22 @@
   };
 </script>
 
-  <meta name="description" content="专注于Golang、Web后端、区块链">
-<meta name="keywords" content="golang,btc,以太坊,区块链">
-<meta property="og:type" content="website">
-<meta property="og:title" content="tpkeeper">
-<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;categories&#x2F;HD-Wallet-%E7%B3%BB%E5%88%97&#x2F;index.html">
+  <meta name="description" content="简单的理解，地址就是公钥&#x2F;脚本哈希值的base58格式一、地址的格式 P2PKH (Pay To PubKey Hash) 格式的地址  P2SH (Pay To Script Hash) 格式的地址">
+<meta name="keywords" content="HD Wallet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HD Wallet 系列：公钥与地址">
+<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;hd-wallet-pubkeytoaddr&#x2F;index.html">
 <meta property="og:site_name" content="tpkeeper">
-<meta property="og:description" content="专注于Golang、Web后端、区块链">
+<meta property="og:description" content="简单的理解，地址就是公钥&#x2F;脚本哈希值的base58格式一、地址的格式 P2PKH (Pay To PubKey Hash) 格式的地址  P2SH (Pay To Script Hash) 格式的地址">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;image&#x2F;p2pkh_addr.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;image&#x2F;p2sh_addr.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;image&#x2F;base58pre.png">
+<meta property="og:updated_time" content="2019-11-06T03:52:48.072Z">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;image&#x2F;p2pkh_addr.png">
 
-<link rel="canonical" href="http://tpkeep.com/categories/HD-Wallet-%E7%B3%BB%E5%88%97/">
+<link rel="canonical" href="http://tpkeep.com/hd-wallet-pubkeytoaddr/">
 
 
 <script id="page-configurations">
@@ -70,13 +75,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false,
+    isPost: true,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>分类: HD Wallet 系列 | tpkeeper</title>
+  <title>HD Wallet 系列：公钥与地址 | tpkeeper</title>
   
 
 
@@ -189,110 +194,125 @@
           <div class="content">
             
 
+  <div class="posts-expand">
+      
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">HD Wallet 系列
-          <small>分类</small>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tpkeep.com/blog/hd-wallet-pubkeytoaddr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.jpg">
+      <meta itemprop="name" content="tpkeeper">
+      <meta itemprop="description" content="专注于Golang、Web后端、区块链">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tpkeeper">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          HD Wallet 系列：公钥与地址
         </h2>
-      </div>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-01 17:04:19" itemprop="dateCreated datePublished" datetime="2019-09-01T17:04:19+08:00">2019-09-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-11-06 11:52:48" itemprop="dateModified" datetime="2019-11-06T11:52:48+08:00">2019-11-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/HD-Wallet-%E7%B3%BB%E5%88%97/" itemprop="url" rel="index">
+                    <span itemprop="name">HD Wallet 系列</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <h2 class="collection-header">2019</h2>
-    </div>
+        <p>简单的理解，地址就是公钥/脚本哈希值的base58格式</p><h2 id="一、地址的格式"><a href="#一、地址的格式" class="headerlink" title="一、地址的格式"></a>一、地址的格式</h2><ul>
+<li>P2PKH (Pay To PubKey Hash) 格式的地址</li>
+</ul><p><img alt="p2pkh_addr.png" data-src="/image/p2pkh_addr.png"></p><ul>
+<li>P2SH (Pay To Script Hash) 格式的地址</li>
+</ul><a id="more"></a>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-09-01T17:04:19+08:00"
-              content="2019-09-01">
-          09-01
-        </time>
-      </div>
 
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-pubkeytoaddr/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：公钥与地址</span>
-          </a>
-      </h3>
+<p><img alt="p2sh_addr.png" data-src="/image/p2sh_addr.png"></p>
+<p>前缀占用一个字节，表示不同的网络<br>校验占用4个字节<br>使用base58可以更友好的显示，增加的校验还可以防止用户输入错误，bip32中也是这种格式来显示扩展密钥</p>
+<h2 id="二、代码实战"><a href="#二、代码实战" class="headerlink" title="二、代码实战"></a>二、代码实战</h2><p>代码参考：<a href="https://github.com/tpkeeper/addrtool/blob/master/address.go" target="_blank" rel="noopener">https://github.com/tpkeeper/addrtool/blob/master/address.go</a></p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">PubkeyToAddress</span><span class="params">(key []<span class="keyword">byte</span>,netId <span class="keyword">byte</span>)</span><span class="params">(<span class="keyword">string</span>)</span></span>&#123;</span><br><span class="line">	hash160Bytes:=btcutil.Hash160(key)</span><br><span class="line">	<span class="keyword">return</span> base58.CheckEncode(hash160Bytes,netId)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-09-01T17:04:19+08:00"
-              content="2019-09-01">
-          09-01
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-seedtopubkey/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：种子与公钥</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-08-31T17:04:19+08:00"
-              content="2019-08-31">
-          08-31
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-mnemonic/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：助记词与种子</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2019-08-31T09:04:19+08:00"
-              content="2019-08-31">
-          08-31
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/blog/hd-wallet-overview/" itemprop="url">
-            <span itemprop="name">HD Wallet 系列：概述</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
+<h2 id="三、base58前缀目录一览"><a href="#三、base58前缀目录一览" class="headerlink" title="三、base58前缀目录一览"></a>三、base58前缀目录一览</h2><p>xpub xprv 代表的就是bip32中的扩展密钥即extended key</p>
+<p><img alt="base58pre.png" data-src="/image/base58pre.png"></p>
 
     </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/HD-Wallet/" rel="tag"># HD Wallet</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/hd-wallet-seedtopubkey/" rel="next" title="HD Wallet 系列：种子与公钥">
+                  <i class="fa fa-chevron-left"></i> HD Wallet 系列：种子与公钥
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/encryption-symmetric/" rel="prev" title="密码学系列：对称加密">
+                  密码学系列：对称加密 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
   </div>
-  
-  
-  
-
-  
-
 
 
           </div>
@@ -321,6 +341,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、地址的格式"><span class="nav-number">1.</span> <span class="nav-text">一、地址的格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、代码实战"><span class="nav-number">2.</span> <span class="nav-text">二、代码实战</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、base58前缀目录一览"><span class="nav-number">3.</span> <span class="nav-text">三、base58前缀目录一览</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

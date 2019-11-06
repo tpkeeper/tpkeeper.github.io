@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+  <meta http-equiv="Cache-Control" content="no-transform">
+  <meta http-equiv="Cache-Control" content="no-siteapp">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":"default"},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":true},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: true,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="参考：btcd  connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理，实际上这些回调函数是由server实现的，它们会根据conn生成对应的peer，交由peer处理之后的逻辑 默认outbound peer数量为8 节点发现 address database （第一次启动时为空） -addnod">
+<meta name="keywords" content="btcd">
+<meta property="og:type" content="article">
+<meta property="og:title" content="btcd 源码分析系列：3 - connmanager">
+<meta property="og:url" content="http:&#x2F;&#x2F;tpkeep.com&#x2F;btcd-src-connmanager&#x2F;index.html">
+<meta property="og:site_name" content="tpkeeper">
+<meta property="og:description" content="参考：btcd  connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理，实际上这些回调函数是由server实现的，它们会根据conn生成对应的peer，交由peer处理之后的逻辑 默认outbound peer数量为8 节点发现 address database （第一次启动时为空） -addnod">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-03T06:03:07.413Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://tpkeep.com/btcd-src-connmanager/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>btcd 源码分析系列：3 - connmanager | tpkeeper</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">tpkeeper</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">啥都不懂</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/tpkeeper" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tpkeep.com/blog/btcd-src-connmanager/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.jpg">
+      <meta itemprop="name" content="tpkeeper">
+      <meta itemprop="description" content="专注于Golang、Web后端、区块链">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="tpkeeper">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          btcd 源码分析系列：3 - connmanager
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-30 09:03:47" itemprop="dateCreated datePublished" datetime="2019-08-30T09:03:47+08:00">2019-08-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-03 14:03:07" itemprop="dateModified" datetime="2019-09-03T14:03:07+08:00">2019-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/btcd-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">btcd 源码分析</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/connmgr" target="_blank" rel="noopener">btcd</a></p>
+</blockquote><ul>
+<li>connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理，实际上这些回调函数是由server实现的，它们会根据conn生成对应的peer，交由peer处理之后的逻辑</li>
+<li>默认outbound peer数量为8</li>
+<li>节点发现<ul>
+<li>address database （第一次启动时为空）</li>
+<li>-addnode -connect (手动)</li>
+<li>dns seed （通过dns获取addr）</li>
+<li>hard-coded seeds（代码中的seed）</li>
+<li>getaddr from other peers （通过其他节点同步）</li>
+</ul>
+</li>
+</ul><a id="more"></a>
+
+<h2 id="一、创建connmanager对象"><a href="#一、创建connmanager对象" class="headerlink" title="一、创建connmanager对象"></a>一、创建connmanager对象</h2><ul>
+<li>主要是根据传入的config结构体参数返回一个指针，config结构体主要 包含一些回调方法和[]listener,这样便于灵活实现和调用</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// New returns a new connection manager.</span></span><br><span class="line"><span class="comment">// Use Start to start connecting to the network.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(cfg *Config)</span> <span class="params">(*ConnManager, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> cfg.Dial == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, ErrDialNil</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Default to sane values</span></span><br><span class="line">	<span class="keyword">if</span> cfg.RetryDuration &lt;= <span class="number">0</span> &#123;</span><br><span class="line">		cfg.RetryDuration = defaultRetryDuration</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> cfg.TargetOutbound == <span class="number">0</span> &#123;</span><br><span class="line">		cfg.TargetOutbound = defaultTargetOutbound</span><br><span class="line">	&#125;</span><br><span class="line">	cm := ConnManager&#123;</span><br><span class="line">		cfg:      *cfg, <span class="comment">// Copy so caller can't mutate</span></span><br><span class="line">		requests: <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">interface</span>&#123;&#125;),</span><br><span class="line">		quit:     <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;),</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;cm, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// Config holds the configuration options related to the connection manager.</span></span><br><span class="line"><span class="keyword">type</span> Config <span class="keyword">struct</span> &#123;</span><br><span class="line">	<span class="comment">// Listeners defines a slice of listeners for which the connection</span></span><br><span class="line">	<span class="comment">// manager will take ownership of and accept connections.  When a</span></span><br><span class="line">	<span class="comment">// connection is accepted, the OnAccept handler will be invoked with the</span></span><br><span class="line">	<span class="comment">// connection.  Since the connection manager takes ownership of these</span></span><br><span class="line">	<span class="comment">// listeners, they will be closed when the connection manager is</span></span><br><span class="line">	<span class="comment">// stopped.</span></span><br><span class="line">	<span class="comment">//</span></span><br><span class="line">	<span class="comment">// This field will not have any effect if the OnAccept field is not</span></span><br><span class="line">	<span class="comment">// also specified.  It may be nil if the caller does not wish to listen</span></span><br><span class="line">	<span class="comment">// for incoming connections.</span></span><br><span class="line">	Listeners []net.Listener</span><br><span class="line"></span><br><span class="line">	<span class="comment">// OnAccept is a callback that is fired when an inbound connection is</span></span><br><span class="line">	<span class="comment">// accepted.  It is the caller's responsibility to close the connection.</span></span><br><span class="line">	<span class="comment">// Failure to close the connection will result in the connection manager</span></span><br><span class="line">	<span class="comment">// believing the connection is still active and thus have undesirable</span></span><br><span class="line">	<span class="comment">// side effects such as still counting toward maximum connection limits.</span></span><br><span class="line">	<span class="comment">//</span></span><br><span class="line">	<span class="comment">// This field will not have any effect if the Listeners field is not</span></span><br><span class="line">	<span class="comment">// also specified since there couldn't possibly be any accepted</span></span><br><span class="line">	<span class="comment">// connections in that case.</span></span><br><span class="line">	OnAccept <span class="function"><span class="keyword">func</span><span class="params">(net.Conn)</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// TargetOutbound is the number of outbound network connections to</span></span><br><span class="line">	<span class="comment">// maintain. Defaults to 8.</span></span><br><span class="line">	TargetOutbound <span class="keyword">uint32</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// RetryDuration is the duration to wait before retrying connection</span></span><br><span class="line">	<span class="comment">// requests. Defaults to 5s.</span></span><br><span class="line">	RetryDuration time.Duration</span><br><span class="line"></span><br><span class="line">	<span class="comment">// OnConnection is a callback that is fired when a new outbound</span></span><br><span class="line">	<span class="comment">// connection is established.</span></span><br><span class="line">	OnConnection <span class="function"><span class="keyword">func</span><span class="params">(*ConnReq, net.Conn)</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// OnDisconnection is a callback that is fired when an outbound</span></span><br><span class="line">	<span class="comment">// connection is disconnected.</span></span><br><span class="line">	OnDisconnection <span class="function"><span class="keyword">func</span><span class="params">(*ConnReq)</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// GetNewAddress is a way to get an address to make a network connection</span></span><br><span class="line">	<span class="comment">// to.  If nil, no new connections will be made automatically.</span></span><br><span class="line">	GetNewAddress <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="params">(net.Addr, error)</span></span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// Dial connects to the address on the named network. It cannot be nil.</span></span><br><span class="line">	Dial <span class="function"><span class="keyword">func</span><span class="params">(net.Addr)</span> <span class="params">(net.Conn, error)</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cmgr, err := connmgr.New(&amp;connmgr.Config&#123;</span><br><span class="line">		Listeners:      listeners,</span><br><span class="line">		OnAccept:       s.inboundPeerConnected,</span><br><span class="line">		RetryDuration:  connectionRetryInterval,</span><br><span class="line">		TargetOutbound: <span class="keyword">uint32</span>(targetOutbound),</span><br><span class="line">		Dial:           hcdDial,</span><br><span class="line">		OnConnection:   s.outboundPeerConnected,</span><br><span class="line">		GetNewAddress:  newAddressFunc,</span><br><span class="line">	&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="二、start"><a href="#二、start" class="headerlink" title="二、start"></a>二、start</h2><ul>
+<li>启动connhandler 处理connrequest请求结果，即处理主动向其他节点发起请求的结果</li>
+<li>启动listenhandler 监听来自其他节点的连接</li>
+<li>connrequest 向其他节点发起连接</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Start launches the connection manager and begins connecting to the network.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cm *ConnManager)</span> <span class="title">Start</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">// Already started?</span></span><br><span class="line">	<span class="keyword">if</span> atomic.AddInt32(&amp;cm.start, <span class="number">1</span>) != <span class="number">1</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	log.Trace(<span class="string">"Connection manager started"</span>)</span><br><span class="line">	cm.wg.Add(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">go</span> cm.connHandler()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Start all the listeners so long as the caller requested them and</span></span><br><span class="line">	<span class="comment">// provided a callback to be invoked when connections are accepted.</span></span><br><span class="line">	<span class="keyword">if</span> cm.cfg.OnAccept != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, listner := <span class="keyword">range</span> cm.cfg.Listeners &#123;</span><br><span class="line">			cm.wg.Add(<span class="number">1</span>)</span><br><span class="line">			<span class="keyword">go</span> cm.listenHandler(listner)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i := atomic.LoadUint64(&amp;cm.connReqCount); i &lt; <span class="keyword">uint64</span>(cm.cfg.TargetOutbound); i++ &#123;</span><br><span class="line">		<span class="keyword">go</span> cm.NewConnReq()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、对监听到的连接的处理"><a href="#三、对监听到的连接的处理" class="headerlink" title="三、对监听到的连接的处理"></a>三、对监听到的连接的处理</h2><ul>
+<li>当有新的连接请求，会将此连接对象直接交给回调函数onAccept()处理，该函数的具体实现是在server中s.inboundPeerConnected()方法</li>
+<li>s.inboundPeerConnected() 会创建一个inbound peer，并进入peer的处理逻辑</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listenHandler accepts incoming connections on a given listener.  It must be</span></span><br><span class="line"><span class="comment">// run as a goroutine.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cm *ConnManager)</span> <span class="title">listenHandler</span><span class="params">(listener net.Listener)</span></span> &#123;</span><br><span class="line">	log.Infof(<span class="string">"Server listening on %s"</span>, listener.Addr())</span><br><span class="line">	<span class="keyword">for</span> atomic.LoadInt32(&amp;cm.stop) == <span class="number">0</span> &#123;</span><br><span class="line">		conn, err := listener.Accept()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="comment">// Only log the error if not forcibly shutting down.</span></span><br><span class="line">			<span class="keyword">if</span> atomic.LoadInt32(&amp;cm.stop) == <span class="number">0</span> &#123;</span><br><span class="line">				log.Errorf(<span class="string">"Can't accept connection: %v"</span>, err)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">go</span> cm.cfg.OnAccept(conn)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cm.wg.Done()</span><br><span class="line">	log.Tracef(<span class="string">"Listener handler done for %s"</span>, listener.Addr())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>onaccept的具体实现</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// inboundPeerConnected is invoked by the connection manager when a new inbound</span></span><br><span class="line"><span class="comment">// connection is established.  It initializes a new inbound server peer</span></span><br><span class="line"><span class="comment">// instance, associates it with the connection, and starts a goroutine to wait</span></span><br><span class="line"><span class="comment">// for disconnection.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *server)</span> <span class="title">inboundPeerConnected</span><span class="params">(conn net.Conn)</span></span> &#123;</span><br><span class="line">	sp := newServerPeer(s, <span class="literal">false</span>)</span><br><span class="line">	sp.isWhitelisted = isWhitelisted(conn.RemoteAddr())</span><br><span class="line">	sp.Peer = peer.NewInboundPeer(newPeerConfig(sp))</span><br><span class="line">	sp.AssociateConnection(conn)</span><br><span class="line">	<span class="keyword">go</span> s.peerDoneHandler(sp)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="四、对主动发起的连接的处理"><a href="#四、对主动发起的连接的处理" class="headerlink" title="四、对主动发起的连接的处理"></a>四、对主动发起的连接的处理</h2><ul>
+<li>生成一个新的请求id</li>
+<li>然后将请求的结果统一发给connhandler处理</li>
+<li>connhandler 根据不同的结果分别做不同的处理<ul>
+<li>如果成功则调用OnConnection回调函数，该函数由server的s.outboundPeerConnected（）实现</li>
+<li>如果请求失败则调用自身的handleFailedConn()函数，尝试再次请求等逻辑</li>
+</ul>
+</li>
+<li>s.outboundPeerConnected 同样是先创建一个outbound peer，然后进入peer的处理逻辑<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Connect assigns an id and dials a connection to the address of the</span></span><br><span class="line"><span class="comment">// connection request.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cm *ConnManager)</span> <span class="title">Connect</span><span class="params">(c *ConnReq)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> atomic.LoadInt32(&amp;cm.stop) != <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> atomic.LoadUint64(&amp;c.id) == <span class="number">0</span> &#123;</span><br><span class="line">		atomic.StoreUint64(&amp;c.id, atomic.AddUint64(&amp;cm.connReqCount, <span class="number">1</span>))</span><br><span class="line">	&#125;</span><br><span class="line">	log.Debugf(<span class="string">"Attempting to connect to %v"</span>, c)</span><br><span class="line">	conn, err := cm.cfg.Dial(c.Addr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		cm.requests &lt;- handleFailed&#123;c, err&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		cm.requests &lt;- handleConnected&#123;c, conn&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// connHandler handles all connection related requests.  It must be run as a</span></span><br><span class="line"><span class="comment">// goroutine.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// The connection handler makes sure that we maintain a pool of active outbound</span></span><br><span class="line"><span class="comment">// connections so that we remain connected to the network.  Connection requests</span></span><br><span class="line"><span class="comment">// are processed and mapped by their assigned ids.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(cm *ConnManager)</span> <span class="title">connHandler</span><span class="params">()</span></span> &#123;</span><br><span class="line">	conns := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">uint64</span>]*ConnReq, cm.cfg.TargetOutbound)</span><br><span class="line">out:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> req := &lt;-cm.requests:</span><br><span class="line">			<span class="keyword">switch</span> msg := req.(<span class="keyword">type</span>) &#123;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">case</span> handleConnected:</span><br><span class="line">				connReq := msg.c</span><br><span class="line">				connReq.updateState(ConnEstablished)</span><br><span class="line">				connReq.conn = msg.conn</span><br><span class="line">				conns[connReq.id] = connReq</span><br><span class="line">				log.Debugf(<span class="string">"Connected to %v"</span>, connReq)</span><br><span class="line">				connReq.retryCount = <span class="number">0</span></span><br><span class="line">				cm.failedAttempts = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">				<span class="keyword">if</span> cm.cfg.OnConnection != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">go</span> cm.cfg.OnConnection(connReq, msg.conn)</span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">case</span> handleDisconnected:</span><br><span class="line">				<span class="keyword">if</span> connReq, ok := conns[msg.id]; ok &#123;</span><br><span class="line">					connReq.updateState(ConnDisconnected)</span><br><span class="line">					<span class="keyword">if</span> connReq.conn != <span class="literal">nil</span> &#123;</span><br><span class="line">						connReq.conn.Close()</span><br><span class="line">					&#125;</span><br><span class="line">					log.Debugf(<span class="string">"Disconnected from %v"</span>, connReq)</span><br><span class="line">					<span class="built_in">delete</span>(conns, msg.id)</span><br><span class="line"></span><br><span class="line">					<span class="keyword">if</span> cm.cfg.OnDisconnection != <span class="literal">nil</span> &#123;</span><br><span class="line">						<span class="keyword">go</span> cm.cfg.OnDisconnection(connReq)</span><br><span class="line">					&#125;</span><br><span class="line"></span><br><span class="line">					<span class="keyword">if</span> <span class="keyword">uint32</span>(<span class="built_in">len</span>(conns)) &lt; cm.cfg.TargetOutbound &amp;&amp; msg.retry &#123;</span><br><span class="line">						cm.handleFailedConn(connReq)</span><br><span class="line">					&#125;</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					log.Errorf(<span class="string">"Unknown connection: %d"</span>, msg.id)</span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">case</span> handleFailed:</span><br><span class="line">				connReq := msg.c</span><br><span class="line">				connReq.updateState(ConnFailed)</span><br><span class="line">				log.Debugf(<span class="string">"Failed to connect to %v: %v"</span>, connReq, msg.err)</span><br><span class="line">				cm.handleFailedConn(connReq)</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">case</span> &lt;-cm.quit:</span><br><span class="line">			<span class="keyword">break</span> out</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cm.wg.Done()</span><br><span class="line">	log.Trace(<span class="string">"Connection handler done"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>OnConnection的具体实现</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// outboundPeerConnected is invoked by the connection manager when a new</span></span><br><span class="line"><span class="comment">// outbound connection is established.  It initializes a new outbound server</span></span><br><span class="line"><span class="comment">// peer instance, associates it with the relevant state such as the connection</span></span><br><span class="line"><span class="comment">// request instance and the connection itself, and finally notifies the address</span></span><br><span class="line"><span class="comment">// manager of the attempt.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *server)</span> <span class="title">outboundPeerConnected</span><span class="params">(c *connmgr.ConnReq, conn net.Conn)</span></span> &#123;</span><br><span class="line">	sp := newServerPeer(s, c.Permanent)</span><br><span class="line">	p, err := peer.NewOutboundPeer(newPeerConfig(sp), c.Addr.String())</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		srvrLog.Debugf(<span class="string">"Cannot create outbound peer %s: %v"</span>, c.Addr, err)</span><br><span class="line">		s.connManager.Disconnect(c.ID())</span><br><span class="line">	&#125;</span><br><span class="line">	sp.Peer = p</span><br><span class="line">	sp.connReq = c</span><br><span class="line">	sp.isWhitelisted = isWhitelisted(conn.RemoteAddr())</span><br><span class="line">	sp.AssociateConnection(conn)</span><br><span class="line">	<span class="keyword">go</span> s.peerDoneHandler(sp)</span><br><span class="line">	s.addrManager.Attempt(sp.NA())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+<p>a -&gt; b a向b节点发起连接</p>
+<p>b：<br>某场景下触发了ban()和disconnect()，b会在banduration（默认24小时）之内，不允许a连接（onVersion里 最后调用addpeer()时判断，然后断掉连接）</p>
+<p>a:在被b ban了之后，peer.start()会失败（在协商version时被b断开），接着调用disconnect()</p>
+<p>server作为枢纽，处理connmanager和peer之间的协作</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/btcd/" rel="tag"># btcd</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/btcd-src-start/" rel="next" title="btcd 源码分析系列 - 1 - 启动分析">
+                  <i class="fa fa-chevron-left"></i> btcd 源码分析系列 - 1 - 启动分析
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/btcd-src-peer/" rel="prev" title="btcd 源码分析系列：4 - p2p网络的peer">
+                  btcd 源码分析系列：4 - p2p网络的peer <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、创建connmanager对象"><span class="nav-number">1.</span> <span class="nav-text">一、创建connmanager对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、start"><span class="nav-number">2.</span> <span class="nav-text">二、start</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、对监听到的连接的处理"><span class="nav-number">3.</span> <span class="nav-text">三、对监听到的连接的处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、对主动发起的连接的处理"><span class="nav-number">4.</span> <span class="nav-text">四、对主动发起的连接的处理</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="tpkeeper"
+    src="/blog/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">tpkeeper</p>
+  <div class="site-description" itemprop="description">专注于Golang、Web后端、区块链</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">tpkeeper</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+<script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script>
+<script src="/blog/js/schemes/pisces.js"></script>
+<script src="/blog/js/next-boot.js"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
