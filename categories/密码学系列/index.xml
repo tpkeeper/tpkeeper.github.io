@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>密码学系列 on 大远的博客</title>
+    <link>http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/</link>
+    <description>Recent content in 密码学系列 on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 11 Sep 2019 17:04:19 +0800</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>密码学系列：签名</title>
+      <link>http://www.tpkeep.com/blog/encryption-signature/</link>
+      <pubDate>Wed, 11 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-signature/</guid>
+      <description>签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥：</description>
+    </item>
+    
+    <item>
+      <title>密码学系列：非对称加密</title>
+      <link>http://www.tpkeep.com/blog/encryption-asymmetric/</link>
+      <pubDate>Mon, 09 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-asymmetric/</guid>
+      <description>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅</description>
+    </item>
+    
+    <item>
+      <title>密码学系列：对称加密</title>
+      <link>http://www.tpkeep.com/blog/encryption-symmetric/</link>
+      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-symmetric/</guid>
+      <description>本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit</description>
+    </item>
+    
+    <item>
+      <title>密码学系列：概述</title>
+      <link>http://www.tpkeep.com/blog/encryption-overview/</link>
+      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
+      <description>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、</description>
+    </item>
+    
+  </channel>
+</rss>
