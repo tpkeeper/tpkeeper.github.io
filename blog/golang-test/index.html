@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>大远的博客</title>
+  <title>Golang 单元测试 - 大远的博客</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="大远" />
-  <meta name="description" content="大远的博客,Difficult to solve , Easy to verify" />
+  <meta name="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：" />
+
 
 
 
@@ -33,8 +34,8 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.tpkeep.com/" />
-<link href="/index.xml" rel="alternate" type="application/rss+xml" title="大远的博客" />
+<link rel="canonical" href="http://www.tpkeep.com/blog/golang-test/" />
+
 
 
 
@@ -57,18 +58,26 @@
 
 
 
-<meta property="og:title" content="大远的博客" />
-<meta property="og:description" content="大远的博客,Difficult to solve , Easy to verify" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="http://www.tpkeep.com/" />
+<meta property="og:title" content="Golang 单元测试" />
+<meta property="og:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://www.tpkeep.com/blog/golang-test/" />
+<meta property="article:published_time" content="2019-11-25T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-11-25T00:00:00+00:00" />
+<meta itemprop="name" content="Golang 单元测试">
+<meta itemprop="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：">
 
-<meta property="og:updated_time" content="2019-11-25T00:00:00+00:00" />
-<meta itemprop="name" content="大远的博客">
-<meta itemprop="description" content="大远的博客,Difficult to solve , Easy to verify">
 
+<meta itemprop="datePublished" content="2019-11-25T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-11-25T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="319">
+
+
+
+<meta itemprop="keywords" content="Golang," />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="大远的博客"/>
-<meta name="twitter:description" content="大远的博客,Difficult to solve , Easy to verify"/>
+<meta name="twitter:title" content="Golang 单元测试"/>
+<meta name="twitter:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出："/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -158,7 +167,7 @@
   <ul id="menu" class="menu">
     
     
-        <li class="menu-item active">
+        <li class="menu-item">
         
           
           
@@ -227,161 +236,234 @@
     <main id="main" class="main bg-llight">
       <div class="content-wrapper">
         <div id="content" class="content container">
-          
-<section id="posts" class="posts">
-  
-  
+          <article class="post bg-white">
     
-  
-  
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
+    <header class="post-header">
+      <h1 class="post-title">Golang 单元测试</h1>
       
-      <a class="post-link" href="/blog/btcd-src-connmanager/">btcd 源码分析系列：3 - connmanager</a>
-    </h1>
+      <div class="post-meta">
+        <time datetime="2019-11-25" class="post-time">
+          2019-11-25
+        </time>
+        <div class="post-category">
+            <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
+            
+          </div>
+        <span class="more-meta"> 319 words </span>
+          <span class="more-meta"> 1 min read </span>
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
     
-    <div class="post-meta">
-      <time datetime="2019-08-30" class="post-time">
-        2019-08-30
-      </time>
-      <div class="post-category">
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#简单使用">简单使用</a></li>
+<li><a href="#测试覆盖率">测试覆盖率：</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="简单使用">简单使用</h2>
+
+<p>进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">go test</pre></td></tr></table>
+</div>
+</div>
+<p>输出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">PASS
+ok      addrtool        0.519s</pre></td></tr></table>
+</div>
+</div>
+<p>使用 <code>-v</code> 参数，可以查看更多测试信息：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">go test -v</pre></td></tr></table>
+</div>
+</div>
+<p>输出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">=== RUN   TestPubkeyToAddress
+--- PASS: TestPubkeyToAddress (0.00s)
+=== RUN   TestDcrPubkeyToAddress
+--- PASS: TestDcrPubkeyToAddress (0.00s)
+=== RUN   TestGenMnemonicBip39
+--- PASS: TestGenMnemonicBip39 (0.00s)
+=== RUN   TestMnemonicToSeedBip39
+--- PASS: TestMnemonicToSeedBip39 (0.01s)
+=== RUN   TestSeedToPubkey
+--- PASS: TestSeedToPubkey (0.02s)
+=== RUN   TestPubkeyFromExtendKey
+--- PASS: TestPubkeyFromExtendKey (0.00s)
+PASS
+ok      addrtool        0.132s</pre></td></tr></table>
+</div>
+</div>
+<h2 id="测试覆盖率">测试覆盖率：</h2>
+
+<p>测试覆盖率简单的说就是测试代码运行时执行到的代码行数，占用总代码行数的百分比。</p>
+
+<p>使用以下命令可以简单的显示测试代码的覆盖率：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">go test -cover</pre></td></tr></table>
+</div>
+</div>
+<p>输出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">PASS
+coverage: 35.2% of statements
+ok      addrtool        0.529s</pre></td></tr></table>
+</div>
+</div>
+<p>如果要具体查看哪些代码未覆盖，哪些代码覆盖了，则需要以下步骤，先生成轮廓图再生成 html 文件：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">go test -coverprofile=./testdata/covprofile 
+
+go tool cover -html=./testdata/covprofile -o ./testdata/coverage.html</pre></td></tr></table>
+</div>
+</div>
+<p>然后在浏览器中打开生成的 html 文件，绿色的表示已经覆盖的代码，红色的表示还没有覆盖的代码，一目了然：</p>
+
+<p><img src="/image/test_html.png" alt="test.png" /></p>
+
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">大远</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      2019-11-25
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="http://www.tpkeep.com/tags/golang/">Golang</a>
           
         </div>
-      <span class="more-meta"> 2151 words </span>
-      <span class="more-meta"> 5 min read </span>
+
       
-      
-      
-    </div>
-  </header>
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/blog/hd-wallet-analyze/">
+            <span class="next-text nav-default">HD Wallet 原理与分析</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
   
-  <div class="post-content">
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
     
-    <div class="post-summary">
-      参考：btcd connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理
-    </div>
-    <div class="read-more">
-      <a href="/blog/btcd-src-connmanager/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
 
   
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/blog/btcd-src-start/">btcd 源码分析系列 - 1 - 启动分析</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-08-30" class="post-time">
-        2019-08-30
-      </time>
-      <div class="post-category">
-          
-        </div>
-      <span class="more-meta"> 1235 words </span>
-      <span class="more-meta"> 3 min read </span>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      参考：btcd 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等） loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.start() 启动s
-    </div>
-    <div class="read-more">
-      <a href="/blog/btcd-src-start/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/blog/btcd-src-addrmanager/">btcd 源码分析系列：2 - addrmanager</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-08-30" class="post-time">
-        2019-08-30
-      </time>
-      <div class="post-category">
-          
-        </div>
-      <span class="more-meta"> 795 words </span>
-      <span class="more-meta"> 2 min read </span>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      参考：btcd addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读
-    </div>
-    <div class="read-more">
-      <a href="/blog/btcd-src-addrmanager/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-  
-</section>
-
-
-
-
-
-
-  
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-  <nav class="pagination">
-    <ul>
-      
-      <li >
-        <a href="/">1</a>
-      </li>
-      
-      <li  class="active" >
-        <a href="/page/2/">2</a>
-      </li>
-      
-    </ul>
-  </nav>
-
-  
-  
-
-
-
-
 
         </div>
       </div>

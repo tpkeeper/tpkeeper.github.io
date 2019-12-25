@@ -6,10 +6,19 @@
     <description>Recent content in Tags on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 30 Oct 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 25 Nov 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="http://www.tpkeep.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Golang</title>
+      <link>http://www.tpkeep.com/tags/golang/</link>
+      <pubDate>Mon, 25 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/tags/golang/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>HD Wallet</title>

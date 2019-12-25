@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golang on 大远的博客</title>
+    <link>http://www.tpkeep.com/categories/golang/</link>
+    <description>Recent content in Golang on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 25 Nov 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/categories/golang/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Golang 单元测试</title>
+      <link>http://www.tpkeep.com/blog/golang-test/</link>
+      <pubDate>Mon, 25 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-test/</guid>
+      <description>简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：</description>
+    </item>
+    
+  </channel>
+</rss>
