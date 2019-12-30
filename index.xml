@@ -25,43 +25,104 @@
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;k&#34;&gt;go&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;test&lt;/span&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;go &lt;span class=&#34;nb&#34;&gt;test&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;输出：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;PASS
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;PASS
 ok      addrtool        0.519s
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用 &lt;code&gt;-v&lt;/code&gt; 参数，可以查看更多测试信息：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;go test -v
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;输出：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;=== RUN   TestPubkeyToAddress
---- PASS: TestPubkeyToAddress (0.00s)
-=== RUN   TestDcrPubkeyToAddress
---- PASS: TestDcrPubkeyToAddress (0.00s)
-=== RUN   TestGenMnemonicBip39
---- PASS: TestGenMnemonicBip39 (0.00s)
-=== RUN   TestMnemonicToSeedBip39
---- PASS: TestMnemonicToSeedBip39 (0.01s)
-=== RUN   TestSeedToPubkey
---- PASS: TestSeedToPubkey (0.02s)
-=== RUN   TestPubkeyFromExtendKey
---- PASS: TestPubkeyFromExtendKey (0.00s)
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;使用 &lt;code&gt;-v&lt;/code&gt; 参数，可以查看更多测试信息：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;go &lt;span class=&#34;nb&#34;&gt;test&lt;/span&gt; -v
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestPubkeyToAddress
+--- PASS: TestPubkeyToAddress &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.00s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestDcrPubkeyToAddress
+--- PASS: TestDcrPubkeyToAddress &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.00s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestGenMnemonicBip39
+--- PASS: TestGenMnemonicBip39 &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.00s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestMnemonicToSeedBip39
+--- PASS: TestMnemonicToSeedBip39 &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.01s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestSeedToPubkey
+--- PASS: TestSeedToPubkey &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.02s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; RUN   TestPubkeyFromExtendKey
+--- PASS: TestPubkeyFromExtendKey &lt;span class=&#34;o&#34;&gt;(&lt;/span&gt;0.00s&lt;span class=&#34;o&#34;&gt;)&lt;/span&gt;
 PASS
 ok      addrtool        0.132s
 
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;heading1&#34;&gt;测试覆盖率：&lt;/h2&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;heading1&#34;&gt;测试覆盖率：&lt;/h2&gt;
 &lt;p&gt;测试覆盖率简单的说就是测试代码运行时执行到的代码行数，占用总代码行数的百分比。&lt;/p&gt;
 &lt;p&gt;使用以下命令可以简单的显示测试代码的覆盖率：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;go test -cover
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;输出：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;PASS
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;go &lt;span class=&#34;nb&#34;&gt;test&lt;/span&gt; -cover
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;PASS
 coverage: 35.2% of statements
 ok      addrtool        0.529s
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如果要具体查看哪些代码未覆盖，哪些代码覆盖了，则需要以下步骤，先生成轮廓图再生成 html 文件：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;go test -coverprofile=./testdata/covprofile 
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;如果要具体查看哪些代码未覆盖，哪些代码覆盖了，则需要以下步骤，先生成轮廓图再生成 html 文件：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;go &lt;span class=&#34;nb&#34;&gt;test&lt;/span&gt; -coverprofile&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covprofile 
 
-go tool cover -html=./testdata/covprofile -o ./testdata/coverage.html
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然后在浏览器中打开生成的 html 文件，绿色的表示已经覆盖的代码，红色的表示还没有覆盖的代码，一目了然：&lt;/p&gt;
+go tool cover -html&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covprofile -o ./testdata/coverage.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;然后在浏览器中打开生成的 html 文件，绿色的表示已经覆盖的代码，红色的表示还没有覆盖的代码，一目了然：&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;http://www.tpkeep.com/image/test_html.png&#34; alt=&#34;test.png&#34;&gt;&lt;/p&gt;
 </description>
       
