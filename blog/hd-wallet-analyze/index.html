@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/hd-wallet-analyze/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-12-24T18:07:40+08:00" />
 <meta itemprop="name" content="HD Wallet 原理与分析">
 <meta itemprop="description" content="概述 分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系： 助记词与种子公钥与">
-
-
 <meta itemprop="datePublished" content="2019-10-30T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2019-12-24T18:07:40&#43;08:00" />
-<meta itemprop="wordCount" content="1723">
+<meta itemprop="wordCount" content="2023">
 
 
 
-<meta itemprop="keywords" content="HD Wallet," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="HD Wallet," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="HD Wallet 原理与分析"/>
 <meta name="twitter:description" content="概述 分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系： 助记词与种子公钥与"/>
 
@@ -248,8 +245,8 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 1723 words </span>
-          <span class="more-meta"> 4 min read </span>
+        <span class="more-meta"> 2023 words </span>
+          <span class="more-meta"> 5 min read </span>
 
         
         
@@ -265,65 +262,55 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#概述">概述</a></li>
-<li><a href="#助记词到种子的转换">助记词到种子的转换</a></li>
-<li><a href="#种子到公钥的转换">种子到公钥的转换</a></li>
-<li><a href="#公钥到地址的转换">公钥到地址的转换</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#heading">概述</a></li>
+    <li><a href="#bip39">BIP39</a></li>
+    <li><a href="#bip32">BIP32</a></li>
+    <li><a href="#bip44">BIP44</a></li>
+    <li><a href="#heading1">拿到公钥</a></li>
+    <li><a href="#heading2">公钥到地址的转换</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="概述">概述</h2>
-
+      <h2 id="heading">概述</h2>
 <p>分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理</p>
-
 <p><strong>助记词、种子、公钥、地址之间的关系：</strong></p>
-
-<p><em>助记词与种子公钥与地址之间只能单向推导</em></p>
-
-<p><img src="/image/seed-addr-rlt.png" alt="seed-addr-rlt.png" /></p>
-
-<p><strong>主要涉及到的bip协议：</strong></p>
-
+<p><em>助记词与种子公钥与地址之间只能单向推导</em>
+<img src="/image/hdwallet.png" alt="hdwallet.png"></p>
+<p><strong>涉及到的 BIP 协议：</strong></p>
 <ol>
-<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a> hd 钱包核心提案，定义分层概念和算法</p></li>
-
-<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">bip39</a> 定义助记词生成规则和导出种子规则</p></li>
-
-<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">bip44</a> 定义 5 层路径规则</p></li>
-
-<li><p><a href="https://github.com/bitcoin/bips/blob/master/bip-0045.mediawiki">bip45</a> 定义多签地址生成规则</p></li>
+<li>
+<p><a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">BIP39</a> 定义助记词的生成规则和助记词到种子的推导规则</p>
+</li>
+<li>
+<p><a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">BIP32</a> hd 钱包核心提案，定义分层概念和算法</p>
+</li>
+<li>
+<p><a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP44</a> 定义 5 层路径规则</p>
+</li>
+<li>
+<p><a href="https://github.com/bitcoin/bips/blob/master/bip-0045.mediawiki">BIP45</a> 定义多签地址生成规则</p>
+</li>
 </ol>
-
 <p>本篇文章，我将对上述协议分别展开讨论与分析，并且在最后会通过代码示例来帮助我们更好的理解协议的内容。</p>
-
-<h2 id="助记词到种子的转换">助记词到种子的转换</h2>
-
-<p>参考 <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">bip39</a></p>
-
+<h2 id="bip39">BIP39</h2>
+<p>此处查看 <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki">BIP39 文档</a></p>
+<p>文档概要：</p>
 <ul>
 <li>定义了助记词的生成规则</li>
-<li>定义了由助记词导出种子的规则</li>
+<li>定义了助记词到种子的转换规则</li>
 <li>定义了助记词 wordlist，目前包含7种语言，每种 2048个单词</li>
 <li>助记词到种子的推导是单向的</li>
 </ul>
-
-<p><strong>助记词的生成</strong></p>
-
+<p><strong>助记词的生成：</strong></p>
 <ol>
-<li>产生一个随机数作为熵 entropy，长度为 128-256 bits，必须为 32 bits 的整数倍</li>
-<li>然后在 entropy 尾部 append 校验位，校验位即entropy 的 sha256 的前几位，位数如下：</li>
+<li>产生一个随机数作为熵 entropy，长度为 128-256 bits，必须为 32 bits 的整数倍。</li>
+<li>然后在 entropy 尾部追加校验 checksum，checksum 是取 entropy 的 sha256 哈希值的前 n 位，位数跟 entropy 的长度有关，具体如下：</li>
 </ol>
-
 <table>
 <thead>
 <tr>
@@ -333,7 +320,6 @@
 <th>mnemonic</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>128</td>
@@ -341,28 +327,24 @@
 <td>132</td>
 <td>12</td>
 </tr>
-
 <tr>
 <td>160</td>
 <td>5</td>
 <td>165</td>
 <td>15</td>
 </tr>
-
 <tr>
 <td>192</td>
 <td>6</td>
 <td>198</td>
 <td>18</td>
 </tr>
-
 <tr>
 <td>224</td>
 <td>7</td>
 <td>231</td>
 <td>21</td>
 </tr>
-
 <tr>
 <td>256</td>
 <td>8</td>
@@ -371,28 +353,36 @@
 </tr>
 </tbody>
 </table>
-
-<ol>
-<li>然后 将 entropy+checksum 按 11 bits 分组，每组 11bits，大小为 0 ~ $2^{11}-1$ 即 0 ~ 2047，刚好映射 wordlist 里的单词</li>
-<li>单词以空格隔开转换为字符串</li>
+<ol start="3">
+<li>然后 将 entropy+checksum 进行分组，每组 11 bits，每组的取值范围是  0 ~ 2047，刚好映射 wordlist 里的单词。</li>
+<li>将映射的单词以空格隔开拼接为字符串，即为助记词。</li>
 </ol>
-
-<p><strong>由助记词生成种子</strong></p>
-
-<p>通过 PBKDF2 函数生成 64 byte 种子</p>
-
-<p>该函数接收如下参数：</p>
-
-<p>参数 1 作为密码：助记词字符串
-参数 2 作为盐：&rdquo;mnemonic&rdquo;+passphrase（passphrase 是可选的，助记词需要 UTF-8格式），
-参数 3 作为循环次数： 2048 ，
-参数 4 作为 hash 函数：HMAC-SHA512
-参数 5 作为派生key长度：512bits</p>
-
-<p><strong>代码参考：</strong><a href="https://github.com/tpkeeper/addrtool">https://github.com/tpkeeper/addrtool</a></p>
+<p><strong>助记词到种子的推导：</strong></p>
+<p>通过 PBKDF2 函数生成大小为 64 byte 的种子。</p>
+<p>PBKDF2（Password-Based Key Derivation Function 2）是一个基于口令的密钥推导方法，用于增强弱秘钥的安全性。本质上就是基于 hash 函数通过加盐和迭代因子让处理速度变慢，减少爆破风险。具体可参考 <a href="https://en.wikipedia.org/wiki/PBKDF2">wiki</a></p>
+<p>该函数定义如下：</p>
+<p>DK = PBKDF2(PRF, Password, Salt, c, dkLen)</p>
+<p>其中 ：</p>
+<ul>
+<li>PRF 为伪随机函数相当于一个 hash 函数</li>
+<li>Password 是口令，由用户负责安全</li>
+<li>Salt 是盐，用于增加破解难度</li>
+<li>c 是迭代次数，越大越安全</li>
+<li>dkLen 是产生的密钥长度</li>
+</ul>
+<p>在 bip39 中，用于产生种子的上述参数分别为：</p>
+<ul>
+<li>HMAC-SHA512 单向的 hash 算法</li>
+<li>助记词字符串</li>
+<li>“mnemonic&quot;+passphrase（口令是可选的）</li>
+<li>2048</li>
+<li>512（bits）</li>
+</ul>
+<p>由函数 PBKDF2 可知，<strong>助记词到种子的推导是单向的不可逆的。</strong></p>
+<p><strong>代码参考：</strong><a href="https://github.com/tpkeeper/addrtool"><a href="https://github.com/tpkeeper/addrtool">https://github.com/tpkeeper/addrtool</a></a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -427,79 +417,48 @@
 	<span class="nx">mnemonic</span> <span class="o">:=</span><span class="s">&#34;chef fiction deputy stage pudding pink skirt often decade drift music loop&#34;</span>
 	<span class="c1">//助记词生成种子 password 为空
 </span><span class="c1"></span>	<span class="nx">seed</span><span class="o">:=</span><span class="nx">bip39</span><span class="p">.</span><span class="nf">NewSeed</span><span class="p">(</span><span class="nx">mnemonic</span><span class="p">,</span><span class="s">&#34;&#34;</span><span class="p">)</span>
-	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;seed：&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">seed</span><span class="p">))</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;seed：&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">seed</span><span class="p">)</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">//output:
-</span><span class="c1">//entropyBytes： [158 45 139 248 16 245 71 178 223 231 241 118 0 211 244 134]
-</span><span class="c1">//mnemonic： owner hobby wrap capable federal sunny legend wreck invite alley wood aspect
-</span><span class="c1"></span><span class="o">//</span><span class="nx">seed</span><span class="err">：</span> <span class="mo">04</span><span class="nx">ef53d66b17fdfb6538c5d183f0b0569fc1c79d07f044f7670c3038aff411e5abcbe8c457b584d0c1e3504ab94fb311f9097a793c20dfc746a87087ed5dc119</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="c1">//entropyBytes： [158 45 139 248 16 245 71 178 223 231 241 118 0 211 244 134]
+</span><span class="c1"></span><span class="c1">//mnemonic： owner hobby wrap capable federal sunny legend wreck invite alley wood aspect
+</span><span class="c1"></span><span class="c1">//seed： 04ef53d66b17fdfb6538c5d183f0b0569fc1c79d07f044f7670c3038aff411e5abcbe8c457b584d0c1e3504ab94fb311f9097a793c20dfc746a87087ed5dc119
+</span></code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="种子到公钥的转换">种子到公钥的转换</h2>
-
-<p>参考 <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">bip32</a>、<a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">bip44</a></p>
-
+</div><h2 id="bip32">BIP32</h2>
+<p>查看文档 <a href="https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki">BIP32</a></p>
+<p>概要：</p>
 <ul>
-<li>定义了种子生成树状扩展密钥的算法与规则</li>
-<li>定义了5层路径规则，可兼容多账号多币种</li>
+<li>定义了由种子推导树状扩展密钥对的算法与规则</li>
 </ul>
-
-<p><strong>密钥扩展算法</strong></p>
-
-<p>概念：</p>
-
+<p><strong>密钥扩展算法：</strong></p>
+<p>基本概念：</p>
+<p>扩展私钥定义为：(k , c)，其中 k 为私钥，c 为 链码 chaincode</p>
+<p>扩展公钥定义为：(K , c)，其中 K 为公钥，c 为 链码 chaincode</p>
+<p>子秘钥扩展方法定义为：CKD(extended key , index），其中参数为扩展秘钥和索引。</p>
+<p>需要注意：</p>
 <ul>
-<li>private extended  key ：(k , c) k为私钥，c为chaincode<br /></li>
-<li>public extended  key  ：(K , c) K为公钥，c为chaincode</li>
-<li>Child key derivation functions：
-CKD(extended key , index)
-normal child keys 范围: 0 - ($2^{31}-1$)
-hardened child keys 范围: $2^{31} - (2^{32}-1)$</li>
+<li>扩展为非强化子秘钥时 index 范围为: 0 ~ ($2^{31}-1$)，扩展为强化子秘钥时 index 范围为: $2^{31}$ ~ $(2^{32}-1)$</li>
+<li>只有扩展私钥才能扩展强化子扩展秘钥</li>
 </ul>
-
-<p>可生成的规则：</p>
-
+<p>可推导的规则：</p>
 <ul>
-<li>Private extended key -&gt; Hardened child private extended key</li>
-<li>Private extended key -&gt; Non-hardened child private extended key</li>
-<li>Public extended key -&gt; Non-hardened child public extended key</li>
-<li>Public extended key -&gt; Hardened child public extended key (不允许)</li>
+<li>父扩展私钥 -&gt; 强化子扩展私钥</li>
+<li>父扩展私钥 -&gt; 非强化子扩展私钥</li>
+<li>父扩展公钥 -&gt; 非强化子扩展公钥</li>
+<li>父扩展公钥 -&gt; 强化子扩展公钥(不允许)</li>
 </ul>
-
 <p>扩展的具体过程：</p>
-
 <ol>
-<li>计算 HMAC-SHA512(&ldquo;Bitcoin seed&rdquo; , seed) 得到 512 bits</li>
-<li>将步骤 1 的结果分为 L 和 R，各占 32 字节，分别作为 master extended Key 的 private key 和 chaincode，得到 master extended Key(也叫做 private extended key)</li>
-<li>通过 CKD(extended key , index) 方法派扩展密钥对</li>
+<li>计算主扩展秘钥即树根对应的扩展秘钥。
+计算 HMAC-SHA512(&ldquo;Bitcoin seed&rdquo; , seed) 得到 512 bits，其中参数 seed 是在 BIP32 中生成的种子。然后将结果分为 L 和 R，各占 32 字节，分别作为主扩展秘钥的私钥和链码，得到主扩展秘钥。</li>
+<li>通过 CKD(extended key , index) 方法扩展子密钥。</li>
 </ol>
-
-<p><strong>bip44 协议的 5 层路径规则：</strong></p>
-
-<p><em>路径：m/purpse’/coin_type’/account’/change/address_index（‘ 表示hardencode index 需要 &gt;= 2^31）</em></p>
-
-<ul>
-<li>m：主扩展密钥</li>
-<li>purpose： bip44/bip45</li>
-<li>coin_type： 币种</li>
-<li>account： 钱包账户</li>
-<li>change： 0 对外 / 1 找零</li>
-<li>address_index： 地址索引</li>
-</ul>
-
-<p>每一层对应的关系如下：</p>
-
-<p><img src="/image/bip44.png" alt="bip44.png" /></p>
-
-<p>生成公钥：</p>
-
-<p>通过层层扩展，拿到第五层的扩展密钥 (k,c)，其中的k即为privkey,然后结合椭圆曲线的算法即可得到 pubKey</p>
-
-<p><strong>代码参考:</strong> <a href="https://github.com/tpkeeper/addrtool">https://github.com/tpkeeper/addrtool/</a></p>
+<p><strong>代码参考:</strong> <a href="https://github.com/tpkeeper/addrtool"><a href="https://github.com/tpkeeper/addrtool/">https://github.com/tpkeeper/addrtool/</a></a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -535,52 +494,60 @@ hardened child keys 范围: $2^{31} - (2^{32}-1)$</li>
 	<span class="c1">//m/purpose&#39;/cointype&#39;/account&#39;/change/addrIndex
 </span><span class="c1"></span>	<span class="nx">addrIndex0ExtKey</span><span class="p">,</span><span class="nx">_</span><span class="o">:=</span><span class="nx">changeExtKey</span><span class="p">.</span><span class="nf">NewChildKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 	<span class="c1">//pubkey
-</span><span class="c1"></span>	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">addrIndex0ExtKey</span><span class="p">.</span><span class="nf">PublicKey</span><span class="p">().</span><span class="nx">Key</span><span class="p">))</span>
-<span class="p">}</span></code></pre></td></tr></table>
+</span><span class="c1"></span>	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">addrIndex0ExtKey</span><span class="p">.</span><span class="nf">PublicKey</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Key</span><span class="p">)</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="公钥到地址的转换">公钥到地址的转换</h2>
-
+</div><h2 id="bip44">BIP44</h2>
+<p>查看文档：<a href="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki">BIP44</a></p>
+<p>概要：</p>
+<ul>
+<li>定义了5层路径规则，可兼容多账号多币种</li>
+</ul>
+<p><strong>bip44 协议的 5 层路径规则：</strong></p>
+<p><em>路径：m/purpse’/coin_type’/account’/change/address_index（符号 ‘ 表示强化子秘钥，需要 index &gt;= $2^{31}$）</em></p>
+<ul>
+<li>m：主扩展密钥</li>
+<li>purpose： bip44/bip45</li>
+<li>coin_type： 币种</li>
+<li>account： 钱包账户</li>
+<li>change： 0 对外 / 1 找零</li>
+<li>address_index： 地址索引</li>
+</ul>
+<p>每一层对应的关系如下：</p>
+<p><img src="/image/bip44.png" alt="bip44.png"></p>
+<h2 id="heading1">拿到公钥</h2>
+<p>生成公钥：</p>
+<p>通过层层扩展，拿到第五层的扩展密钥 (k,c)，其中的 k 即为 privkey,然后结合椭圆曲线的算法即可得到 pubKey</p>
+<h2 id="heading2">公钥到地址的转换</h2>
 <p>简单的理解，地址就是 公钥或者脚本 的哈希值的 base58 格式。</p>
-
 <p><strong>常用的地址的格式：</strong></p>
-
 <p><strong>P2PKH</strong> (Pay To PubKey Hash) 格式的地址</p>
-
-<p><img src="/image/p2pkh_addr.png" alt="p2pkh_addr.png" /></p>
-
+<p><img src="/image/p2pkh_addr.png" alt="p2pkh_addr.png"></p>
 <p><strong>P2SH</strong> (Pay To Script Hash) 格式的地址</p>
-
-<p><img src="/image/p2sh_addr.png" alt="p2sh_addr.png" /></p>
-
+<p><img src="/image/p2sh_addr.png" alt="p2sh_addr.png"></p>
 <p>前缀占用一个字节，表示地址类型。</p>
-
 <p>hash160(pubkey) 占用 20 字节。</p>
-
 <p>校验位占用 4 个字节，是对 <strong>前缀 + hash160(pubkey)</strong> 进行两次 sha256 取前四个字节。</p>
-
 <p>使用 base58 便于更友好的显示，增加的校验还可以防止用户输入错误，bip32 中也是这种格式来显示扩展密钥。</p>
-
-<p><strong>代码参考：</strong><a href="https://github.com/tpkeeper/addrtool">https://github.com/tpkeeper/addrtool</a></p>
+<p><strong>代码参考：</strong><a href="https://github.com/tpkeeper/addrtool"><a href="https://github.com/tpkeeper/addrtool">https://github.com/tpkeeper/addrtool</a></a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">PubkeyToAddress</span><span class="p">(</span><span class="nx">key</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">,</span><span class="nx">netId</span> <span class="kt">byte</span><span class="p">)(</span><span class="kt">string</span><span class="p">){</span>
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">PubkeyToAddress</span><span class="p">(</span><span class="nx">key</span> <span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nx">netId</span> <span class="kt">byte</span><span class="p">)</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="p">{</span>
 	<span class="nx">hash160Bytes</span><span class="o">:=</span><span class="nx">btcutil</span><span class="p">.</span><span class="nf">Hash160</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
 	<span class="k">return</span> <span class="nx">base58</span><span class="p">.</span><span class="nf">CheckEncode</span><span class="p">(</span><span class="nx">hash160Bytes</span><span class="p">,</span><span class="nx">netId</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>base58前缀目录一览:</p>
-
-<p>其中 xpub xprv 代表的就是bip32中的扩展密钥即extended key</p>
-
-<p><img src="/image/base58pre.png" alt="base58pre.png" /></p>
+</div><p>base58前缀目录一览:</p>
+<p><em>其中 xpub xprv 就是 BIP32 中的扩展公/私密钥的 base58 导出格式</em></p>
+<p><img src="/image/base58pre.png" alt="base58pre.png"></p>
 
     </div>
 

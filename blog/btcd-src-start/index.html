@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-start/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列 - 1 - 启动分析">
 <meta itemprop="description" content="参考：btcd 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等） loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.start() 启动s">
-
-
 <meta itemprop="datePublished" content="2019-08-30T13:56:08&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
 <meta itemprop="wordCount" content="1235">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列 - 1 - 启动分析"/>
 <meta name="twitter:description" content="参考：btcd 主启动顺序 main函数位于btcd.go，此处省略了辅助功能的服务（profile等） loadconfig() 加载配置 doUpgrades() 升级操作 loadBlockDB() 加载数据库 server.start() 启动s"/>
 
@@ -265,40 +262,32 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#主启动顺序">主启动顺序</a></li>
-<li><a href="#server启动顺序">server启动顺序</a></li>
-<li><a href="#peerhander启动顺序">peerHander启动顺序</a></li>
-<li><a href="#rpcserver启动顺序">rpcServer启动顺序</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#heading">主启动顺序</a></li>
+    <li><a href="#server">server启动顺序</a></li>
+    <li><a href="#peerhander">peerHander启动顺序</a></li>
+    <li><a href="#rpcserver">rpcServer启动顺序</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/btcd.go">btcd</a></p>
 </blockquote>
-
-<h2 id="主启动顺序">主启动顺序</h2>
-
+<h2 id="heading">主启动顺序</h2>
 <p><em>main函数位于btcd.go，此处省略了辅助功能的服务（profile等）</em></p>
-
 <ol>
 <li>loadconfig() 加载配置</li>
 <li>doUpgrades() 升级操作</li>
 <li>loadBlockDB() 加载数据库</li>
-
-<li><p>server.start() 启动server</p>
+<li>server.start() 启动server</li>
+</ol>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -357,29 +346,29 @@
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">btcdMain</span><span class="p">(</span><span class="nx">serverChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
 	<span class="c1">// Load configuration and parse command line.  This function also
 </span><span class="c1"></span>	<span class="c1">// initializes logging and configures it accordingly.
-</span><span class="c1"></span>	<span class="nx">tcfg</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">loadConfig</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">tcfg</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">loadConfig</span><span class="p">(</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="nx">err</span>
 	<span class="p">}</span>
 	<span class="nx">cfg</span> <span class="p">=</span> <span class="nx">tcfg</span>
-	<span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">defer</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">if</span> <span class="nx">logRotator</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="nx">logRotator</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+			<span class="nx">logRotator</span><span class="p">.</span><span class="nf">Close</span><span class="p">(</span><span class="p">)</span>
 		<span class="p">}</span>
-	<span class="p">}()</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
 
 
 	<span class="c1">// Load the block database.
-</span><span class="c1"></span>	<span class="nx">db</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">loadBlockDB</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">db</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">loadBlockDB</span><span class="p">(</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="nx">btcdLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;%v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">err</span>
 	<span class="p">}</span>
-	<span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">defer</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="c1">// Ensure the database is sync&#39;d and closed on shutdown.
 </span><span class="c1"></span>		<span class="nx">btcdLog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Gracefully shutting down the database...&#34;</span><span class="p">)</span>
-		<span class="nx">db</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
-	<span class="p">}()</span>
+		<span class="nx">db</span><span class="p">.</span><span class="nf">Close</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
 
 	
 	<span class="c1">// Create server and start it.
@@ -391,13 +380,13 @@
 			<span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">err</span>
 	<span class="p">}</span>
-	<span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">defer</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="nx">btcdLog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Gracefully shutting down the server...&#34;</span><span class="p">)</span>
-		<span class="nx">server</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
-		<span class="nx">server</span><span class="p">.</span><span class="nf">WaitForShutdown</span><span class="p">()</span>
+		<span class="nx">server</span><span class="p">.</span><span class="nf">Stop</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">server</span><span class="p">.</span><span class="nf">WaitForShutdown</span><span class="p">(</span><span class="p">)</span>
 		<span class="nx">srvrLog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Server shutdown complete&#34;</span><span class="p">)</span>
-	<span class="p">}()</span>
-	<span class="nx">server</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">server</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">serverChan</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="nx">serverChan</span> <span class="o">&lt;-</span> <span class="nx">server</span>
 	<span class="p">}</span>
@@ -407,23 +396,19 @@
 </span><span class="c1"></span>	<span class="c1">// server.
 </span><span class="c1"></span>	<span class="o">&lt;-</span><span class="nx">interrupt</span>
 	<span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ol>
-
-<h2 id="server启动顺序">server启动顺序</h2>
-
+</div><h2 id="server">server启动顺序</h2>
 <p><em>start()函数实现位于server.go</em></p>
-
 <ol>
 <li>peerHandler() p2p服务，用于处理节点间的同步信息 端口 :12008</li>
 <li>rpcServer.Start() rpcServer，用于处理客户端的rpc请求 端口:12009</li>
-
-<li><p>cpuMiner.Start() 用于挖矿服务</p>
+<li>cpuMiner.Start() 用于挖矿服务</li>
+</ol>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -463,7 +448,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Start begins accepting connections from peers.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">Start</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">Start</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// Already started?
 </span><span class="c1"></span>	<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">s</span><span class="p">.</span><span class="nx">started</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
 		<span class="k">return</span>
@@ -472,16 +457,16 @@
 	<span class="nx">srvrLog</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Starting server&#34;</span><span class="p">)</span>
 
 	<span class="c1">// Server startup time. Used for the uptime command for uptime calculation.
-</span><span class="c1"></span>	<span class="nx">s</span><span class="p">.</span><span class="nx">startupTime</span> <span class="p">=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Unix</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">s</span><span class="p">.</span><span class="nx">startupTime</span> <span class="p">=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Start the peer handler which in turn starts the address and block
 </span><span class="c1"></span>	<span class="c1">// managers.
 </span><span class="c1"></span>	<span class="nx">s</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">peerHandler</span><span class="p">()</span>
+	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">peerHandler</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="k">if</span> <span class="nx">s</span><span class="p">.</span><span class="nx">nat</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="nx">s</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-		<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">upnpUpdateThread</span><span class="p">()</span>
+		<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">upnpUpdateThread</span><span class="p">(</span><span class="p">)</span>
 	<span class="p">}</span>
 
 	<span class="k">if</span> <span class="p">!</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">DisableRPC</span> <span class="p">{</span>
@@ -489,32 +474,28 @@
 
 		<span class="c1">// Start the rebroadcastHandler, which ensures user tx received by
 </span><span class="c1"></span>		<span class="c1">// the RPC server are rebroadcast until being included in a block.
-</span><span class="c1"></span>		<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">rebroadcastHandler</span><span class="p">()</span>
+</span><span class="c1"></span>		<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">rebroadcastHandler</span><span class="p">(</span><span class="p">)</span>
 
-		<span class="nx">s</span><span class="p">.</span><span class="nx">rpcServer</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
+		<span class="nx">s</span><span class="p">.</span><span class="nx">rpcServer</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
 	<span class="p">}</span>
 
 	<span class="c1">// Start the CPU miner if generation is enabled.
 </span><span class="c1"></span>	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">Generate</span> <span class="p">{</span>
-		<span class="nx">s</span><span class="p">.</span><span class="nx">cpuMiner</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
+		<span class="nx">s</span><span class="p">.</span><span class="nx">cpuMiner</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
 	<span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ol>
-
-<h2 id="peerhander启动顺序">peerHander启动顺序</h2>
-
+</div><h2 id="peerhander">peerHander启动顺序</h2>
 <p><em>peerHandler()函数实现位于server.go</em></p>
-
 <ol>
 <li>addrManager.Start() 处理节点信息地址</li>
 <li>syncManager.Start() 处理节点同步</li>
-
-<li><p>connManager.Start() 处理节点之间连接 （支持tcp/onion）</p>
+<li>connManager.Start() 处理节点之间连接 （支持tcp/onion）</li>
+</ol>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -555,56 +536,53 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// peerHandler is used to handle peer operations such as adding and removing
-</span><span class="c1">// peers to and from the server, banning peers, and broadcasting messages to
-</span><span class="c1">// peers.  It must be run in a goroutine.
+</span><span class="c1"></span><span class="c1">// peers to and from the server, banning peers, and broadcasting messages to
+</span><span class="c1"></span><span class="c1">// peers.  It must be run in a goroutine.
 </span><span class="c1"></span>
-<span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">peerHandler</span><span class="p">()</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">peerHandler</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// Start the address manager and sync manager, both of which are needed
 </span><span class="c1"></span>	<span class="c1">// by peers.  This is done here since their lifecycle is closely tied
 </span><span class="c1"></span>	<span class="c1">// to this handler and rather than adding more channels to sychronize
 </span><span class="c1"></span>	<span class="c1">// things, it&#39;s easier and slightly faster to simply start and stop them
 </span><span class="c1"></span>	<span class="c1">// in this handler.
 </span><span class="c1"></span>    
-	<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
-	<span class="nx">s</span><span class="p">.</span><span class="nx">syncManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
+	<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">s</span><span class="p">.</span><span class="nx">syncManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="nx">srvrLog</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Starting peer handler&#34;</span><span class="p">)</span>
 
 	<span class="nx">state</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">peerState</span><span class="p">{</span>
-		<span class="nx">inboundPeers</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">),</span>
-		<span class="nx">persistentPeers</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">),</span>
-		<span class="nx">outboundPeers</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">),</span>
-		<span class="nx">banned</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span><span class="p">),</span>
-		<span class="nx">outboundGroups</span><span class="p">:</span>  <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">),</span>
+		<span class="nx">inboundPeers</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">persistentPeers</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">outboundPeers</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int32</span><span class="p">]</span><span class="o">*</span><span class="nx">serverPeer</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">banned</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">outboundGroups</span><span class="p">:</span>  <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span><span class="p">,</span>
 	<span class="p">}</span>
 
 	<span class="k">if</span> <span class="p">!</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">DisableDNSSeed</span> <span class="p">{</span>
 		<span class="c1">// Add peers discovered through DNS to the address manager.
 </span><span class="c1"></span>		<span class="nx">connmgr</span><span class="p">.</span><span class="nf">SeedFromDNS</span><span class="p">(</span><span class="nx">activeNetParams</span><span class="p">.</span><span class="nx">Params</span><span class="p">,</span> <span class="nx">defaultRequiredServices</span><span class="p">,</span>
-			<span class="nx">btcdLookup</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">addrs</span> <span class="p">[]</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">NetAddress</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">btcdLookup</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">addrs</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">NetAddress</span><span class="p">)</span> <span class="p">{</span>
 				<span class="c1">// Bitcoind uses a lookup of the dns seeder here. This
 </span><span class="c1"></span>				<span class="c1">// is rather strange since the values looked up by the
 </span><span class="c1"></span>				<span class="c1">// DNS seed lookups will vary quite a lot.
 </span><span class="c1"></span>				<span class="c1">// to replicate this behaviour we put all addresses as
 </span><span class="c1"></span>				<span class="c1">// having come from the first one.
-</span><span class="c1"></span>				<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">AddAddresses</span><span class="p">(</span><span class="nx">addrs</span><span class="p">,</span> <span class="nx">addrs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-			<span class="p">})</span>
+</span><span class="c1"></span>				<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">AddAddresses</span><span class="p">(</span><span class="nx">addrs</span><span class="p">,</span> <span class="nx">addrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span>
+			<span class="p">}</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nx">connManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
-<span class="p">}</span></code></pre></td></tr></table>
+	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nx">connManager</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ol>
-
-<h2 id="rpcserver启动顺序">rpcServer启动顺序</h2>
-
+</div><h2 id="rpcserver">rpcServer启动顺序</h2>
 <p><em>rpcServer.Start()函数实现位于rpcserver.go</em></p>
-
 <ol>
-<li><p>httpServer.serve() 监听rpc请求（支持http/websocket）</p>
+<li>httpServer.serve() 监听rpc请求（支持http/websocket）</li>
+</ol>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -679,13 +657,13 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Start is used by server.go to start the rpc listener.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">)</span> <span class="nf">Start</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">)</span> <span class="nf">Start</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">s</span><span class="p">.</span><span class="nx">started</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
 		<span class="k">return</span>
 	<span class="p">}</span>
 
 	<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Starting RPC server&#34;</span><span class="p">)</span>
-	<span class="nx">rpcServeMux</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nf">NewServeMux</span><span class="p">()</span>
+	<span class="nx">rpcServeMux</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nf">NewServeMux</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">httpServer</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Server</span><span class="p">{</span>
 		<span class="nx">Handler</span><span class="p">:</span> <span class="nx">rpcServeMux</span><span class="p">,</span>
 
@@ -694,8 +672,8 @@
 </span><span class="c1"></span>		<span class="nx">ReadTimeout</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span> <span class="o">*</span> <span class="nx">rpcAuthTimeoutSeconds</span><span class="p">,</span>
 	<span class="p">}</span>
 	<span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
-		<span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">().</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Connection&#34;</span><span class="p">,</span> <span class="s">&#34;close&#34;</span><span class="p">)</span>
-		<span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">().</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span>
+		<span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Connection&#34;</span><span class="p">,</span> <span class="s">&#34;close&#34;</span><span class="p">)</span>
+		<span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span>
 		<span class="nx">r</span><span class="p">.</span><span class="nx">Close</span> <span class="p">=</span> <span class="kc">true</span>
 
 		<span class="c1">// Limit the number of connections to max allowed.
@@ -704,8 +682,8 @@
 		<span class="p">}</span>
 
 		<span class="c1">// Keep track of the number of connected clients.
-</span><span class="c1"></span>		<span class="nx">s</span><span class="p">.</span><span class="nf">incrementClients</span><span class="p">()</span>
-		<span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nf">decrementClients</span><span class="p">()</span>
+</span><span class="c1"></span>		<span class="nx">s</span><span class="p">.</span><span class="nf">incrementClients</span><span class="p">(</span><span class="p">)</span>
+		<span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nf">decrementClients</span><span class="p">(</span><span class="p">)</span>
 		<span class="nx">_</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">checkAuth</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 			<span class="nf">jsonAuthFail</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
@@ -714,7 +692,7 @@
 
 		<span class="c1">// Read and respond to the request.
 </span><span class="c1"></span>		<span class="nx">s</span><span class="p">.</span><span class="nf">jsonRPCRead</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-	<span class="p">})</span>
+	<span class="p">}</span><span class="p">)</span>
 
 	<span class="c1">// Websocket endpoint.
 </span><span class="c1"></span>	<span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/ws&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
@@ -728,7 +706,7 @@
 </span><span class="c1"></span>		<span class="c1">// using the default size for read/write buffers.
 </span><span class="c1"></span>		<span class="nx">ws</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">websocket</span><span class="p">.</span><span class="nf">Upgrade</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">HandshakeError</span><span class="p">);</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">HandshakeError</span><span class="p">)</span><span class="p">;</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
 				<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Unexpected websocket error: %v&#34;</span><span class="p">,</span>
 					<span class="nx">err</span><span class="p">)</span>
 			<span class="p">}</span>
@@ -736,24 +714,23 @@
 			<span class="k">return</span>
 		<span class="p">}</span>
 		<span class="nx">s</span><span class="p">.</span><span class="nf">WebsocketHandler</span><span class="p">(</span><span class="nx">ws</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">RemoteAddr</span><span class="p">,</span> <span class="nx">authenticated</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-	<span class="p">})</span>
+	<span class="p">}</span><span class="p">)</span>
 
 	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">listener</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span> <span class="p">{</span>
 		<span class="nx">s</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 		<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="nx">listener</span> <span class="nx">net</span><span class="p">.</span><span class="nx">Listener</span><span class="p">)</span> <span class="p">{</span>
-			<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;RPC server listening on %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">())</span>
+			<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;RPC server listening on %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 			<span class="nx">httpServer</span><span class="p">.</span><span class="nf">Serve</span><span class="p">(</span><span class="nx">listener</span><span class="p">)</span>
-			<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;RPC listener done for %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">())</span>
-			<span class="nx">s</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
-		<span class="p">}(</span><span class="nx">listener</span><span class="p">)</span>
+			<span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;RPC listener done for %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+			<span class="nx">s</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">(</span><span class="p">)</span>
+		<span class="p">}</span><span class="p">(</span><span class="nx">listener</span><span class="p">)</span>
 	<span class="p">}</span>
 
-	<span class="nx">s</span><span class="p">.</span><span class="nx">ntfnMgr</span><span class="p">.</span><span class="nf">Start</span><span class="p">()</span>
-<span class="p">}</span></code></pre></td></tr></table>
+	<span class="nx">s</span><span class="p">.</span><span class="nx">ntfnMgr</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ol>
-
+</div>
     </div>
 
     

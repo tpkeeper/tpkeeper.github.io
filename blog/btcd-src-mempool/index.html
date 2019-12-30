@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-mempool/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：6 - mempool">
 <meta itemprop="description" content="参考：btcd btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。 utxo和block index存储于leveldb中，而">
-
-
 <meta itemprop="datePublished" content="2019-08-30T17:04:31&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="2502">
+<meta itemprop="wordCount" content="2487">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：6 - mempool"/>
 <meta name="twitter:description" content="参考：btcd btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。 utxo和block index存储于leveldb中，而"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 2502 words </span>
+        <span class="more-meta"> 2487 words </span>
           <span class="more-meta"> 5 min read </span>
 
         
@@ -265,43 +262,32 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-创建mempool对象">一、创建mempool对象</a>
-<ul>
-<li>
-<ul>
-<li><a href="#二-processtransaction">二、ProcessTransaction</a></li>
-<li><a href="#三-maybeaccepttransaction">三、MaybeAcceptTransaction</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#四-mabeaccepttransaction">四、mabeAcceptTransaction</a></li>
-<li><a href="#五-processorhpans">五、ProcessOrhpans</a></li>
-<li><a href="#六-fetchtransaction">六、Fetchtransaction</a>
-<ul>
-<li>
-<ul>
-<li><a href="#七-miningdescs">七、MiningDescs</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#八-removetransaction">八、RemoveTransaction</a></li>
-<li><a href="#九-checkpooldoublespend">九、checkPoolDoubleSpend</a></li>
-<li><a href="#十-pruneexpiredtx">十、PruneExpiredTx</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#mempool">一、创建mempool对象</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#mabeaccepttransaction">四、mabeAcceptTransaction</a></li>
+    <li><a href="#processorhpans">五、ProcessOrhpans</a></li>
+    <li><a href="#fetchtransaction">六、Fetchtransaction</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#removetransaction">八、RemoveTransaction</a></li>
+    <li><a href="#checkpooldoublespend">九、checkPoolDoubleSpend</a></li>
+    <li><a href="#pruneexpiredtx">十、PruneExpiredTx</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/mempool">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>btcd提供了一个内存池mempool，用于存储还未被矿工打包的交易。</li>
 <li>utxo和block index存储于leveldb中，而不是本文讨论的mempool</li>
@@ -310,16 +296,16 @@
 <li>当新的block连接到主链时，会把block中的tx从mempool中移除，相应的也会转移orphans pool中依赖此block的tx到mempool中（通过MabeAcceptTransaction）</li>
 <li>当block从主链脱离时，会重新处理block里的tx(通过MabeAcceptTransaction)</li>
 </ul>
-
-<h2 id="一-创建mempool对象">一、创建mempool对象</h2>
-
+<h2 id="mempool">一、创建mempool对象</h2>
 <ul>
-<li>在server被创建的时候调用此方法生成一个mempool对象</li>
-
-<li><p>可以看到，pool用来存储正常的tx，orphans存储orphan tx</p>
+<li>
+<p>在server被创建的时候调用此方法生成一个mempool对象</p>
+</li>
+<li>
+<p>可以看到，pool用来存储正常的tx，orphans存储orphan tx</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -334,30 +320,31 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// New returns a new memory pool for validating and storing standalone
-</span><span class="c1">// transactions until they are mined into a block.
+</span><span class="c1"></span><span class="c1">// transactions until they are mined into a block.
 </span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="o">*</span><span class="nx">TxPool</span> <span class="p">{</span>
     <span class="k">return</span> <span class="o">&amp;</span><span class="nx">TxPool</span><span class="p">{</span>
         <span class="nx">cfg</span><span class="p">:</span>            <span class="o">*</span><span class="nx">cfg</span><span class="p">,</span>
-        <span class="nx">pool</span><span class="p">:</span>           <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">),</span>
-        <span class="nx">orphans</span><span class="p">:</span>        <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">orphanTx</span><span class="p">),</span>
-        <span class="nx">orphansByPrev</span><span class="p">:</span>  <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">wire</span><span class="p">.</span><span class="nx">OutPoint</span><span class="p">]</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">),</span>
-        <span class="nx">nextExpireScan</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="nx">orphanExpireScanInterval</span><span class="p">),</span>
-        <span class="nx">outpoints</span><span class="p">:</span>      <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">wire</span><span class="p">.</span><span class="nx">OutPoint</span><span class="p">]</span><span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">),</span>
+        <span class="nx">pool</span><span class="p">:</span>           <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">)</span><span class="p">,</span>
+        <span class="nx">orphans</span><span class="p">:</span>        <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">orphanTx</span><span class="p">)</span><span class="p">,</span>
+        <span class="nx">orphansByPrev</span><span class="p">:</span>  <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">wire</span><span class="p">.</span><span class="nx">OutPoint</span><span class="p">]</span><span class="kd">map</span><span class="p">[</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">]</span><span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">)</span><span class="p">,</span>
+        <span class="nx">nextExpireScan</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nx">orphanExpireScanInterval</span><span class="p">)</span><span class="p">,</span>
+        <span class="nx">outpoints</span><span class="p">:</span>      <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">wire</span><span class="p">.</span><span class="nx">OutPoint</span><span class="p">]</span><span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">)</span><span class="p">,</span>
     <span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h4 id="二-processtransaction">二、ProcessTransaction</h4>
-
+<h4 id="processtransaction">二、ProcessTransaction</h4>
 <ul>
-<li>该方法用来处理通过rpc请求（handleSendRawTransaction）发送的的rawtx和通过p2p网络（OnTx）同步的tx</li>
-
-<li><p>支持orphan tx的插入</p>
+<li>
+<p>该方法用来处理通过rpc请求（handleSendRawTransaction）发送的的rawtx和通过p2p网络（OnTx）同步的tx</p>
+</li>
+<li>
+<p>支持orphan tx的插入</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -423,22 +410,22 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// ProcessTransaction is the main workhorse for handling insertion of new
-</span><span class="c1">// free-standing transactions into the memory pool.  It includes functionality
-</span><span class="c1">// such as rejecting duplicate transactions, ensuring transactions follow all
-</span><span class="c1">// rules, orphan transaction handling, and insertion into the memory pool.
-</span><span class="c1">//
-</span><span class="c1">// It returns a slice of transactions added to the mempool.  When the
-</span><span class="c1">// error is nil, the list will include the passed transaction itself along
-</span><span class="c1">// with any additional orphan transaactions that were added as a result of
-</span><span class="c1">// the passed one being accepted.
-</span><span class="c1">//
-</span><span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">ProcessTransaction</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">allowOrphan</span><span class="p">,</span> <span class="nx">rateLimit</span> <span class="kt">bool</span><span class="p">,</span> <span class="nx">tag</span> <span class="nx">Tag</span><span class="p">)</span> <span class="p">([]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Processing transaction %v&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">())</span>
+</span><span class="c1"></span><span class="c1">// free-standing transactions into the memory pool.  It includes functionality
+</span><span class="c1"></span><span class="c1">// such as rejecting duplicate transactions, ensuring transactions follow all
+</span><span class="c1"></span><span class="c1">// rules, orphan transaction handling, and insertion into the memory pool.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// It returns a slice of transactions added to the mempool.  When the
+</span><span class="c1"></span><span class="c1">// error is nil, the list will include the passed transaction itself along
+</span><span class="c1"></span><span class="c1">// with any additional orphan transaactions that were added as a result of
+</span><span class="c1"></span><span class="c1">// the passed one being accepted.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">ProcessTransaction</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">allowOrphan</span><span class="p">,</span> <span class="nx">rateLimit</span> <span class="kt">bool</span><span class="p">,</span> <span class="nx">tag</span> <span class="nx">Tag</span><span class="p">)</span> <span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Processing transaction %v&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 
     <span class="c1">// Protect concurrent access.
-</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
-    <span class="k">defer</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
+    <span class="k">defer</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 
     <span class="c1">// Potentially accept the transaction to the memory pool.
 </span><span class="c1"></span>    <span class="nx">missingParents</span><span class="p">,</span> <span class="nx">txD</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nf">maybeAcceptTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="nx">rateLimit</span><span class="p">,</span>
@@ -453,12 +440,12 @@
 </span><span class="c1"></span>        <span class="c1">// are now available) and repeat for those accepted
 </span><span class="c1"></span>        <span class="c1">// transactions until there are no more.
 </span><span class="c1"></span>        <span class="nx">newTxs</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nf">processOrphans</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span>
-        <span class="nx">acceptedTxs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">newTxs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="nx">acceptedTxs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">newTxs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1">// Add the parent transaction first so remote nodes
 </span><span class="c1"></span>        <span class="c1">// do not add orphans.
 </span><span class="c1"></span>        <span class="nx">acceptedTxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">=</span> <span class="nx">txD</span>
-        <span class="nb">copy</span><span class="p">(</span><span class="nx">acceptedTxs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="nx">newTxs</span><span class="p">)</span>
+        <span class="nb">copy</span><span class="p">(</span><span class="nx">acceptedTxs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="p">]</span><span class="p">,</span> <span class="nx">newTxs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nx">acceptedTxs</span><span class="p">,</span> <span class="kc">nil</span>
     <span class="p">}</span>
@@ -477,27 +464,28 @@
 </span><span class="c1"></span>        <span class="c1">// which is not really always the case.
 </span><span class="c1"></span>        <span class="nx">str</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;orphan transaction %v references &#34;</span><span class="o">+</span>
             <span class="s">&#34;outputs of unknown or fully-spent &#34;</span><span class="o">+</span>
-            <span class="s">&#34;transaction %v&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">(),</span> <span class="nx">missingParents</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="s">&#34;transaction %v&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">missingParents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nf">txRuleError</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">RejectDuplicate</span><span class="p">,</span> <span class="nx">str</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="c1">// Potentially add the orphan transaction to the orphan pool.
 </span><span class="c1"></span>    <span class="nx">err</span> <span class="p">=</span> <span class="nx">mp</span><span class="p">.</span><span class="nf">maybeAddOrphan</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="nx">tag</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h4 id="三-maybeaccepttransaction">三、MaybeAcceptTransaction</h4>
-
+<h4 id="maybeaccepttransaction">三、MaybeAcceptTransaction</h4>
 <ul>
-<li>当block 从主链 connect / disconnect 的时候(blockchain.NTBlockConnected/blockchain.NTBlockDisconnected)，使用此函数处理block中的tx（当然不会包含coinbase）</li>
-
-<li><p>不支持orphan tx的插入</p>
+<li>
+<p>当block 从主链 connect / disconnect 的时候(blockchain.NTBlockConnected/blockchain.NTBlockDisconnected)，使用此函数处理block中的tx（当然不会包含coinbase）</p>
+</li>
+<li>
+<p>不支持orphan tx的插入</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -519,61 +507,38 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// MaybeAcceptTransaction is the main workhorse for handling insertion of new
-</span><span class="c1">// free-standing transactions into a memory pool.  It includes functionality
-</span><span class="c1">// such as rejecting duplicate transactions, ensuring transactions follow all
-</span><span class="c1">// rules, detecting orphan transactions, and insertion into the memory pool.
-</span><span class="c1">//
-</span><span class="c1">// If the transaction is an orphan (missing parent transactions), the
-</span><span class="c1">// transaction is NOT added to the orphan pool, but each unknown referenced
-</span><span class="c1">// parent is returned.  Use ProcessTransaction instead if new orphans should
-</span><span class="c1">// be added to the orphan pool.
-</span><span class="c1">//
-</span><span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">MaybeAcceptTransaction</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">isNew</span><span class="p">,</span> <span class="nx">rateLimit</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">([]</span><span class="o">*</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">,</span> <span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// free-standing transactions into a memory pool.  It includes functionality
+</span><span class="c1"></span><span class="c1">// such as rejecting duplicate transactions, ensuring transactions follow all
+</span><span class="c1"></span><span class="c1">// rules, detecting orphan transactions, and insertion into the memory pool.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// If the transaction is an orphan (missing parent transactions), the
+</span><span class="c1"></span><span class="c1">// transaction is NOT added to the orphan pool, but each unknown referenced
+</span><span class="c1"></span><span class="c1">// parent is returned.  Use ProcessTransaction instead if new orphans should
+</span><span class="c1"></span><span class="c1">// be added to the orphan pool.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">MaybeAcceptTransaction</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">isNew</span><span class="p">,</span> <span class="nx">rateLimit</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">,</span> <span class="o">*</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Protect concurrent access.
-</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
     <span class="nx">hashes</span><span class="p">,</span> <span class="nx">txD</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nf">maybeAcceptTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="nx">isNew</span><span class="p">,</span> <span class="nx">rateLimit</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="nx">hashes</span><span class="p">,</span> <span class="nx">txD</span><span class="p">,</span> <span class="nx">err</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="四-mabeaccepttransaction">四、mabeAcceptTransaction</h2>
-
+<h2 id="mabeaccepttransaction">四、mabeAcceptTransaction</h2>
 <ul>
 <li>ProcessTransaction和MabeAcceptTransaction最终都调用的该方法</li>
 <li>该方法会做一系列合法性验证然后将tx插入mempool</li>
 </ul>
-
-<h2 id="五-processorhpans">五、ProcessOrhpans</h2>
-
+<h2 id="processorhpans">五、ProcessOrhpans</h2>
 <ul>
-<li><p>当有新的block connect 到主链时，对block中的每一个tx都检测是否存在基于它的orphan tx，并将存在的tx移到mempool中</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">// ProcessOrphans determines if there are any orphans which depend on the passed
+<li>
+<p>当有新的block connect 到主链时，对block中的每一个tx都检测是否存在基于它的orphan tx，并将存在的tx移到mempool中</p>
+<pre><code>// ProcessOrphans determines if there are any orphans which depend on the passed
 // transaction hash (it is possible that they are no longer orphans) and
 // potentially accepts them to the memory pool.  It repeats the process for the
 // newly accepted transactions (to detect further orphans which may no longer be
@@ -589,20 +554,19 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
     mp.mtx.Unlock()
 
     return acceptedTxns
-}</pre></td></tr></table>
-</div>
-</div></li>
+}
+</code></pre></li>
 </ul>
-
-<h2 id="六-fetchtransaction">六、Fetchtransaction</h2>
-
+<h2 id="fetchtransaction">六、Fetchtransaction</h2>
 <ul>
-<li>从mem pool中获取对应hash的tx，不包含orphans pool</li>
-
-<li><p>在rpc请求的一些方法（searchrawtransactions、getrawtransaction、gettxout、）和p2p网络发送txmsg使用</p>
+<li>
+<p>从mem pool中获取对应hash的tx，不包含orphans pool</p>
+</li>
+<li>
+<p>在rpc请求的一些方法（searchrawtransactions、getrawtransaction、gettxout、）和p2p网络发送txmsg使用</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -622,33 +586,33 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// FetchTransaction returns the requested transaction from the transaction pool.
-</span><span class="c1">// This only fetches from the main transaction pool and does not include
-</span><span class="c1">// orphans.
-</span><span class="c1">//
-</span><span class="c1">// This function is safe for concurrent access.
+</span><span class="c1"></span><span class="c1">// This only fetches from the main transaction pool and does not include
+</span><span class="c1"></span><span class="c1">// orphans.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">FetchTransaction</span><span class="p">(</span><span class="nx">txHash</span> <span class="o">*</span><span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Protect concurrent access.
-</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RLock</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RLock</span><span class="p">(</span><span class="p">)</span>
     <span class="nx">txDesc</span><span class="p">,</span> <span class="nx">exists</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">pool</span><span class="p">[</span><span class="o">*</span><span class="nx">txHash</span><span class="p">]</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">()</span>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">(</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nx">exists</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">txDesc</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="kc">nil</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;transaction is not in the pool&#34;</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h4 id="七-miningdescs">七、MiningDescs</h4>
-
+<h4 id="miningdescs">七、MiningDescs</h4>
 <ul>
-<li><p>rpc getBlockTemplate 使用此方法生成挖矿需要的数据</p>
+<li>
+<p>rpc getBlockTemplate 使用此方法生成挖矿需要的数据</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -668,35 +632,36 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// MiningDescs returns a slice of mining descriptors for all the transactions
-</span><span class="c1">// in the pool.
-</span><span class="c1">//
-</span><span class="c1">// This is part of the mining.TxSource interface implementation and is safe for
-</span><span class="c1">// concurrent access as required by the interface contract.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">MiningDescs</span><span class="p">()</span> <span class="p">[]</span><span class="o">*</span><span class="nx">mining</span><span class="p">.</span><span class="nx">TxDesc</span> <span class="p">{</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RLock</span><span class="p">()</span>
-    <span class="nx">descs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">mining</span><span class="p">.</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">mp</span><span class="p">.</span><span class="nx">pool</span><span class="p">))</span>
+</span><span class="c1"></span><span class="c1">// in the pool.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This is part of the mining.TxSource interface implementation and is safe for
+</span><span class="c1"></span><span class="c1">// concurrent access as required by the interface contract.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">MiningDescs</span><span class="p">(</span><span class="p">)</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">mining</span><span class="p">.</span><span class="nx">TxDesc</span> <span class="p">{</span>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RLock</span><span class="p">(</span><span class="p">)</span>
+    <span class="nx">descs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">mining</span><span class="p">.</span><span class="nx">TxDesc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">mp</span><span class="p">.</span><span class="nx">pool</span><span class="p">)</span><span class="p">)</span>
     <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">desc</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">pool</span> <span class="p">{</span>
         <span class="nx">descs</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">desc</span><span class="p">.</span><span class="nx">TxDesc</span>
         <span class="nx">i</span><span class="o">++</span>
     <span class="p">}</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">()</span>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">(</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="nx">descs</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="八-removetransaction">八、RemoveTransaction</h2>
-
+<h2 id="removetransaction">八、RemoveTransaction</h2>
 <ul>
-<li>从mempool中移除交易</li>
-
-<li><p>当有新的block connect到主链时，移除block中的transaction</p>
+<li>
+<p>从mempool中移除交易</p>
+</li>
+<li>
+<p>当有新的block connect到主链时，移除block中的transaction</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -708,33 +673,36 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 </span><span class="lnt">10
 </span><span class="lnt">11
 </span><span class="lnt">12
+</span><span class="lnt">13
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// RemoveTransaction removes the passed transaction from the mempool. When the
-</span><span class="c1">// removeRedeemers flag is set, any transactions that redeem outputs from the
-</span><span class="c1">// removed transaction will also be removed recursively from the mempool, as
-</span><span class="c1">// they would otherwise become orphans.
-</span><span class="c1">//
-</span><span class="c1">// This function is safe for concurrent access.
+</span><span class="c1"></span><span class="c1">// removeRedeemers flag is set, any transactions that redeem outputs from the
+</span><span class="c1"></span><span class="c1">// removed transaction will also be removed recursively from the mempool, as
+</span><span class="c1"></span><span class="c1">// they would otherwise become orphans.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">RemoveTransaction</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">btcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">removeRedeemers</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Protect concurrent access.
-</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
     <span class="nx">mp</span><span class="p">.</span><span class="nf">removeTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="nx">removeRedeemers</span><span class="p">)</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
-<span class="p">}</span></code></pre></td></tr></table>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="九-checkpooldoublespend">九、checkPoolDoubleSpend</h2>
-
+<h2 id="checkpooldoublespend">九、checkPoolDoubleSpend</h2>
 <ul>
-<li>双花检测</li>
-
-<li><p>通过对比 待插入txin的PreviousOutPoint和内存池里边的已经存在的outpoints</p>
+<li>
+<p>双花检测</p>
+</li>
+<li>
+<p>通过对比 待插入txin的PreviousOutPoint和内存池里边的已经存在的outpoints</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -759,62 +727,66 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// checkPoolDoubleSpend checks whether or not the passed transaction is
-</span><span class="c1">// attempting to spend coins already spent by other transactions in the pool.
-</span><span class="c1">// Note it does not check for double spends against transactions already in the
-</span><span class="c1">// main chain.
-</span><span class="c1">//
-</span><span class="c1">// This function MUST be called with the mempool lock held (for reads).
+</span><span class="c1"></span><span class="c1">// attempting to spend coins already spent by other transactions in the pool.
+</span><span class="c1"></span><span class="c1">// Note it does not check for double spends against transactions already in the
+</span><span class="c1"></span><span class="c1">// main chain.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function MUST be called with the mempool lock held (for reads).
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">checkPoolDoubleSpend</span><span class="p">(</span><span class="nx">tx</span> <span class="o">*</span><span class="nx">hcutil</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="nx">txType</span> <span class="nx">stake</span><span class="p">.</span><span class="nx">TxType</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">txIn</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">().</span><span class="nx">TxIn</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">txIn</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">TxIn</span> <span class="p">{</span>
         <span class="c1">// We don&#39;t care about double spends of stake bases.
 </span><span class="c1"></span>        <span class="k">if</span>  <span class="nx">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">txType</span> <span class="o">==</span> <span class="nx">stake</span><span class="p">.</span><span class="nx">TxTypeSSGen</span> <span class="o">||</span> <span class="nx">txType</span> <span class="o">==</span> <span class="nx">stake</span><span class="p">.</span><span class="nx">TxTypeSSRtx</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">continue</span>
         <span class="p">}</span>
 
-        <span class="k">if</span> <span class="nx">txR</span><span class="p">,</span> <span class="nx">exists</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">outpoints</span><span class="p">[</span><span class="nx">txIn</span><span class="p">.</span><span class="nx">PreviousOutPoint</span><span class="p">];</span> <span class="nx">exists</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="nx">txR</span><span class="p">,</span> <span class="nx">exists</span> <span class="o">:=</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">outpoints</span><span class="p">[</span><span class="nx">txIn</span><span class="p">.</span><span class="nx">PreviousOutPoint</span><span class="p">]</span><span class="p">;</span> <span class="nx">exists</span> <span class="p">{</span>
             <span class="nx">str</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;transaction %v in the pool &#34;</span><span class="o">+</span>
-                <span class="s">&#34;already spends the same coins&#34;</span><span class="p">,</span> <span class="nx">txR</span><span class="p">.</span><span class="nf">Hash</span><span class="p">())</span>
+                <span class="s">&#34;already spends the same coins&#34;</span><span class="p">,</span> <span class="nx">txR</span><span class="p">.</span><span class="nf">Hash</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
             <span class="k">return</span> <span class="nf">txRuleError</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">RejectDuplicate</span><span class="p">,</span> <span class="nx">str</span><span class="p">)</span>
         <span class="p">}</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
-
-<li><p>outpoint 包含hash和索引</p>
+<li>
+<p>outpoint 包含hash和索引</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
 </span><span class="lnt">5
 </span><span class="lnt">6
 </span><span class="lnt">7
+</span><span class="lnt">8
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// OutPoint defines a HC data type that is used to track previous
-</span><span class="c1">// transaction outputs.
+</span><span class="c1"></span><span class="c1">// transaction outputs.
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">OutPoint</span> <span class="kd">struct</span> <span class="p">{</span>
     <span class="nx">Hash</span>  <span class="nx">chainhash</span><span class="p">.</span><span class="nx">Hash</span>
     <span class="nx">Index</span> <span class="kt">uint32</span>
     <span class="nx">Tree</span>  <span class="kt">int8</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="十-pruneexpiredtx">十、PruneExpiredTx</h2>
-
+<h2 id="pruneexpiredtx">十、PruneExpiredTx</h2>
 <ul>
-<li>根据高度移除过期交易</li>
-
-<li><p>当从其他peer同步到一个块的时候和重组的时候发生</p>
+<li>
+<p>根据高度移除过期交易</p>
+</li>
+<li>
+<p>当从其他peer同步到一个块的时候和重组的时候发生</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -837,25 +809,26 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// PruneExpiredTx prunes expired transactions from the mempool that may no longer
-</span><span class="c1">// be able to be included into a block.
+</span><span class="c1"></span><span class="c1">// be able to be included into a block.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">PruneExpiredTx</span><span class="p">(</span><span class="nx">height</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Protect concurrent access.
-</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
     <span class="nx">mp</span><span class="p">.</span><span class="nf">pruneExpiredTx</span><span class="p">(</span><span class="nx">height</span><span class="p">)</span>
-    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+    <span class="nx">mp</span><span class="p">.</span><span class="nx">mtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="kd">func</span> <span class="p">(</span><span class="nx">mp</span> <span class="o">*</span><span class="nx">TxPool</span><span class="p">)</span> <span class="nf">pruneExpiredTx</span><span class="p">(</span><span class="nx">height</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">tx</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">mp</span><span class="p">.</span><span class="nx">pool</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">().</span><span class="nx">Expiry</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="nx">height</span> <span class="o">&gt;=</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">().</span><span class="nx">Expiry</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Expiry</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="nx">height</span> <span class="o">&gt;=</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">MsgTx</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Expiry</span><span class="p">)</span> <span class="p">{</span>
                 <span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Pruning expired transaction %v &#34;</span><span class="o">+</span>
-                    <span class="s">&#34;from the mempool&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">())</span>
+                    <span class="s">&#34;from the mempool&#34;</span><span class="p">,</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">.</span><span class="nf">Hash</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
                 <span class="nx">mp</span><span class="p">.</span><span class="nf">removeTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">Tx</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
             <span class="p">}</span>
         <span class="p">}</span>
     <span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>

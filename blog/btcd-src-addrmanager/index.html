@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-addrmanager/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：2 - addrmanager">
 <meta itemprop="description" content="参考：btcd addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读">
-
-
 <meta itemprop="datePublished" content="2019-08-30T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="795">
+<meta itemprop="wordCount" content="796">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：2 - addrmanager"/>
 <meta name="twitter:description" content="参考：btcd addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改 通过存储json序列化后的数据到本地文件实现持久化 btc启动的时候，会读"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 795 words </span>
+        <span class="more-meta"> 796 words </span>
           <span class="more-meta"> 2 min read </span>
 
         
@@ -265,27 +262,21 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-创建addrmanager对象">一、创建addrmanager对象</a></li>
-<li><a href="#二-启动">二、启动</a></li>
-<li><a href="#三-停止">三、停止</a></li>
-<li><a href="#四-获取地址">四、获取地址</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#addrmanager">一、创建addrmanager对象</a></li>
+    <li><a href="#heading">二、启动</a></li>
+    <li><a href="#heading1">三、停止</a></li>
+    <li><a href="#heading2">四、获取地址</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/addrmgr">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>addrmanager 主要提供了peer地址的管理功能，包括地址的增删查改</li>
 <li>通过存储json序列化后的数据到本地文件实现持久化</li>
@@ -293,11 +284,10 @@
 <li>btc运行的过程中，每过一段时间（十分钟）就持久化一次，以备下次启动时使用</li>
 <li>btc退出时，会再次持久化一次</li>
 </ul>
-
-<h2 id="一-创建addrmanager对象">一、创建addrmanager对象</h2>
+<h2 id="addrmanager">一、创建addrmanager对象</h2>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -314,31 +304,34 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// New returns a new bitcoin address manager.
-</span><span class="c1">// Use Start to begin processing asynchronous address updates.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="nx">dataDir</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">lookupFunc</span> <span class="kd">func</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="p">([]</span><span class="nx">net</span><span class="p">.</span><span class="nx">IP</span><span class="p">,</span> <span class="kt">error</span><span class="p">))</span> <span class="o">*</span><span class="nx">AddrManager</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// Use Start to begin processing asynchronous address updates.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="nx">dataDir</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">lookupFunc</span> <span class="kd">func</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="nx">net</span><span class="p">.</span><span class="nx">IP</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span><span class="p">)</span> <span class="o">*</span><span class="nx">AddrManager</span> <span class="p">{</span>
 	<span class="nx">am</span> <span class="o">:=</span> <span class="nx">AddrManager</span><span class="p">{</span>
-		<span class="nx">peersFile</span><span class="p">:</span>      <span class="nx">filepath</span><span class="p">.</span><span class="nf">Join</span><span class="p">(</span><span class="nx">dataDir</span><span class="p">,</span> <span class="s">&#34;peers.json&#34;</span><span class="p">),</span>
+		<span class="nx">peersFile</span><span class="p">:</span>      <span class="nx">filepath</span><span class="p">.</span><span class="nf">Join</span><span class="p">(</span><span class="nx">dataDir</span><span class="p">,</span> <span class="s">&#34;peers.json&#34;</span><span class="p">)</span><span class="p">,</span>
 		<span class="nx">lookupFunc</span><span class="p">:</span>     <span class="nx">lookupFunc</span><span class="p">,</span>
-		<span class="nx">rand</span><span class="p">:</span>           <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">UnixNano</span><span class="p">())),</span>
-		<span class="nx">quit</span><span class="p">:</span>           <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">localAddresses</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">localAddress</span><span class="p">),</span>
+		<span class="nx">rand</span><span class="p">:</span>           <span class="nx">rand</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">NewSource</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">UnixNano</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">quit</span><span class="p">:</span>           <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">localAddresses</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">localAddress</span><span class="p">)</span><span class="p">,</span>
 		<span class="nx">version</span><span class="p">:</span>        <span class="nx">serialisationVersion</span><span class="p">,</span>
 	<span class="p">}</span>
-	<span class="nx">am</span><span class="p">.</span><span class="nf">reset</span><span class="p">()</span>
+	<span class="nx">am</span><span class="p">.</span><span class="nf">reset</span><span class="p">(</span><span class="p">)</span>
 	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">am</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="二-启动">二、启动</h2>
-
+</div><h2 id="heading">二、启动</h2>
 <ul>
-<li>通过started字段保证一个addrManager只能start一次</li>
-<li>loadPeers()就是读取硬盘上保存的peer信息到内存中</li>
-
-<li><p>addressHander 启动一个协程处理周期性的持久化和</p>
+<li>
+<p>通过started字段保证一个addrManager只能start一次</p>
+</li>
+<li>
+<p>loadPeers()就是读取硬盘上保存的peer信息到内存中</p>
+</li>
+<li>
+<p>addressHander 启动一个协程处理周期性的持久化和</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -358,8 +351,8 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Start begins the core address handler which manages a pool of known
-</span><span class="c1">// addresses, timeouts, and interval based writes.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">Start</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// addresses, timeouts, and interval based writes.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">Start</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Already started?
 </span><span class="c1"></span>    <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">a</span><span class="p">.</span><span class="nx">started</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
         <span class="k">return</span>
@@ -368,23 +361,23 @@
     <span class="nx">log</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Starting address manager&#34;</span><span class="p">)</span>
 
     <span class="c1">// Load peers we already know about from file.
-</span><span class="c1"></span>    <span class="nx">a</span><span class="p">.</span><span class="nf">loadPeers</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">a</span><span class="p">.</span><span class="nf">loadPeers</span><span class="p">(</span><span class="p">)</span>
 
     <span class="c1">// Start the address ticker to save addresses periodically.
 </span><span class="c1"></span>    <span class="nx">a</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">go</span> <span class="nx">a</span><span class="p">.</span><span class="nf">addressHandler</span><span class="p">()</span>
-<span class="p">}</span></code></pre></td></tr></table>
+    <span class="k">go</span> <span class="nx">a</span><span class="p">.</span><span class="nf">addressHandler</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="三-停止">三、停止</h2>
-
+<h2 id="heading1">三、停止</h2>
 <ul>
-<li><p>stop的时候通过close channel 通知并等待子协程（处理持久化任务）的退出</p>
+<li>
+<p>stop的时候通过close channel 通知并等待子协程（处理持久化任务）的退出</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -420,7 +413,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Stop gracefully shuts down the address manager by stopping the main handler.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">Stop</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">Stop</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
     <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">a</span><span class="p">.</span><span class="nx">shutdown</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
         <span class="nx">log</span><span class="p">.</span><span class="nf">Warnf</span><span class="p">(</span><span class="s">&#34;Address manager is already in the process of &#34;</span> <span class="o">+</span>
             <span class="s">&#34;shutting down&#34;</span><span class="p">)</span>
@@ -429,42 +422,43 @@
 
     <span class="nx">log</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Address manager shutting down&#34;</span><span class="p">)</span>
     <span class="nb">close</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">quit</span><span class="p">)</span>
-    <span class="nx">a</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+    <span class="nx">a</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">(</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">nil</span>
 <span class="p">}</span>
 
 <span class="c1">// addressHandler is the main handler for the address manager.  It must be run
-</span><span class="c1">// as a goroutine.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">addressHandler</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// as a goroutine.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">addressHandler</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">dumpAddressTicker</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">NewTicker</span><span class="p">(</span><span class="nx">dumpAddressInterval</span><span class="p">)</span>
-    <span class="k">defer</span> <span class="nx">dumpAddressTicker</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="nx">dumpAddressTicker</span><span class="p">.</span><span class="nf">Stop</span><span class="p">(</span><span class="p">)</span>
 <span class="nx">out</span><span class="p">:</span>
     <span class="k">for</span> <span class="p">{</span>
         <span class="k">select</span> <span class="p">{</span>
         <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">dumpAddressTicker</span><span class="p">.</span><span class="nx">C</span><span class="p">:</span>
-            <span class="nx">a</span><span class="p">.</span><span class="nf">savePeers</span><span class="p">()</span>
+            <span class="nx">a</span><span class="p">.</span><span class="nf">savePeers</span><span class="p">(</span><span class="p">)</span>
 
         <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">a</span><span class="p">.</span><span class="nx">quit</span><span class="p">:</span>
             <span class="k">break</span> <span class="nx">out</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="nx">a</span><span class="p">.</span><span class="nf">savePeers</span><span class="p">()</span>
-    <span class="nx">a</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+    <span class="nx">a</span><span class="p">.</span><span class="nf">savePeers</span><span class="p">(</span><span class="p">)</span>
+    <span class="nx">a</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">(</span><span class="p">)</span>
     <span class="nx">log</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Address handler done&#34;</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="四-获取地址">四、获取地址</h2>
-
+<h2 id="heading2">四、获取地址</h2>
 <ul>
-<li>用了自己的随机算法选取部分地址返回</li>
-
-<li><p>这个随机算法简单的说就是，先根据百分比确定返回的数量max，然后选中第i个，并与i-n之间的随机一个交换，i从0依次递增到max-1，这样一共选出来max个</p>
+<li>
+<p>用了自己的随机算法选取部分地址返回</p>
+</li>
+<li>
+<p>这个随机算法简单的说就是，先根据百分比确定返回的数量max，然后选中第i个，并与i-n之间的随机一个交换，i从0依次递增到max-1，这样一共选出来max个</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -485,12 +479,13 @@
 </span><span class="lnt">19
 </span><span class="lnt">20
 </span><span class="lnt">21
+</span><span class="lnt">22
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// AddressCache returns the current address cache.  It must be treated as
-</span><span class="c1">// read-only (but since it is a copy now, this is not as dangerous).
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">AddressCache</span><span class="p">()</span> <span class="p">[]</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">NetAddress</span> <span class="p">{</span>
-    <span class="nx">allAddr</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">.</span><span class="nf">getAddresses</span><span class="p">()</span>
+</span><span class="c1"></span><span class="c1">// read-only (but since it is a copy now, this is not as dangerous).
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">AddrManager</span><span class="p">)</span> <span class="nf">AddressCache</span><span class="p">(</span><span class="p">)</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">NetAddress</span> <span class="p">{</span>
+    <span class="nx">allAddr</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">.</span><span class="nf">getAddresses</span><span class="p">(</span><span class="p">)</span>
 
     <span class="nx">numAddresses</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">allAddr</span><span class="p">)</span> <span class="o">*</span> <span class="nx">getAddrPercent</span> <span class="o">/</span> <span class="mi">100</span>
     <span class="k">if</span> <span class="nx">numAddresses</span> <span class="p">&gt;</span> <span class="nx">getAddrMax</span> <span class="p">{</span>
@@ -502,12 +497,14 @@
 </span><span class="c1"></span>    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">numAddresses</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
         <span class="c1">// pick a number between current index and the end
 </span><span class="c1"></span>        <span class="nx">j</span> <span class="o">:=</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nx">allAddr</span><span class="p">)</span><span class="o">-</span><span class="nx">i</span><span class="p">)</span> <span class="o">+</span> <span class="nx">i</span>
-        <span class="nx">allAddr</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">j</span><span class="p">]</span> <span class="p">=</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">j</span><span class="p">],</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+        <span class="nx">allAddr</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="p">,</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">j</span><span class="p">]</span> <span class="p">=</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">j</span><span class="p">]</span><span class="p">,</span> <span class="nx">allAddr</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
     <span class="p">}</span>
 
     <span class="c1">// slice off the limit we are willing to share.
 </span><span class="c1"></span>    <span class="k">return</span> <span class="nx">allAddr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nx">numAddresses</span><span class="p">]</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>

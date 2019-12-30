@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/encryption-symmetric/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-10-23T18:28:03+08:00" />
 <meta itemprop="name" content="密码学系列：对称加密">
 <meta itemprop="description" content="本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit">
-
-
 <meta itemprop="datePublished" content="2019-09-02T17:04:19&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-23T18:28:03&#43;08:00" />
-<meta itemprop="wordCount" content="1769">
+<meta itemprop="wordCount" content="1770">
 
 
 
-<meta itemprop="keywords" content="Encrypt," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：对称加密"/>
 <meta name="twitter:description" content="本文讨论的对称加密算法主要包括 DES、3DES、AES DES 明文：64 bit 密文：64 bit 密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit"/>
 
@@ -249,7 +246,7 @@
             <a href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/"> 密码学系列 </a>
             
           </div>
-        <span class="more-meta"> 1769 words </span>
+        <span class="more-meta"> 1770 words </span>
           <span class="more-meta"> 4 min read </span>
 
         
@@ -266,43 +263,34 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#des">DES</a></li>
-<li><a href="#三重des">三重DES</a></li>
-<li><a href="#aes">AES</a></li>
-<li><a href="#迭代模式">迭代模式</a>
-<ul>
-<li><a href="#ecb-模式">ECB 模式</a></li>
-<li><a href="#cbc-模式">CBC 模式</a></li>
-<li><a href="#cfb-模式">CFB 模式</a></li>
-<li><a href="#ofb-模式">OFB 模式</a></li>
-<li><a href="#ctr-模式">CTR 模式</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#des">DES</a></li>
+    <li><a href="#des1">三重DES</a></li>
+    <li><a href="#aes">AES</a></li>
+    <li><a href="#heading">迭代模式</a>
+      <ul>
+        <li><a href="#ecb-">ECB 模式</a></li>
+        <li><a href="#cbc-">CBC 模式</a></li>
+        <li><a href="#cfb-">CFB 模式</a></li>
+        <li><a href="#ofb-">OFB 模式</a></li>
+        <li><a href="#ctr-">CTR 模式</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>本文讨论的对称加密算法主要包括 DES、3DES、AES</p>
-
+      <p>本文讨论的对称加密算法主要包括 DES、3DES、AES</p>
 <h2 id="des">DES</h2>
-
-<p>明文：64 bit<br />
-密文：64 bit<br />
-密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）<br />
+<p>明文：64 bit<br>
+密文：64 bit<br>
+密钥：56/64 bit（每 7 位插入一个校验位的时候为 64 bit）<br>
 其设计思想充分体现了香农提出的混淆和扩散原则</p>
-
-<p><img src="/image/des0.png" alt="des0.png" /></p>
-
+<p><img src="/image/des0.png" alt="des0.png"></p>
 <p>DES 使用的是 Feistel 结构来加密的，一共需要 16 轮，加密过程如下：</p>
-
 <ol>
 <li>将明文进行初始置换（通过置换表）</li>
 <li>将置换后的数据分为左右 L1 R1 各 32 bit</li>
@@ -313,22 +301,18 @@
 <li>将 L17 R17 交换位置，并拼接为 64bit 数据</li>
 <li>将 64bit 数据进行逆初始置换，得到最终密文</li>
 </ol>
-
 <p>需要注意的是：</p>
-
 <ul>
 <li>子密钥在每一轮中都是不一样的</li>
 <li>每一轮之间会将左侧和右侧对调（右侧没有加密）</li>
 <li>解密的过程就是将输出用相同的子密钥再走一遍，如果加密的子密钥顺序是key1 key2 key3，则解密的子密钥为key3 key2 key1</li>
 <li>轮函数可以设计为不可逆函数如hash，对解密没有影响</li>
 </ul>
-
-<p><img src="/image/des.png" alt="des.png" /></p>
-
+<p><img src="/image/des.png" alt="des.png"></p>
 <p>golang 代码实战：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -348,38 +332,34 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">TestDesEncrypt</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">key</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
+	<span class="nx">key</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
 	<span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">des</span><span class="p">.</span><span class="nf">NewCipher</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
 		<span class="nx">t</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nx">src</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
-	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">))</span>
+	<span class="nx">src</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
+	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Encrypt</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">,</span><span class="nx">src</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span>
-	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">))</span>
+	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Decrypt</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">,</span> <span class="nx">encrptDst</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">//out: [206 173 55 61 184 14 171 248]
-</span><span class="c1"></span><span class="o">//</span><span class="nx">out</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span><span class="p">]</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="c1">//out: [1 2 3 4 5 6 7 8]
+</span></code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="三重des">三重DES</h2>
-
-<p>明文：64 bit<br />
-密文：64 bit<br />
+</div><h2 id="des1">三重DES</h2>
+<p>明文：64 bit<br>
+密文：64 bit<br>
 密钥：56/64 * 3 bit（加入校验位的时候为64 bit）</p>
-
-<p>为了增加 DES 的强度，明文经过 3 次 DES 处理后变成最后的密文，因此密钥长度为 <sup>56</sup>&frasl;<sub>64</sub> * 3 bit。3 次 DES 处理并不是简单的 3 次加密的过程，而是加密、解密、加密，解密的过程相应的就是解密、解密、解密。这样设计是因为在 3 个密钥相同时，可以兼容 DES 算法</p>
-
-<p><img src="/image/3des.png" alt="3des.png" /></p>
-
+<p>为了增加 DES 的强度，明文经过 3 次 DES 处理后变成最后的密文，因此密钥长度为 56/64 * 3 bit。3 次 DES 处理并不是简单的 3 次加密的过程，而是加密、解密、加密，解密的过程相应的就是解密、解密、解密。这样设计是因为在 3 个密钥相同时，可以兼容 DES 算法</p>
+<p><img src="/image/3des.png" alt="3des.png"></p>
 <p>golang 代码实战：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -401,57 +381,49 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">TestTripleDesEncrypt</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">key</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span>
+	<span class="nx">key</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span>
 	<span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
 	<span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">des</span><span class="p">.</span><span class="nf">NewTripleDESCipher</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
 		<span class="nx">t</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nx">src</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
-	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">))</span>
+	<span class="nx">src</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
+	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Encrypt</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">,</span><span class="nx">src</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span>
-	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">))</span>
+	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Decrypt</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">,</span> <span class="nx">encrptDst</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">//此处3个密钥相同，兼容DES
-</span><span class="c1">//out: [206 173 55 61 184 14 171 248]
-</span><span class="c1"></span><span class="o">//</span><span class="nx">out</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span><span class="p">]</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="c1">//out: [206 173 55 61 184 14 171 248]
+</span><span class="c1"></span><span class="c1">//out: [1 2 3 4 5 6 7 8]
+</span></code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="aes">AES</h2>
-
-<p>明文：128 bit<br />
-密文：128 bit<br />
+</div><h2 id="aes">AES</h2>
+<p>明文：128 bit<br>
+密文：128 bit<br>
 密钥：128/192/256 bit （分别需要10/12/14轮）</p>
-
 <p>AES 标准最后评选出的算法是 Rijindale 算法，该算法支持密钥 128/192/256 bit ，分别需要 10/12/14 轮，本文讨论的是 128 bit密钥。它的加密过程并没有使用 DES 的 feistel 结构，而是使用了一种新的 SPN 结构，需要 10-14 轮计算，如下图：</p>
-
-<p><img src="/image/aes.png" alt="aes.png" /></p>
-
+<p><img src="/image/aes.png" alt="aes.png"></p>
 <p>其中每一轮计算过程如下：</p>
-
 <ol>
 <li>SubBytes（字节替换）：以字节大小为索引，与s_box表中字节映射</li>
 <li>ShiftRows（行移位-扩散）：从上到下从左到右的顺序组成 4 * 4 数组，从 0 行开始，第 n 行向左平移 n 个字节</li>
 <li>MixColums（列混肴-扩散）：对每一列进行矩阵运算，共四列</li>
 <li>AddRoundKey（轮密钥加）：与轮密钥即子密钥异或运算</li>
 </ol>
-
 <p>需要注意的是：</p>
-
 <ul>
 <li>最后一轮没有列混淆</li>
 <li>加密时：SubBytes -&gt; ShiftRows -&gt; MixColums -&gt; AddRoundKey</li>
 <li>解密时：AddRoundkey -&gt; InvMixColums -&gt; InvShiftRows -&gt; InvSubBytes (Inv代表逆运算)</li>
 </ul>
-
 <p>golang 代码实战：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -470,55 +442,42 @@
 </span><span class="lnt">17
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">TestAesEncrypt</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">){</span>
-	<span class="nx">key</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">TestAesEncrypt</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="p">{</span>
+	<span class="nx">key</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
 	<span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">aes</span><span class="p">.</span><span class="nf">NewCipher</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
 		<span class="nx">t</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nx">src</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
-	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">))</span>
+	<span class="nx">src</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
+	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Encrypt</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">,</span><span class="nx">src</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span>
-	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">))</span>
+	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cipherBlock</span><span class="p">.</span><span class="nf">Decrypt</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">,</span> <span class="nx">encrptDst</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">//out [19 7 34 196 163 153 225 186 223 245 40 131 80 80 70 203]
-</span><span class="c1"></span><span class="o">//</span><span class="nx">out</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span><span class="p">]</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="c1">//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
+</span></code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="迭代模式">迭代模式</h2>
-
+</div><h2 id="heading">迭代模式</h2>
 <p>以上讨论的三种加密算法都是分组密码，每次只能处理特定长度的一块数据，例如 DES 和 3DES 能处理的这块数据长度为 8 bytes，AES 的为 16 bytes。而我们的日常需要加密的明文基本上都是大于这个长度，这就需要我们将明文的内容进行分组并迭代加密，这个迭代加密的方式就是模式。</p>
-
-<h3 id="ecb-模式">ECB 模式</h3>
-
+<h3 id="ecb-">ECB 模式</h3>
 <p>电子密码本模式（electronic codebook ），最简单的模式，将明文分组直接作为加密算法的输入，加密算法的输出直接作为密文分组。</p>
-
-<h3 id="cbc-模式">CBC 模式</h3>
-
+<h3 id="cbc-">CBC 模式</h3>
 <p>密文分组链接模式（Cipher Block Chaining），密文之间是链状的，明文分组跟上个密文分组异或之后作为加密算法的输入，加密算法的输出作为密文分组。第一个明文分组加密时需要一个初始化向量。</p>
-
-<h3 id="cfb-模式">CFB 模式</h3>
-
+<h3 id="cfb-">CFB 模式</h3>
 <p>密文反馈模式（Cipher FeedBack）,上一个密文分组作为下一个加密算法的输入，加密算法的输出与明文分组异或结果作为密文分组。同样需要一个初始化向量</p>
-
-<h3 id="ofb-模式">OFB 模式</h3>
-
+<h3 id="ofb-">OFB 模式</h3>
 <p>输出反馈模式（OutPut FeedBack）,上一个加密算法的输出作为下一个加密算法的输入，明文与加密算法的输出异或作为密文分组。需要初始化向量</p>
-
-<h3 id="ctr-模式">CTR 模式</h3>
-
+<h3 id="ctr-">CTR 模式</h3>
 <p>计数器模式（Counter），将计数器作为加密算法的输入，加密算法的输出与明文分组异或作为密文分组，计数器是累加的。需要一个初始的计数器值</p>
-
 <p><strong>以上各种模式，ECB 不推荐使用</strong></p>
-
 <p>golang 代码实战：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -539,29 +498,32 @@
 </span><span class="lnt">19
 </span><span class="lnt">20
 </span><span class="lnt">21
+</span><span class="lnt">22
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-golang" data-lang="golang"><span class="kd">func</span> <span class="nf">TestCBCMode</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">key</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
+	<span class="nx">key</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x01</span><span class="p">}</span>
 	<span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">aes</span><span class="p">.</span><span class="nf">NewCipher</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
 		<span class="nx">t</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nx">src</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
-	<span class="nx">inv</span><span class="o">:=</span><span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
+	<span class="nx">src</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
+	<span class="nx">inv</span><span class="o">:=</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">{</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">,</span><span class="mh">0x01</span><span class="p">,</span><span class="mh">0x02</span><span class="p">,</span><span class="mh">0x03</span><span class="p">,</span><span class="mh">0x04</span><span class="p">,</span><span class="mh">0x05</span><span class="p">,</span><span class="mh">0x06</span><span class="p">,</span><span class="mh">0x07</span><span class="p">,</span><span class="mh">0x08</span><span class="p">}</span>
 	<span class="nx">cbcEncrypter</span><span class="o">:=</span><span class="nx">cipher</span><span class="p">.</span><span class="nf">NewCBCEncrypter</span><span class="p">(</span><span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">inv</span><span class="p">)</span>
-	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">))</span>
+	<span class="nx">encrptDst</span> <span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cbcEncrypter</span><span class="p">.</span><span class="nf">CryptBlocks</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">,</span><span class="nx">src</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span>
 
-	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">))</span>
+	<span class="nx">plainDst</span><span class="o">:=</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">encrptDst</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">cbcDecrypter</span><span class="o">:=</span><span class="nx">cipher</span><span class="p">.</span><span class="nf">NewCBCDecrypter</span><span class="p">(</span><span class="nx">cipherBlock</span><span class="p">,</span><span class="nx">inv</span><span class="p">)</span>
 	<span class="nx">cbcDecrypter</span><span class="p">.</span><span class="nf">CryptBlocks</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">,</span><span class="nx">encrptDst</span><span class="p">)</span>
 	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">plainDst</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">//out [182 174 175 250 117 45 192 139 81 99 151 49 118 26 237 0 98 117 59 208 145 166 116 62 43 199 115 70 250 251 56 226]
-</span><span class="c1"></span><span class="o">//</span><span class="nx">out</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span><span class="p">]</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="c1">//out [1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8]
+</span><span class="c1"></span>
+</code></pre></td></tr></table>
 </div>
 </div>
     </div>

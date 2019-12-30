@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="大远" />
-  <meta name="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：" />
+  <meta name="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： go test -v 输出： === RUN TestPubkeyToAddress" />
 
 
 
@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/golang-test/" />
@@ -59,25 +59,22 @@
 
 
 <meta property="og:title" content="Golang 单元测试" />
-<meta property="og:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：" />
+<meta property="og:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： go test -v 输出： === RUN TestPubkeyToAddress" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://www.tpkeep.com/blog/golang-test/" />
 <meta property="article:published_time" content="2019-11-25T00:00:00+00:00" />
-<meta property="article:modified_time" content="2019-11-25T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-12-25T20:14:07+08:00" />
 <meta itemprop="name" content="Golang 单元测试">
-<meta itemprop="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：">
-
-
+<meta itemprop="description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： go test -v 输出： === RUN TestPubkeyToAddress">
 <meta itemprop="datePublished" content="2019-11-25T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2019-11-25T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="319">
+<meta itemprop="dateModified" content="2019-12-25T20:14:07&#43;08:00" />
+<meta itemprop="wordCount" content="295">
 
 
 
-<meta itemprop="keywords" content="Golang," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Golang," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 单元测试"/>
-<meta name="twitter:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出："/>
+<meta name="twitter:description" content="简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： go test -v 输出： === RUN TestPubkeyToAddress"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -249,7 +246,7 @@
             <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
             
           </div>
-        <span class="more-meta"> 319 words </span>
+        <span class="more-meta"> 295 words </span>
           <span class="more-meta"> 1 min read </span>
 
         
@@ -266,72 +263,33 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#简单使用">简单使用</a></li>
-<li><a href="#测试覆盖率">测试覆盖率：</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#heading">简单使用</a></li>
+    <li><a href="#heading1">测试覆盖率：</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="简单使用">简单使用</h2>
-
+      <h2 id="heading">简单使用</h2>
 <p>进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
 <td class="lntd">
-<pre class="chroma">go test</pre></td></tr></table>
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="k">go</span> <span class="nx">test</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>输出：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">PASS
-ok      addrtool        0.519s</pre></td></tr></table>
-</div>
-</div>
-<p>使用 <code>-v</code> 参数，可以查看更多测试信息：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">go test -v</pre></td></tr></table>
-</div>
-</div>
-<p>输出：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">=== RUN   TestPubkeyToAddress
+</div><p>输出：</p>
+<pre><code>PASS
+ok      addrtool        0.519s
+</code></pre><p>使用 <code>-v</code> 参数，可以查看更多测试信息：</p>
+<pre><code>go test -v
+</code></pre><p>输出：</p>
+<pre><code>=== RUN   TestPubkeyToAddress
 --- PASS: TestPubkeyToAddress (0.00s)
 === RUN   TestDcrPubkeyToAddress
 --- PASS: TestDcrPubkeyToAddress (0.00s)
@@ -344,51 +302,22 @@ ok      addrtool        0.519s</pre></td></tr></table>
 === RUN   TestPubkeyFromExtendKey
 --- PASS: TestPubkeyFromExtendKey (0.00s)
 PASS
-ok      addrtool        0.132s</pre></td></tr></table>
-</div>
-</div>
-<h2 id="测试覆盖率">测试覆盖率：</h2>
+ok      addrtool        0.132s
 
+</code></pre><h2 id="heading1">测试覆盖率：</h2>
 <p>测试覆盖率简单的说就是测试代码运行时执行到的代码行数，占用总代码行数的百分比。</p>
-
 <p>使用以下命令可以简单的显示测试代码的覆盖率：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">go test -cover</pre></td></tr></table>
-</div>
-</div>
-<p>输出：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">PASS
+<pre><code>go test -cover
+</code></pre><p>输出：</p>
+<pre><code>PASS
 coverage: 35.2% of statements
-ok      addrtool        0.529s</pre></td></tr></table>
-</div>
-</div>
-<p>如果要具体查看哪些代码未覆盖，哪些代码覆盖了，则需要以下步骤，先生成轮廓图再生成 html 文件：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">go test -coverprofile=./testdata/covprofile 
+ok      addrtool        0.529s
+</code></pre><p>如果要具体查看哪些代码未覆盖，哪些代码覆盖了，则需要以下步骤，先生成轮廓图再生成 html 文件：</p>
+<pre><code>go test -coverprofile=./testdata/covprofile 
 
-go tool cover -html=./testdata/covprofile -o ./testdata/coverage.html</pre></td></tr></table>
-</div>
-</div>
-<p>然后在浏览器中打开生成的 html 文件，绿色的表示已经覆盖的代码，红色的表示还没有覆盖的代码，一目了然：</p>
-
-<p><img src="/image/test_html.png" alt="test.png" /></p>
+go tool cover -html=./testdata/covprofile -o ./testdata/coverage.html
+</code></pre><p>然后在浏览器中打开生成的 html 文件，绿色的表示已经覆盖的代码，红色的表示还没有覆盖的代码，一目了然：</p>
+<p><img src="/image/test_html.png" alt="test.png"></p>
 
     </div>
 
@@ -402,7 +331,10 @@ go tool cover -html=./testdata/covprofile -o ./testdata/coverage.html</pre></td>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
     <span class="item-content">
-      2019-11-25
+      2019-12-25
+      
+        
+        
       
     </span>
   </p>

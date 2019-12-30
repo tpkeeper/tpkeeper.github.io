@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-wire/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd源码分析系列：5 - p2p网络的消息协议">
 <meta itemprop="description" content="参考：protocol document 、btcd 协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc">
-
-
 <meta itemprop="datePublished" content="2019-08-30T17:04:19&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="1031">
+<meta itemprop="wordCount" content="1029">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd源码分析系列：5 - p2p网络的消息协议"/>
 <meta name="twitter:description" content="参考：protocol document 、btcd 协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 1031 words </span>
+        <span class="more-meta"> 1029 words </span>
           <span class="more-meta"> 3 min read </span>
 
         
@@ -265,50 +262,42 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-message">一、Message</a>
-<ul>
-<li><a href="#1-通用接口定义">（1）通用接口定义</a></li>
-<li><a href="#2-通用header">（2）通用header</a></li>
-<li><a href="#3-发送">（3）发送</a></li>
-</ul></li>
-<li><a href="#二-具体消息举例-tx">二、具体消息举例：Tx</a>
-<ul>
-<li><a href="#1-定义tx结构体">（1）定义tx结构体</a></li>
-<li><a href="#2-接口实现">（2） 接口实现</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#message">一、Message</a>
+      <ul>
+        <li><a href="#1">（1）通用接口定义</a></li>
+        <li><a href="#2header">（2）通用header</a></li>
+        <li><a href="#3">（3）发送</a></li>
+      </ul>
+    </li>
+    <li><a href="#tx">二、具体消息举例：Tx</a>
+      <ul>
+        <li><a href="#1tx">（1）定义tx结构体</a></li>
+        <li><a href="#2-">（2） 接口实现</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure">protocol document</a> 、<a href="https://github.com/btcsuite/btcd/tree/master/wire">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>协议其实就是一个标准，btc有多种语言的实现版本，他们之间能够正常通信的基础就是共同遵守了这个标准。btc定义的协议有很多，包括p2p之间通信协议、交易认证协议、pow共识协议等等。本文主要分析<strong>p2p网络的消息协议及代码实现</strong></li>
 <li>btc 的p2p网络的传输层支持tcp、udp、onion，应用层使用的即是本文讨论的消息协议</li>
 </ul>
-
-<h2 id="一-message">一、Message</h2>
-
+<h2 id="message">一、Message</h2>
 <p>一次通信以message为单位，具体结构如上图：
-<img src="en-resource://database/532:1" alt="d018cee1eb87aabcbc1bd44609e2beb3.png" /></p>
-
+<img src="en-resource://database/532:1" alt="d018cee1eb87aabcbc1bd44609e2beb3.png"></p>
 <p><strong>代码实现：</strong></p>
-
-<h3 id="1-通用接口定义">（1）通用接口定义</h3>
+<h3 id="1">（1）通用接口定义</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -321,28 +310,28 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Message is an interface that describes a bitcoin message.  A type that
-</span><span class="c1">// implements Message has complete control over the representation of its data
-</span><span class="c1">// and may therefore contain additional or fewer fields than those which
-</span><span class="c1">// are used directly in the protocol encoded message.
+</span><span class="c1"></span><span class="c1">// implements Message has complete control over the representation of its data
+</span><span class="c1"></span><span class="c1">// and may therefore contain additional or fewer fields than those which
+</span><span class="c1"></span><span class="c1">// are used directly in the protocol encoded message.
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">Message</span> <span class="kd">interface</span> <span class="p">{</span>
 	<span class="nf">BtcDecode</span><span class="p">(</span><span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span><span class="p">,</span> <span class="kt">uint32</span><span class="p">,</span> <span class="nx">MessageEncoding</span><span class="p">)</span> <span class="kt">error</span>
 	<span class="nf">BtcEncode</span><span class="p">(</span><span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span><span class="p">,</span> <span class="kt">uint32</span><span class="p">,</span> <span class="nx">MessageEncoding</span><span class="p">)</span> <span class="kt">error</span>
-	<span class="nf">Command</span><span class="p">()</span> <span class="kt">string</span>
+	<span class="nf">Command</span><span class="p">(</span><span class="p">)</span> <span class="kt">string</span>
 	<span class="nf">MaxPayloadLength</span><span class="p">(</span><span class="kt">uint32</span><span class="p">)</span> <span class="kt">uint32</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>message 接口，定义通用方法，由具体的消息类型去实现
-* BtcDecode BtcEnode 将结构化的消息体序列化为字节流 <strong>(对应payload)</strong> 或者将字节流实例化为某种消息格式
-* Commd 返回具体消息的命令字符串，标识不同的命令
-* MaxPayloadLength 最大payload 长度</p>
-
-<h3 id="2-通用header">（2）通用header</h3>
-
+</div><p>message 接口，定义通用方法，由具体的消息类型去实现</p>
+<ul>
+<li>BtcDecode BtcEnode 将结构化的消息体序列化为字节流 <strong>(对应payload)</strong> 或者将字节流实例化为某种消息格式</li>
+<li>Commd 返回具体消息的命令字符串，标识不同的命令</li>
+<li>MaxPayloadLength 最大payload 长度</li>
+</ul>
+<h3 id="2header">（2）通用header</h3>
 <p><strong>Magic bytes</strong> are used as a way to identify the separate messages sent between nodes on the bitcoin network.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
@@ -357,15 +346,14 @@
 </span><span class="c1"></span>	<span class="nx">command</span>  <span class="kt">string</span>     <span class="c1">// 12 bytes
 </span><span class="c1"></span>	<span class="nx">length</span>   <span class="kt">uint32</span>     <span class="c1">// 4 bytes
 </span><span class="c1"></span>	<span class="nx">checksum</span> <span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="kt">byte</span>    <span class="c1">// 4 bytes
-</span><span class="c1"></span><span class="p">}</span></code></pre></td></tr></table>
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>message header 结构体，定义通用部分字段</p>
-
-<h3 id="3-发送">（3）发送</h3>
+</div><p>message header 结构体，定义通用部分字段</p>
+<h3 id="3">（3）发送</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -436,13 +424,13 @@
 
 	<span class="c1">// Enforce max command size.
 </span><span class="c1"></span>	<span class="kd">var</span> <span class="nx">command</span> <span class="p">[</span><span class="nx">CommandSize</span><span class="p">]</span><span class="kt">byte</span>
-	<span class="nx">cmd</span> <span class="o">:=</span> <span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">()</span>
+	<span class="nx">cmd</span> <span class="o">:=</span> <span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">cmd</span><span class="p">)</span> <span class="p">&gt;</span> <span class="nx">CommandSize</span> <span class="p">{</span>
 		<span class="nx">str</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;command [%s] is too long [max %v]&#34;</span><span class="p">,</span>
 			<span class="nx">cmd</span><span class="p">,</span> <span class="nx">CommandSize</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">totalBytes</span><span class="p">,</span> <span class="nf">messageError</span><span class="p">(</span><span class="s">&#34;WriteMessage&#34;</span><span class="p">,</span> <span class="nx">str</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nb">copy</span><span class="p">(</span><span class="nx">command</span><span class="p">[:],</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">cmd</span><span class="p">))</span>
+	<span class="nb">copy</span><span class="p">(</span><span class="nx">command</span><span class="p">[</span><span class="p">:</span><span class="p">]</span><span class="p">,</span> <span class="p">[</span><span class="p">]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">cmd</span><span class="p">)</span><span class="p">)</span>
 
 	<span class="c1">// Encode the message payload.
 </span><span class="c1"></span>	<span class="kd">var</span> <span class="nx">bw</span> <span class="nx">bytes</span><span class="p">.</span><span class="nx">Buffer</span>
@@ -450,7 +438,7 @@
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="nx">totalBytes</span><span class="p">,</span> <span class="nx">err</span>
 	<span class="p">}</span>
-	<span class="nx">payload</span> <span class="o">:=</span> <span class="nx">bw</span><span class="p">.</span><span class="nf">Bytes</span><span class="p">()</span>
+	<span class="nx">payload</span> <span class="o">:=</span> <span class="nx">bw</span><span class="p">.</span><span class="nf">Bytes</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">lenp</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span>
 
 	<span class="c1">// Enforce maximum overall message payload.
@@ -471,20 +459,20 @@
 	<span class="p">}</span>
 
 	<span class="c1">// Create header for the message.
-</span><span class="c1"></span>	<span class="nx">hdr</span> <span class="o">:=</span> <span class="nx">messageHeader</span><span class="p">{}</span>
+</span><span class="c1"></span>	<span class="nx">hdr</span> <span class="o">:=</span> <span class="nx">messageHeader</span><span class="p">{</span><span class="p">}</span>
 	<span class="nx">hdr</span><span class="p">.</span><span class="nx">magic</span> <span class="p">=</span> <span class="nx">hcnet</span>
 	<span class="nx">hdr</span><span class="p">.</span><span class="nx">command</span> <span class="p">=</span> <span class="nx">cmd</span>
 	<span class="nx">hdr</span><span class="p">.</span><span class="nx">length</span> <span class="p">=</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">lenp</span><span class="p">)</span>
-	<span class="nb">copy</span><span class="p">(</span><span class="nx">hdr</span><span class="p">.</span><span class="nx">checksum</span><span class="p">[:],</span> <span class="nx">chainhash</span><span class="p">.</span><span class="nf">HashB</span><span class="p">(</span><span class="nx">payload</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+	<span class="nb">copy</span><span class="p">(</span><span class="nx">hdr</span><span class="p">.</span><span class="nx">checksum</span><span class="p">[</span><span class="p">:</span><span class="p">]</span><span class="p">,</span> <span class="nx">chainhash</span><span class="p">.</span><span class="nf">HashB</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="p">)</span>
 
 	<span class="c1">// Encode the header for the message.  This is done to a buffer
 </span><span class="c1"></span>	<span class="c1">// rather than directly to the writer since writeElements doesn&#39;t
 </span><span class="c1"></span>	<span class="c1">// return the number of bytes written.
-</span><span class="c1"></span>	<span class="nx">hw</span> <span class="o">:=</span> <span class="nx">bytes</span><span class="p">.</span><span class="nf">NewBuffer</span><span class="p">(</span><span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">MessageHeaderSize</span><span class="p">))</span>
+</span><span class="c1"></span>	<span class="nx">hw</span> <span class="o">:=</span> <span class="nx">bytes</span><span class="p">.</span><span class="nf">NewBuffer</span><span class="p">(</span><span class="nb">make</span><span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">MessageHeaderSize</span><span class="p">)</span><span class="p">)</span>
 	<span class="nf">writeElements</span><span class="p">(</span><span class="nx">hw</span><span class="p">,</span> <span class="nx">hdr</span><span class="p">.</span><span class="nx">magic</span><span class="p">,</span> <span class="nx">command</span><span class="p">,</span> <span class="nx">hdr</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">hdr</span><span class="p">.</span><span class="nx">checksum</span><span class="p">)</span>
 
 	<span class="c1">// Write header.
-</span><span class="c1"></span>	<span class="nx">n</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">hw</span><span class="p">.</span><span class="nf">Bytes</span><span class="p">())</span>
+</span><span class="c1"></span>	<span class="nx">n</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">hw</span><span class="p">.</span><span class="nf">Bytes</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">totalBytes</span> <span class="o">+=</span> <span class="nx">n</span>
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="nx">totalBytes</span><span class="p">,</span> <span class="nx">err</span>
@@ -494,21 +482,17 @@
 </span><span class="c1"></span>	<span class="nx">n</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span>
 	<span class="nx">totalBytes</span> <span class="o">+=</span> <span class="nx">n</span>
 	<span class="k">return</span> <span class="nx">totalBytes</span><span class="p">,</span> <span class="nx">err</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>发送message时，先发送header再发送payload</p>
-
-<h2 id="二-具体消息举例-tx">二、具体消息举例：Tx</h2>
-
-<p><img src="en-resource://database/568:1" alt="99cea19d9cefbb3d00df0c5331f6458e.png" /></p>
-
+</div><p>发送message时，先发送header再发送payload</p>
+<h2 id="tx">二、具体消息举例：Tx</h2>
+<p><img src="en-resource://database/568:1" alt="99cea19d9cefbb3d00df0c5331f6458e.png"></p>
 <p><strong>代码实现：</strong></p>
-
-<h3 id="1-定义tx结构体">（1）定义tx结构体</h3>
+<h3 id="1tx">（1）定义tx结构体</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -523,23 +507,23 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// MsgTx implements the Message interface and represents a bitcoin tx message.
-</span><span class="c1">// It is used to deliver transaction information in response to a getdata
-</span><span class="c1">// message (MsgGetData) for a given transaction.
-</span><span class="c1">//
-</span><span class="c1">// Use the AddTxIn and AddTxOut functions to build up the list of transaction
-</span><span class="c1">// inputs and outputs.
+</span><span class="c1"></span><span class="c1">// It is used to deliver transaction information in response to a getdata
+</span><span class="c1"></span><span class="c1">// message (MsgGetData) for a given transaction.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// Use the AddTxIn and AddTxOut functions to build up the list of transaction
+</span><span class="c1"></span><span class="c1">// inputs and outputs.
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">MsgTx</span> <span class="kd">struct</span> <span class="p">{</span>
 	<span class="nx">Version</span>  <span class="kt">int32</span>
-	<span class="nx">TxIn</span>     <span class="p">[]</span><span class="o">*</span><span class="nx">TxIn</span>
-	<span class="nx">TxOut</span>    <span class="p">[]</span><span class="o">*</span><span class="nx">TxOut</span>
+	<span class="nx">TxIn</span>     <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">TxIn</span>
+	<span class="nx">TxOut</span>    <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">TxOut</span>
 	<span class="nx">LockTime</span> <span class="kt">uint32</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h3 id="2-接口实现">（2） 接口实现</h3>
+</div><h3 id="2-">（2） 接口实现</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -550,22 +534,24 @@
 </span><span class="lnt"> 9
 </span><span class="lnt">10
 </span><span class="lnt">11
+</span><span class="lnt">12
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Command returns the protocol command string for the message.  This is part
-</span><span class="c1">// of the Message interface implementation.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">msg</span> <span class="o">*</span><span class="nx">MsgTx</span><span class="p">)</span> <span class="nf">Command</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// of the Message interface implementation.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">msg</span> <span class="o">*</span><span class="nx">MsgTx</span><span class="p">)</span> <span class="nf">Command</span><span class="p">(</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="nx">CmdTx</span>
 <span class="p">}</span>
 
 <span class="c1">// MaxPayloadLength returns the maximum length the payload can be for the
-</span><span class="c1">// receiver.  This is part of the Message interface implementation.
+</span><span class="c1"></span><span class="c1">// receiver.  This is part of the Message interface implementation.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">msg</span> <span class="o">*</span><span class="nx">MsgTx</span><span class="p">)</span> <span class="nf">MaxPayloadLength</span><span class="p">(</span><span class="nx">pver</span> <span class="kt">uint32</span><span class="p">)</span> <span class="kt">uint32</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="nx">MaxBlockPayload</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>BtcDecode BtcEnode 不再赘述，具体可参考 <a href="https://github.com/btcsuite/btcd/blob/master/wire/msgtx.go">btcd</a></p>
+</div><p>BtcDecode BtcEnode 不再赘述，具体可参考 <a href="https://github.com/btcsuite/btcd/blob/master/wire/msgtx.go">btcd</a></p>
 
     </div>
 

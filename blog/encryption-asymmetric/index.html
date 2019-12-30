@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/encryption-asymmetric/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-10-23T18:28:03+08:00" />
 <meta itemprop="name" content="密码学系列：非对称加密">
 <meta itemprop="description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅">
-
-
 <meta itemprop="datePublished" content="2019-09-09T17:04:19&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-23T18:28:03&#43;08:00" />
-<meta itemprop="wordCount" content="1640">
+<meta itemprop="wordCount" content="1632">
 
 
 
-<meta itemprop="keywords" content="Encrypt," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：非对称加密"/>
 <meta name="twitter:description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅"/>
 
@@ -249,7 +246,7 @@
             <a href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/"> 密码学系列 </a>
             
           </div>
-        <span class="more-meta"> 1640 words </span>
+        <span class="more-meta"> 1632 words </span>
           <span class="more-meta"> 4 min read </span>
 
         
@@ -266,71 +263,44 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#rsa">RSA</a></li>
-<li><a href="#ecc">ECC</a>
-<ul>
-<li><a href="#基础知识">基础知识</a>
-<ul>
-<li><a href="#模运算">模运算</a></li>
-<li><a href="#群">群</a></li>
-<li><a href="#定理">定理：</a></li>
-<li><a href="#离散对数问题">离散对数问题</a></li>
-<li><a href="#应用在密码学中的椭圆曲线">应用在密码学中的椭圆曲线</a></li>
-</ul></li>
-<li><a href="#secp256k1曲线">secp256k1曲线</a>
-<ul>
-<li><a href="#基本参数">基本参数：</a></li>
-<li><a href="#私钥生成公钥原理">私钥生成公钥原理：</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#rsa">RSA</a></li>
+    <li><a href="#ecc">ECC</a>
+      <ul>
+        <li><a href="#heading">基础知识</a></li>
+        <li><a href="#secp256k1">secp256k1曲线</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密</p>
-
+      <p>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密</p>
 <p>他们都源于一个公共原理：<strong>单向函数</strong></p>
-
 <p>单向函数的定义：</p>
-
 <blockquote>
-<p>函数 f() 是一个单向函数，当且仅当：
-1. y = f(x) 计算比较容易
-2. x = f&rsquo; (y) 计算是不可行的(需要的时间太长)</p>
+<p>函数 f() 是一个单向函数，当且仅当：</p>
+<ol>
+<li>y = f(x) 计算比较容易</li>
+<li>x = f&rsquo; (y) 计算是不可行的(需要的时间太长)</li>
+</ol>
 </blockquote>
-
 <p>目前的公钥方案中主要使用了两个主流的单向函数：</p>
-
 <ol>
 <li>大整数的因式分解</li>
 <li>离散对数问题（DLP问题）</li>
 </ol>
-
 <p>本文主要介绍 RSA 跟 ECC 这两种非对称加密算法</p>
-
 <h2 id="rsa">RSA</h2>
-
 <p>安全建立在基于<strong>大整数的因数分解问题</strong>（即对 N 的质因数分解求 p、q）</p>
-
 <p><strong>密文 = 明文^E (mod N)</strong></p>
-
 <p>对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥</p>
-
 <p><strong>明文 = 密文^D (mode N)</strong></p>
-
 <p>对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥</p>
-
 <p><strong>生成密钥对过程：</strong></p>
-
 <ol>
 <li>生成 N
 N = p * q ( p和q为质数 )
@@ -342,23 +312,15 @@ gcd(E,L)=1 ( gcd 为求最大公约数 )</li>
 1 &lt; D &lt; L
 E * D (mod L) = 1</li>
 </ol>
-
 <h2 id="ecc">ECC</h2>
-
-<h3 id="基础知识">基础知识</h3>
-
-<h4 id="模运算">模运算</h4>
-
+<h3 id="heading">基础知识</h3>
+<h4 id="heading1">模运算</h4>
 <blockquote>
 <p>a = r (mod m) , r为余数，m为模数，r&lt;m</p>
 </blockquote>
-
 <p>例：42= 6 (mod 9)</p>
-
-<h4 id="群">群</h4>
-
+<h4 id="heading2">群</h4>
 <p><strong>群指的是一个元素集合 G 以及 两个元素值之间的操作 o 的集合，即 (G，o)：</strong></p>
-
 <blockquote>
 <ol>
 <li>群操作 o 是封闭的，即对所有的 a b，a b 属于G, a o b = c，c 也属于 G。</li>
@@ -368,131 +330,92 @@ E * D (mod L) = 1</li>
 <li>如果 a o b = b o a，则群 G 为阿贝尔群或可交换群</li>
 </ol>
 </blockquote>
-
 <p><strong>有限群：</strong></p>
-
 <blockquote>
 <p>一个群 (G,o) 是有限的，仅当他拥有有限个元素，G 的基或阶可以表示为 |G|</p>
 </blockquote>
-
 <p>密码学中使用的一般就是有限群</p>
-
 <p>群的基或阶其实就是群元素的个数</p>
-
 <p>例如：（Zn，+）Zn 的基为 |Zn|=n，因为 Zn = {0，1，2，&hellip; ，n-1}</p>
-
 <p><strong>元素的阶：</strong></p>
-
 <blockquote>
 <p>是指满足以下条件的最小正整数 k：
 ord(a) = a^k = a o a o a &hellip;..a = 1 ,1 是单位元</p>
 </blockquote>
-
 <p><strong>循环群：</strong></p>
-
 <blockquote>
 <p>如果群 G 包含一个拥有最大阶 ord(x) = |G| 的元素 x，则这个群是个循环群，拥有最大阶的元素成为生成元。</p>
 </blockquote>
-
 <p>这个 x 的幂值可以表示整个群</p>
-
 <p>例：Z11 = {1，2，3，4，5，6，7，8，9，10}</p>
-
 <p>x = 2 为生成元</p>
-
 <p>基为 |Z11| = 10</p>
-
 <p>2^10  = 1 (mod 11), 2的阶为10，即ord(2) = |Z11|</p>
-
 <p>2 的幂值生成了所有元素</p>
-
-<h4 id="定理">定理：</h4>
-
+<h4 id="heading3">定理：</h4>
 <blockquote>
 <p>每个素数 p，( Zp,* )都是一个阿贝尔有限循环群</p>
 </blockquote>
-
 <p>该定理说明每个素数域的乘法群都是循环群，对于构建离散对数密码体制非常重要</p>
-
 <blockquote>
-<p>Hasse&rsquo;s定理：
+<p>Hasse's定理：
 给定一个曲线E mod p ，曲线上的点的个数表示为 #E 则：
 p+1-2√p&lt;=#E&lt;=p+1+2√p</p>
 </blockquote>
-
-<h4 id="离散对数问题">离散对数问题</h4>
-
+<h4 id="heading4">离散对数问题</h4>
 <p><strong>基于Zp的离散对数问题（DLP）：</strong></p>
-
 <blockquote>
 <p>给定一个阶为 p-1 的有限循环群Zp，生成元为 a，b为另一个元素，DLP问题就是确定满足以下条件的整数 x（ 1 &lt;= x &lt;= p-1 ）的问题：
 a^x  = b (mod p)</p>
 </blockquote>
-
 <p>当参数非常大的时候，求解 x 非常困难</p>
-
 <p><strong>推广的离散对数问题：</strong></p>
-
 <blockquote>
 <p>给定一个基为 n 的有限循环群 G，群操作为 o。生成元为a，b为另一个元素，DLP问题就是找到x（1 &lt;= x &lt;= n）使得：
 a^x = a o a o a &hellip;. o a = b</p>
 </blockquote>
-
 <p><strong>椭圆曲线离散对数问题：</strong></p>
-
 <blockquote>
 <p>给定一个椭圆曲线E，群操作为+，生成元 G，T为另一个元素，dl问题就是找到 k(1 &lt;= k &lt;= #E) 使得：
 kG = G + G + G +&hellip;+G = T</p>
 </blockquote>
-
 <p>公钥密码体制正是找到了这样的一个群是的DLP问题成为了一个单向函数</p>
-
-<h4 id="应用在密码学中的椭圆曲线">应用在密码学中的椭圆曲线</h4>
-
+<h4 id="heading5">应用在密码学中的椭圆曲线</h4>
 <p>基于椭圆曲线的非对称加密，跟 rsa 相比，密钥更短，强度更高</p>
-
 <p>安全建立在基于椭圆曲线的离散对数问题，是一种<strong>推广的离散对数问题</strong></p>
-
 <ol>
 <li>二元三次曲线 <strong>y^2 = x^3 + a * x + b (mod p)</strong> （其中p为大质数）</li>
 <li>定义的运算 P + Q = R,都是曲线上的点</li>
 </ol>
-
 <p>循环群为椭圆曲线上的点，群操作为 +</p>
-
 <p>抽象的无穷的点 0 为单位元，满足 P+0 = P</p>
-
 <p>逆元 P+(-P) = 0，满足 -P = （Xp，p-Yp）</p>
-
-<h3 id="secp256k1曲线">secp256k1曲线</h3>
-
-<h4 id="基本参数">基本参数：</h4>
-
+<h3 id="secp256k1">secp256k1曲线</h3>
+<h4 id="heading6">基本参数：</h4>
 <ul>
-<li><p>离散曲线： y^2 = (x^3 + 7) mod p（其中x和y都是整形保证了离散）
+<li>
+<p>离散曲线： y^2 = (x^3 + 7) mod p（其中x和y都是整形保证了离散）
 p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 a=0
-b=7</p></li>
-
-<li><p>基点 G
+b=7</p>
+</li>
+<li>
+<p>基点 G
 G(&ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&rdquo;,
-&ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&rdquo;)</p></li>
-
-<li><p>点的集合  {G，2G，3G，&hellip; ，nG}，nG=O，O 为抽象的无穷点即单位元
-n=&ldquo;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&rdquo;</p></li>
+&ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&rdquo;)</p>
+</li>
+<li>
+<p>点的集合  {G，2G，3G，&hellip; ，nG}，nG=O，O 为抽象的无穷点即单位元
+n=&quot;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&rdquo;</p>
+</li>
 </ul>
-
-<h4 id="私钥生成公钥原理">私钥生成公钥原理：</h4>
-
+<h4 id="heading7">私钥生成公钥原理：</h4>
 <p>在上边的离散的椭圆曲线上，定义一套运算规则：</p>
-
 <blockquote>
-<p>加法：P+Q = R
+<p>加法：P+Q = R 
 乘法： K=kG</p>
 </blockquote>
-
 <p>k 为私钥，K 为公钥{r,s}，G为曲线上一点。</p>
-
 <p>由 k、G 算 K 简单，由 K、G 推出 k 极难。</p>
 
     </div>

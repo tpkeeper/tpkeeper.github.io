@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-connmanager/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：3 - connmanager">
 <meta itemprop="description" content="参考：btcd connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理">
-
-
 <meta itemprop="datePublished" content="2019-08-30T17:03:47&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="2151">
+<meta itemprop="wordCount" content="2152">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：3 - connmanager"/>
 <meta name="twitter:description" content="参考：btcd connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 2151 words </span>
+        <span class="more-meta"> 2152 words </span>
           <span class="more-meta"> 5 min read </span>
 
         
@@ -265,48 +262,41 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-创建connmanager对象">一、创建connmanager对象</a></li>
-<li><a href="#二-start">二、start</a></li>
-<li><a href="#三-对监听到的连接的处理">三、对监听到的连接的处理</a></li>
-<li><a href="#四-对主动发起的连接的处理">四、对主动发起的连接的处理</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#connmanager">一、创建connmanager对象</a></li>
+    <li><a href="#start">二、start</a></li>
+    <li><a href="#heading">三、对监听到的连接的处理</a></li>
+    <li><a href="#heading1">四、对主动发起的连接的处理</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/connmgr">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>connmanamger 负责节点的连接处理，包括监听来自其他节点的连接请求和主动向其他节点发起连接请求，并将获取到的连接对象conn交给回调函数处理，实际上这些回调函数是由server实现的，它们会根据conn生成对应的peer，交由peer处理之后的逻辑</li>
 <li>默认outbound peer数量为8</li>
 <li>节点发现
-
 <ul>
 <li>address database （第一次启动时为空）</li>
 <li>-addnode -connect (手动)</li>
 <li>dns seed （通过dns获取addr）</li>
 <li>hard-coded seeds（代码中的seed）</li>
 <li>getaddr from other peers （通过其他节点同步）</li>
-</ul></li>
 </ul>
-
-<h2 id="一-创建connmanager对象">一、创建connmanager对象</h2>
-
+</li>
+</ul>
+<h2 id="connmanager">一、创建connmanager对象</h2>
 <ul>
-<li><p>主要是根据传入的config结构体参数返回一个指针，config结构体主要 包含一些回调方法和[]listener,这样便于灵活实现和调用</p>
+<li>主要是根据传入的config结构体参数返回一个指针，config结构体主要 包含一些回调方法和[]listener,这样便于灵活实现和调用</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -379,7 +369,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// New returns a new connection manager.
-</span><span class="c1">// Use Start to start connecting to the network.
+</span><span class="c1"></span><span class="c1">// Use Start to start connecting to the network.
 </span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">ConnManager</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
 	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">Dial</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ErrDialNil</span>
@@ -393,8 +383,8 @@
 	<span class="p">}</span>
 	<span class="nx">cm</span> <span class="o">:=</span> <span class="nx">ConnManager</span><span class="p">{</span>
 		<span class="nx">cfg</span><span class="p">:</span>      <span class="o">*</span><span class="nx">cfg</span><span class="p">,</span> <span class="c1">// Copy so caller can&#39;t mutate
-</span><span class="c1"></span>		<span class="nx">requests</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">interface</span><span class="p">{}),</span>
-		<span class="nx">quit</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
+</span><span class="c1"></span>		<span class="nx">requests</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">quit</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
 	<span class="p">}</span>
 	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">cm</span><span class="p">,</span> <span class="kc">nil</span>
 <span class="p">}</span>
@@ -412,7 +402,7 @@
 </span><span class="c1"></span>	<span class="c1">// This field will not have any effect if the OnAccept field is not
 </span><span class="c1"></span>	<span class="c1">// also specified.  It may be nil if the caller does not wish to listen
 </span><span class="c1"></span>	<span class="c1">// for incoming connections.
-</span><span class="c1"></span>	<span class="nx">Listeners</span> <span class="p">[]</span><span class="nx">net</span><span class="p">.</span><span class="nx">Listener</span>
+</span><span class="c1"></span>	<span class="nx">Listeners</span> <span class="p">[</span><span class="p">]</span><span class="nx">net</span><span class="p">.</span><span class="nx">Listener</span>
 
 	<span class="c1">// OnAccept is a callback that is fired when an inbound connection is
 </span><span class="c1"></span>	<span class="c1">// accepted.  It is the caller&#39;s responsibility to close the connection.
@@ -443,15 +433,16 @@
 
 	<span class="c1">// GetNewAddress is a way to get an address to make a network connection
 </span><span class="c1"></span>	<span class="c1">// to.  If nil, no new connections will be made automatically.
-</span><span class="c1"></span>	<span class="nx">GetNewAddress</span> <span class="kd">func</span><span class="p">()</span> <span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nx">Addr</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">GetNewAddress</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nx">Addr</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
 
 	<span class="c1">// Dial connects to the address on the named network. It cannot be nil.
 </span><span class="c1"></span>	<span class="nx">Dial</span> <span class="kd">func</span><span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nx">Addr</span><span class="p">)</span> <span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div><div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
@@ -466,25 +457,22 @@
 		<span class="nx">Listeners</span><span class="p">:</span>      <span class="nx">listeners</span><span class="p">,</span>
 		<span class="nx">OnAccept</span><span class="p">:</span>       <span class="nx">s</span><span class="p">.</span><span class="nx">inboundPeerConnected</span><span class="p">,</span>
 		<span class="nx">RetryDuration</span><span class="p">:</span>  <span class="nx">connectionRetryInterval</span><span class="p">,</span>
-		<span class="nx">TargetOutbound</span><span class="p">:</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">targetOutbound</span><span class="p">),</span>
+		<span class="nx">TargetOutbound</span><span class="p">:</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">targetOutbound</span><span class="p">)</span><span class="p">,</span>
 		<span class="nx">Dial</span><span class="p">:</span>           <span class="nx">hcdDial</span><span class="p">,</span>
 		<span class="nx">OnConnection</span><span class="p">:</span>   <span class="nx">s</span><span class="p">.</span><span class="nx">outboundPeerConnected</span><span class="p">,</span>
 		<span class="nx">GetNewAddress</span><span class="p">:</span>  <span class="nx">newAddressFunc</span><span class="p">,</span>
-	<span class="p">})</span></code></pre></td></tr></table>
+	<span class="p">}</span><span class="p">)</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
-<h2 id="二-start">二、start</h2>
-
+</div><h2 id="start">二、start</h2>
 <ul>
 <li>启动connhandler 处理connrequest请求结果，即处理主动向其他节点发起请求的结果</li>
 <li>启动listenhandler 监听来自其他节点的连接</li>
-
-<li><p>connrequest 向其他节点发起连接</p>
+<li>connrequest 向其他节点发起连接</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -511,7 +499,7 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Start launches the connection manager and begins connecting to the network.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">Start</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">Start</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// Already started?
 </span><span class="c1"></span>	<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">start</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
 		<span class="k">return</span>
@@ -519,7 +507,7 @@
 
 	<span class="nx">log</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Connection manager started&#34;</span><span class="p">)</span>
 	<span class="nx">cm</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nf">connHandler</span><span class="p">()</span>
+	<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nf">connHandler</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Start all the listeners so long as the caller requested them and
 </span><span class="c1"></span>	<span class="c1">// provided a callback to be invoked when connections are accepted.
@@ -530,23 +518,20 @@
 		<span class="p">}</span>
 	<span class="p">}</span>
 
-	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">connReqCount</span><span class="p">);</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nb">uint64</span><span class="p">(</span><span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">TargetOutbound</span><span class="p">);</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
-		<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nf">NewConnReq</span><span class="p">()</span>
+	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">connReqCount</span><span class="p">)</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nb">uint64</span><span class="p">(</span><span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">TargetOutbound</span><span class="p">)</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+		<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nf">NewConnReq</span><span class="p">(</span><span class="p">)</span>
 	<span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
-<h2 id="三-对监听到的连接的处理">三、对监听到的连接的处理</h2>
-
+</div><h2 id="heading">三、对监听到的连接的处理</h2>
 <ul>
 <li>当有新的连接请求，会将此连接对象直接交给回调函数onAccept()处理，该函数的具体实现是在server中s.inboundPeerConnected()方法</li>
-
-<li><p>s.inboundPeerConnected() 会创建一个inbound peer，并进入peer的处理逻辑</p>
+<li>s.inboundPeerConnected() 会创建一个inbound peer，并进入peer的处理逻辑</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -568,11 +553,11 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// listenHandler accepts incoming connections on a given listener.  It must be
-</span><span class="c1">// run as a goroutine.
+</span><span class="c1"></span><span class="c1">// run as a goroutine.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">listenHandler</span><span class="p">(</span><span class="nx">listener</span> <span class="nx">net</span><span class="p">.</span><span class="nx">Listener</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Server listening on %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">())</span>
+	<span class="nx">log</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Server listening on %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 	<span class="k">for</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
-		<span class="nx">conn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Accept</span><span class="p">()</span>
+		<span class="nx">conn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Accept</span><span class="p">(</span><span class="p">)</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 			<span class="c1">// Only log the error if not forcibly shutting down.
 </span><span class="c1"></span>			<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
@@ -583,17 +568,15 @@
 		<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nf">OnAccept</span><span class="p">(</span><span class="nx">conn</span><span class="p">)</span>
 	<span class="p">}</span>
 
-	<span class="nx">cm</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Listener handler done for %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">())</span>
-<span class="p">}</span></code></pre></td></tr></table>
+	<span class="nx">cm</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Listener handler done for %s&#34;</span><span class="p">,</span> <span class="nx">listener</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
-<p>onaccept的具体实现</p>
+</div><p>onaccept的具体实现</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -607,34 +590,33 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// inboundPeerConnected is invoked by the connection manager when a new inbound
-</span><span class="c1">// connection is established.  It initializes a new inbound server peer
-</span><span class="c1">// instance, associates it with the connection, and starts a goroutine to wait
-</span><span class="c1">// for disconnection.
+</span><span class="c1"></span><span class="c1">// connection is established.  It initializes a new inbound server peer
+</span><span class="c1"></span><span class="c1">// instance, associates it with the connection, and starts a goroutine to wait
+</span><span class="c1"></span><span class="c1">// for disconnection.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">inboundPeerConnected</span><span class="p">(</span><span class="nx">conn</span> <span class="nx">net</span><span class="p">.</span><span class="nx">Conn</span><span class="p">)</span> <span class="p">{</span>
 	<span class="nx">sp</span> <span class="o">:=</span> <span class="nf">newServerPeer</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
-	<span class="nx">sp</span><span class="p">.</span><span class="nx">isWhitelisted</span> <span class="p">=</span> <span class="nf">isWhitelisted</span><span class="p">(</span><span class="nx">conn</span><span class="p">.</span><span class="nf">RemoteAddr</span><span class="p">())</span>
-	<span class="nx">sp</span><span class="p">.</span><span class="nx">Peer</span> <span class="p">=</span> <span class="nx">peer</span><span class="p">.</span><span class="nf">NewInboundPeer</span><span class="p">(</span><span class="nf">newPeerConfig</span><span class="p">(</span><span class="nx">sp</span><span class="p">))</span>
+	<span class="nx">sp</span><span class="p">.</span><span class="nx">isWhitelisted</span> <span class="p">=</span> <span class="nf">isWhitelisted</span><span class="p">(</span><span class="nx">conn</span><span class="p">.</span><span class="nf">RemoteAddr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+	<span class="nx">sp</span><span class="p">.</span><span class="nx">Peer</span> <span class="p">=</span> <span class="nx">peer</span><span class="p">.</span><span class="nf">NewInboundPeer</span><span class="p">(</span><span class="nf">newPeerConfig</span><span class="p">(</span><span class="nx">sp</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">sp</span><span class="p">.</span><span class="nf">AssociateConnection</span><span class="p">(</span><span class="nx">conn</span><span class="p">)</span>
 	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">peerDoneHandler</span><span class="p">(</span><span class="nx">sp</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="四-对主动发起的连接的处理">四、对主动发起的连接的处理</h2>
-
+</div><h2 id="heading1">四、对主动发起的连接的处理</h2>
 <ul>
 <li>生成一个新的请求id</li>
 <li>然后将请求的结果统一发给connhandler处理</li>
 <li>connhandler 根据不同的结果分别做不同的处理
-
 <ul>
 <li>如果成功则调用OnConnection回调函数，该函数由server的s.outboundPeerConnected（）实现</li>
 <li>如果请求失败则调用自身的handleFailedConn()函数，尝试再次请求等逻辑</li>
-</ul></li>
-
-<li><p>s.outboundPeerConnected 同样是先创建一个outbound peer，然后进入peer的处理逻辑</p>
+</ul>
+</li>
+<li>s.outboundPeerConnected 同样是先创建一个outbound peer，然后进入peer的处理逻辑</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -654,13 +636,13 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Connect assigns an id and dials a connection to the address of the
-</span><span class="c1">// connection request.
+</span><span class="c1"></span><span class="c1">// connection request.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">Connect</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">ConnReq</span><span class="p">)</span> <span class="p">{</span>
 	<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
 		<span class="k">return</span>
 	<span class="p">}</span>
 	<span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
-		<span class="nx">atomic</span><span class="p">.</span><span class="nf">StoreUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">connReqCount</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+		<span class="nx">atomic</span><span class="p">.</span><span class="nf">StoreUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddUint64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cm</span><span class="p">.</span><span class="nx">connReqCount</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">)</span>
 	<span class="p">}</span>
 	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Attempting to connect to %v&#34;</span><span class="p">,</span> <span class="nx">c</span><span class="p">)</span>
 	<span class="nx">conn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nf">Dial</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Addr</span><span class="p">)</span>
@@ -669,11 +651,12 @@
 	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
 		<span class="nx">cm</span><span class="p">.</span><span class="nx">requests</span> <span class="o">&lt;-</span> <span class="nx">handleConnected</span><span class="p">{</span><span class="nx">c</span><span class="p">,</span> <span class="nx">conn</span><span class="p">}</span>
 	<span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div><div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -735,21 +718,22 @@
 </span><span class="lnt">60
 </span><span class="lnt">61
 </span><span class="lnt">62
+</span><span class="lnt">63
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// connHandler handles all connection related requests.  It must be run as a
-</span><span class="c1">// goroutine.
-</span><span class="c1">//
-</span><span class="c1">// The connection handler makes sure that we maintain a pool of active outbound
-</span><span class="c1">// connections so that we remain connected to the network.  Connection requests
-</span><span class="c1">// are processed and mapped by their assigned ids.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">connHandler</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// goroutine.
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// The connection handler makes sure that we maintain a pool of active outbound
+</span><span class="c1"></span><span class="c1">// connections so that we remain connected to the network.  Connection requests
+</span><span class="c1"></span><span class="c1">// are processed and mapped by their assigned ids.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">cm</span> <span class="o">*</span><span class="nx">ConnManager</span><span class="p">)</span> <span class="nf">connHandler</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="nx">conns</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">uint64</span><span class="p">]</span><span class="o">*</span><span class="nx">ConnReq</span><span class="p">,</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">TargetOutbound</span><span class="p">)</span>
 <span class="nx">out</span><span class="p">:</span>
 	<span class="k">for</span> <span class="p">{</span>
 		<span class="k">select</span> <span class="p">{</span>
 		<span class="k">case</span> <span class="nx">req</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">cm</span><span class="p">.</span><span class="nx">requests</span><span class="p">:</span>
-			<span class="k">switch</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">req</span><span class="p">.(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">switch</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">req</span><span class="p">.</span><span class="p">(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
 
 			<span class="k">case</span> <span class="nx">handleConnected</span><span class="p">:</span>
 				<span class="nx">connReq</span> <span class="o">:=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">c</span>
@@ -765,10 +749,10 @@
 				<span class="p">}</span>
 
 			<span class="k">case</span> <span class="nx">handleDisconnected</span><span class="p">:</span>
-				<span class="k">if</span> <span class="nx">connReq</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">conns</span><span class="p">[</span><span class="nx">msg</span><span class="p">.</span><span class="nx">id</span><span class="p">];</span> <span class="nx">ok</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="nx">connReq</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">conns</span><span class="p">[</span><span class="nx">msg</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span><span class="p">;</span> <span class="nx">ok</span> <span class="p">{</span>
 					<span class="nx">connReq</span><span class="p">.</span><span class="nf">updateState</span><span class="p">(</span><span class="nx">ConnDisconnected</span><span class="p">)</span>
 					<span class="k">if</span> <span class="nx">connReq</span><span class="p">.</span><span class="nx">conn</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-						<span class="nx">connReq</span><span class="p">.</span><span class="nx">conn</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+						<span class="nx">connReq</span><span class="p">.</span><span class="nx">conn</span><span class="p">.</span><span class="nf">Close</span><span class="p">(</span><span class="p">)</span>
 					<span class="p">}</span>
 					<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Disconnected from %v&#34;</span><span class="p">,</span> <span class="nx">connReq</span><span class="p">)</span>
 					<span class="nb">delete</span><span class="p">(</span><span class="nx">conns</span><span class="p">,</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
@@ -777,7 +761,7 @@
 						<span class="k">go</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nf">OnDisconnection</span><span class="p">(</span><span class="nx">connReq</span><span class="p">)</span>
 					<span class="p">}</span>
 
-					<span class="k">if</span> <span class="nb">uint32</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nx">conns</span><span class="p">))</span> <span class="p">&lt;</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">TargetOutbound</span> <span class="o">&amp;&amp;</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">retry</span> <span class="p">{</span>
+					<span class="k">if</span> <span class="nb">uint32</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nx">conns</span><span class="p">)</span><span class="p">)</span> <span class="p">&lt;</span> <span class="nx">cm</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">TargetOutbound</span> <span class="o">&amp;&amp;</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">retry</span> <span class="p">{</span>
 						<span class="nx">cm</span><span class="p">.</span><span class="nf">handleFailedConn</span><span class="p">(</span><span class="nx">connReq</span><span class="p">)</span>
 					<span class="p">}</span>
 				<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
@@ -796,17 +780,16 @@
 		<span class="p">}</span>
 	<span class="p">}</span>
 
-	<span class="nx">cm</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+	<span class="nx">cm</span><span class="p">.</span><span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">log</span><span class="p">.</span><span class="nf">Trace</span><span class="p">(</span><span class="s">&#34;Connection handler done&#34;</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
-</div>
-</div></li>
-</ul>
+<span class="p">}</span>
 
-<p>OnConnection的具体实现</p>
+</code></pre></td></tr></table>
+</div>
+</div><p>OnConnection的具体实现</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -828,33 +811,30 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// outboundPeerConnected is invoked by the connection manager when a new
-</span><span class="c1">// outbound connection is established.  It initializes a new outbound server
-</span><span class="c1">// peer instance, associates it with the relevant state such as the connection
-</span><span class="c1">// request instance and the connection itself, and finally notifies the address
-</span><span class="c1">// manager of the attempt.
+</span><span class="c1"></span><span class="c1">// outbound connection is established.  It initializes a new outbound server
+</span><span class="c1"></span><span class="c1">// peer instance, associates it with the relevant state such as the connection
+</span><span class="c1"></span><span class="c1">// request instance and the connection itself, and finally notifies the address
+</span><span class="c1"></span><span class="c1">// manager of the attempt.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">server</span><span class="p">)</span> <span class="nf">outboundPeerConnected</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">connmgr</span><span class="p">.</span><span class="nx">ConnReq</span><span class="p">,</span> <span class="nx">conn</span> <span class="nx">net</span><span class="p">.</span><span class="nx">Conn</span><span class="p">)</span> <span class="p">{</span>
 	<span class="nx">sp</span> <span class="o">:=</span> <span class="nf">newServerPeer</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Permanent</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">peer</span><span class="p">.</span><span class="nf">NewOutboundPeer</span><span class="p">(</span><span class="nf">newPeerConfig</span><span class="p">(</span><span class="nx">sp</span><span class="p">),</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Addr</span><span class="p">.</span><span class="nf">String</span><span class="p">())</span>
+	<span class="nx">p</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">peer</span><span class="p">.</span><span class="nf">NewOutboundPeer</span><span class="p">(</span><span class="nf">newPeerConfig</span><span class="p">(</span><span class="nx">sp</span><span class="p">)</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Addr</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="nx">srvrLog</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Cannot create outbound peer %s: %v&#34;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Addr</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-		<span class="nx">s</span><span class="p">.</span><span class="nx">connManager</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nf">ID</span><span class="p">())</span>
+		<span class="nx">s</span><span class="p">.</span><span class="nx">connManager</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nf">ID</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 	<span class="p">}</span>
 	<span class="nx">sp</span><span class="p">.</span><span class="nx">Peer</span> <span class="p">=</span> <span class="nx">p</span>
 	<span class="nx">sp</span><span class="p">.</span><span class="nx">connReq</span> <span class="p">=</span> <span class="nx">c</span>
-	<span class="nx">sp</span><span class="p">.</span><span class="nx">isWhitelisted</span> <span class="p">=</span> <span class="nf">isWhitelisted</span><span class="p">(</span><span class="nx">conn</span><span class="p">.</span><span class="nf">RemoteAddr</span><span class="p">())</span>
+	<span class="nx">sp</span><span class="p">.</span><span class="nx">isWhitelisted</span> <span class="p">=</span> <span class="nf">isWhitelisted</span><span class="p">(</span><span class="nx">conn</span><span class="p">.</span><span class="nf">RemoteAddr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 	<span class="nx">sp</span><span class="p">.</span><span class="nf">AssociateConnection</span><span class="p">(</span><span class="nx">conn</span><span class="p">)</span>
 	<span class="k">go</span> <span class="nx">s</span><span class="p">.</span><span class="nf">peerDoneHandler</span><span class="p">(</span><span class="nx">sp</span><span class="p">)</span>
-	<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">Attempt</span><span class="p">(</span><span class="nx">sp</span><span class="p">.</span><span class="nf">NA</span><span class="p">())</span>
-<span class="p">}</span></code></pre></td></tr></table>
+	<span class="nx">s</span><span class="p">.</span><span class="nx">addrManager</span><span class="p">.</span><span class="nf">Attempt</span><span class="p">(</span><span class="nx">sp</span><span class="p">.</span><span class="nf">NA</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>a -&gt; b a向b节点发起连接</p>
-
+</div><p>a -&gt; b a向b节点发起连接</p>
 <p>b：
 某场景下触发了ban()和disconnect()，b会在banduration（默认24小时）之内，不允许a连接（onVersion里 最后调用addpeer()时判断，然后断掉连接）</p>
-
 <p>a:在被b ban了之后，peer.start()会失败（在协商version时被b断开），接着调用disconnect()</p>
-
 <p>server作为枢纽，处理connmanager和peer之间的协作</p>
 
     </div>

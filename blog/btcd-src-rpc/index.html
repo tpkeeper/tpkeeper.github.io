@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-rpc/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：7 - rpc">
 <meta itemprop="description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock">
-
-
 <meta itemprop="datePublished" content="2019-08-30T17:04:40&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="982">
+<meta itemprop="wordCount" content="985">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：7 - rpc"/>
 <meta name="twitter:description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 982 words </span>
+        <span class="more-meta"> 985 words </span>
           <span class="more-meta"> 2 min read </span>
 
         
@@ -265,43 +262,39 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-start">一、start</a></li>
-<li><a href="#二-解析参数">二、解析参数</a></li>
-<li><a href="#三-执行">三、执行</a></li>
-<li><a href="#四-返回">四、返回</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#start">一、start</a></li>
+    <li><a href="#heading">二、解析参数</a></li>
+    <li><a href="#heading1">三、执行</a></li>
+    <li><a href="#heading2">四、返回</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/rpcserver.go">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。</li>
 <li>websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求</li>
 <li>http/websocket是传输协议，json是序列化协议。</li>
 </ul>
-
-<h2 id="一-start">一、start</h2>
-
+<h2 id="start">一、start</h2>
 <ul>
-<li>启动一个server,监听路径&rdquo;/&ldquo;和&rdquo;/ws&rdquo;,分别对应http/websocket。</li>
-<li>通过chedkAuth()函数认证，基于Basic authentication</li>
-
-<li><p>通过limitConnections（）对单个地址的并发连接数量做限制</p>
+<li>
+<p>启动一个server,监听路径&rdquo;/&ldquo;和&rdquo;/ws&rdquo;,分别对应http/websocket。</p>
+</li>
+<li>
+<p>通过chedkAuth()函数认证，基于Basic authentication</p>
+</li>
+<li>
+<p>通过limitConnections（）对单个地址的并发连接数量做限制</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -345,11 +338,12 @@
 </span><span class="lnt">42
 </span><span class="lnt">43
 </span><span class="lnt">44
+</span><span class="lnt">45
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go">    <span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">().</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Connection&#34;</span><span class="p">,</span> <span class="s">&#34;close&#34;</span><span class="p">)</span>
-        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">().</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span>
+        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Connection&#34;</span><span class="p">,</span> <span class="s">&#34;close&#34;</span><span class="p">)</span>
+        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span>
         <span class="nx">r</span><span class="p">.</span><span class="nx">Close</span> <span class="p">=</span> <span class="kc">true</span>
 
         <span class="c1">// Limit the number of connections to max allowed.
@@ -358,8 +352,8 @@
         <span class="p">}</span>
 
         <span class="c1">// Keep track of the number of connected clients.
-</span><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nf">incrementClients</span><span class="p">()</span>
-        <span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nf">decrementClients</span><span class="p">()</span>
+</span><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nf">incrementClients</span><span class="p">(</span><span class="p">)</span>
+        <span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nf">decrementClients</span><span class="p">(</span><span class="p">)</span>
         <span class="nx">_</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">checkAuth</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
             <span class="nf">jsonAuthFail</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
@@ -368,7 +362,7 @@
 
         <span class="c1">// Read and respond to the request.
 </span><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nf">jsonRPCRead</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-    <span class="p">})</span>
+    <span class="p">}</span><span class="p">)</span>
 
     <span class="c1">// Websocket endpoint.
 </span><span class="c1"></span>    <span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/ws&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
@@ -382,7 +376,7 @@
 </span><span class="c1"></span>        <span class="c1">// using the default size for read/write buffers.
 </span><span class="c1"></span>        <span class="nx">ws</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">websocket</span><span class="p">.</span><span class="nf">Upgrade</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">HandshakeError</span><span class="p">);</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">HandshakeError</span><span class="p">)</span><span class="p">;</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
                 <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Unexpected websocket error: %v&#34;</span><span class="p">,</span>
                     <span class="nx">err</span><span class="p">)</span>
             <span class="p">}</span>
@@ -390,18 +384,19 @@
             <span class="k">return</span>
         <span class="p">}</span>
         <span class="nx">s</span><span class="p">.</span><span class="nf">WebsocketHandler</span><span class="p">(</span><span class="nx">ws</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">RemoteAddr</span><span class="p">,</span> <span class="nx">authenticated</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-    <span class="p">})</span></code></pre></td></tr></table>
+    <span class="p">}</span><span class="p">)</span>
+
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="二-解析参数">二、解析参数</h2>
-
+<h2 id="heading">二、解析参数</h2>
 <ul>
-<li><p>通过对body进行unmarshal，可以直接拿到此结构</p>
+<li>
+<p>通过对body进行unmarshal，可以直接拿到此结构</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
@@ -410,18 +405,19 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Request</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">Jsonrpc</span> <span class="kt">string</span>            <span class="s">`json:&#34;jsonrpc&#34;`</span>
-    <span class="nx">Method</span>  <span class="kt">string</span>            <span class="s">`json:&#34;method&#34;`</span>
-    <span class="nx">Params</span>  <span class="p">[]</span><span class="nx">json</span><span class="p">.</span><span class="nx">RawMessage</span> <span class="s">`json:&#34;params&#34;`</span>
-    <span class="nx">ID</span>      <span class="kd">interface</span><span class="p">{}</span>       <span class="s">`json:&#34;id&#34;`</span>
-<span class="p">}</span></code></pre></td></tr></table>
+    <span class="nx">Jsonrpc</span> <span class="kt">string</span>            <span class="s">`</span><span class="s">json:&#34;jsonrpc&#34;</span><span class="s">`</span>
+    <span class="nx">Method</span>  <span class="kt">string</span>            <span class="s">`</span><span class="s">json:&#34;method&#34;</span><span class="s">`</span>
+    <span class="nx">Params</span>  <span class="p">[</span><span class="p">]</span><span class="nx">json</span><span class="p">.</span><span class="nx">RawMessage</span> <span class="s">`</span><span class="s">json:&#34;params&#34;</span><span class="s">`</span>
+    <span class="nx">ID</span>      <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>       <span class="s">`</span><span class="s">json:&#34;id&#34;</span><span class="s">`</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
-
-<li><p>进一步通过反射拿到此结构体，cmd对应method cmd（实际上就是参数）的结构体反射值</p>
+<li>
+<p>进一步通过反射拿到此结构体，cmd对应method cmd（实际上就是参数）的结构体反射值</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
@@ -430,18 +426,19 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">parsedRPCCmd</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">id</span>     <span class="kd">interface</span><span class="p">{}</span>
+    <span class="nx">id</span>     <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
     <span class="nx">method</span> <span class="kt">string</span>
-    <span class="nx">cmd</span>    <span class="kd">interface</span><span class="p">{}</span>
+    <span class="nx">cmd</span>    <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
     <span class="nx">err</span>    <span class="o">*</span><span class="nx">hcjson</span><span class="p">.</span><span class="nx">RPCError</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
-
-<li><p>一个具体的method,对应的cmd结构体，也就是method的参数</p>
+<li>
+<p>一个具体的method,对应的cmd结构体，也就是method的参数</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">1
+<pre class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
@@ -452,22 +449,22 @@
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// CreateRawTransactionCmd defines the createrawtransaction JSON-RPC command.
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">CreateRawTransactionCmd</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">Inputs</span>   <span class="p">[]</span><span class="nx">TransactionInput</span>
-    <span class="nx">Amounts</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">float64</span> <span class="s">`jsonrpcusage:&#34;{\&#34;address\&#34;:amount,...}&#34;`</span> <span class="c1">// In HC
+    <span class="nx">Inputs</span>   <span class="p">[</span><span class="p">]</span><span class="nx">TransactionInput</span>
+    <span class="nx">Amounts</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">float64</span> <span class="s">`</span><span class="s">jsonrpcusage:&#34;</span><span class="s">{</span><span class="s">\&#34;address\&#34;:amount,...}&#34;</span><span class="s">`</span> <span class="c1">// In HC
 </span><span class="c1"></span>    <span class="nx">LockTime</span> <span class="o">*</span><span class="kt">int64</span>
     <span class="nx">PayLoad</span>  <span class="o">*</span><span class="kt">string</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="三-执行">三、执行</h2>
-
+<h2 id="heading1">三、执行</h2>
 <ul>
-<li><p>通过method找到相应的handler，传入之前拿到的参数，并执行</p>
+<li>
+<p>通过method找到相应的handler，传入之前拿到的参数，并执行</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -487,9 +484,10 @@
 </span><span class="lnt">18
 </span><span class="lnt">19
 </span><span class="lnt">20
+</span><span class="lnt">21
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">)</span> <span class="nf">standardCmdResult</span><span class="p">(</span><span class="nx">cmd</span> <span class="o">*</span><span class="nx">parsedRPCCmd</span><span class="p">,</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{},</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">)</span> <span class="nf">standardCmdResult</span><span class="p">(</span><span class="nx">cmd</span> <span class="o">*</span><span class="nx">parsedRPCCmd</span><span class="p">,</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">handler</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">rpcHandlers</span><span class="p">[</span><span class="nx">cmd</span><span class="p">.</span><span class="nx">method</span><span class="p">]</span>
     <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
         <span class="k">goto</span> <span class="nx">handled</span>
@@ -508,14 +506,16 @@
 <span class="nx">handled</span><span class="p">:</span>
 
     <span class="k">return</span> <span class="nf">handler</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">cmd</span><span class="p">,</span> <span class="nx">closeChan</span><span class="p">)</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
 </div>
 </div></li>
-
-<li><p>具体的执行方法</p>
+<li>
+<p>具体的执行方法</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -535,39 +535,41 @@
 </span><span class="lnt">18
 </span><span class="lnt">19
 </span><span class="lnt">20
+</span><span class="lnt">21
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// handleCreateRawTransaction handles createrawtransaction commands.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">handleCreateRawTransaction</span><span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">,</span> <span class="nx">cmd</span> <span class="kd">interface</span><span class="p">{},</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{},</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">c</span> <span class="o">:=</span> <span class="nx">cmd</span><span class="p">.(</span><span class="o">*</span><span class="nx">hcjson</span><span class="p">.</span><span class="nx">CreateRawTransactionCmd</span><span class="p">)</span>
+<pre class="chroma"><code class="language-go" data-lang="go">
+<span class="c1">// handleCreateRawTransaction handles createrawtransaction commands.
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">handleCreateRawTransaction</span><span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">,</span> <span class="nx">cmd</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">c</span> <span class="o">:=</span> <span class="nx">cmd</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">hcjson</span><span class="p">.</span><span class="nx">CreateRawTransactionCmd</span><span class="p">)</span>
 
     <span class="c1">// Validate the locktime, if given.
 </span><span class="c1"></span>    <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span>
         <span class="p">(</span><span class="o">*</span><span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="p">&lt;</span> <span class="mi">0</span> <span class="o">||</span>
-            <span class="o">*</span><span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="p">&gt;</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MaxTxInSequenceNum</span><span class="p">))</span> <span class="p">{</span>
+            <span class="o">*</span><span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="p">&gt;</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MaxTxInSequenceNum</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nf">rpcInvalidError</span><span class="p">(</span><span class="s">&#34;Locktime out of range&#34;</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="c1">// Add all transaction inputs to a new transaction after performing
 </span><span class="c1"></span>    <span class="c1">// some validity checks.
-</span><span class="c1"></span>    <span class="nx">mtx</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgTx</span><span class="p">()</span>
+</span><span class="c1"></span>    <span class="nx">mtx</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgTx</span><span class="p">(</span><span class="p">)</span>
     <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">input</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Inputs</span> <span class="p">{</span>
         <span class="nx">txHash</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">chainhash</span><span class="p">.</span><span class="nf">NewHashFromStr</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">Txid</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
             <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nf">rpcDecodeHexError</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">Txid</span><span class="p">)</span>
         <span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>
-
-<h2 id="四-返回">四、返回</h2>
-
+<h2 id="heading2">四、返回</h2>
 <ul>
-<li><p>最后将结果序列化并返回，responseID=requestID</p>
+<li>
+<p>最后将结果序列化并返回，responseID=requestID</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -593,14 +595,15 @@
     <span class="p">}</span>
 
     <span class="c1">// Write the response.
-</span><span class="c1"></span>    <span class="nx">err</span> <span class="p">=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">writeHTTPResponseHeaders</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(),</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">,</span> <span class="nx">buf</span><span class="p">)</span>
+</span><span class="c1"></span>    <span class="nx">err</span> <span class="p">=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">writeHTTPResponseHeaders</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">,</span> <span class="nx">buf</span><span class="p">)</span>
     <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
         <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="p">}</span>
-    <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">buf</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">msg</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">buf</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
         <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Failed to write marshalled reply: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-    <span class="p">}</span></code></pre></td></tr></table>
+    <span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div></li>
 </ul>

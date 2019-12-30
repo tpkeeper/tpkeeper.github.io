@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/encryption-signature/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-10-23T18:28:03+08:00" />
 <meta itemprop="name" content="密码学系列：签名">
 <meta itemprop="description" content="签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥：">
-
-
 <meta itemprop="datePublished" content="2019-09-11T17:04:19&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-23T18:28:03&#43;08:00" />
-<meta itemprop="wordCount" content="1217">
+<meta itemprop="wordCount" content="1138">
 
 
 
-<meta itemprop="keywords" content="Encrypt," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：签名"/>
 <meta name="twitter:description" content="签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr 签名算法。 RSA签名 安全性建立在大数分解问题 公钥："/>
 
@@ -249,7 +246,7 @@
             <a href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/"> 密码学系列 </a>
             
           </div>
-        <span class="more-meta"> 1217 words </span>
+        <span class="more-meta"> 1138 words </span>
           <span class="more-meta"> 3 min read </span>
 
         
@@ -266,61 +263,44 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#rsa签名">RSA签名</a></li>
-<li><a href="#dsa">DSA</a></li>
-<li><a href="#ecdsa">ECDSA</a></li>
-<li><a href="#schnorr">Schnorr</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#rsa">RSA签名</a></li>
+    <li><a href="#dsa">DSA</a></li>
+    <li><a href="#ecdsa">ECDSA</a></li>
+    <li><a href="#schnorr">Schnorr</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr  签名算法。</p>
-
-<h2 id="rsa签名">RSA签名</h2>
-
+      <p>签名是用于消息的认证，保证该条消息不被伪造。本文主要讨论RSA签名、DSA、ECDSA 和 Schnorr  签名算法。</p>
+<h2 id="rsa">RSA签名</h2>
 <p>安全性建立在大数分解问题</p>
-
 <p>公钥：E、N
 私钥：D、N
 签名：签名 = 消息^D mod N
-验证：消息&rsquo; = 签名^E mod N ，如果消息&rsquo;==消息则验证成功</p>
-
+验证：消息&rsquo; = 签名^E mod N ，如果消息'==消息则验证成功</p>
 <h2 id="dsa">DSA</h2>
-
 <p>由NIST(美国国家标准技术研究所)1991年制定的数字签名技术规范，是Schnorr算法的变体。</p>
-
 <p>安全性建立在离散对数问题</p>
-
 <p>密钥生成(1024bits)：</p>
-
 <ol>
 <li>生成素数 p，$2^{1023} &lt; p &lt; 2^{1024}$</li>
 <li>找到 p-1 的一个素数 q，且 $2^{159} &lt; q &lt; 2^{160}$</li>
 <li>找到 ord(a)=q 的元素 a，a 生成了拥有 q 个元素的子群</li>
 <li>生成随机数，0 &lt; d &lt; q</li>
 <li>b = $a^d$ mod p</li>
-<li>则密钥对为：$k<em>{pub}$ = (p,q,a,b)，$k</em>{pri}$ = (d)</li>
+<li>则密钥对为：$k_{pub}$ = (p,q,a,b)，$k_{pri}$ = (d)</li>
 </ol>
-
 <p>签名生成：</p>
-
 <ol>
 <li>随机生成一个整数最为随机的临时密钥 $k_E$，且满足 0 &lt; $k_E$ &lt; q。</li>
 <li>计算 r = ($a^{k_E}$ mod p) mod q</li>
 <li>计算 s = (SHA(x)+d * r)$k_E^{-1}$ mod q</li>
 </ol>
-
 <p>签名的验证：</p>
-
 <ol>
 <li>计算辅助值 w = $s^{-1}$ mod q</li>
 <li>计算辅助值 $u_1$ = w * SHA(x) mod q</li>
@@ -328,56 +308,8 @@
 <li>v = ($a^{u_1} * b^{u_2}$ mod p) mod q</li>
 <li>v&rsquo; = r mod q，如果 v == v&rsquo; 则签名正确</li>
 </ol>
-
 <p>Golang SDK dsa 签名过程代码：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">for attempts = 10; attempts &gt; 0; attempts-- {
+<pre><code>for attempts = 10; attempts &gt; 0; attempts-- {
 		k := new(big.Int)
 		buf := make([]byte, n)
 		for {
@@ -419,43 +351,37 @@
 		if s.Sign() != 0 {
 			break
 		}
-	}</pre></td></tr></table>
-</div>
-</div>
-<h2 id="ecdsa">ECDSA</h2>
-
+	}
+</code></pre><h2 id="ecdsa">ECDSA</h2>
 <p>安全性建立在基于椭圆曲线的离散对数问题</p>
-
 <p>密钥的生成：</p>
-
 <ol>
-<li><p>使用曲线 E</p>
-
+<li>
+<p>使用曲线 E</p>
 <ul>
 <li>模数为 p</li>
 <li>系数为 a 和 b</li>
-<li>生成元为 G，G 生成的循环群的阶(即元素的个数)为 n
-<br /></li>
-</ul></li>
-
-<li><p>选择一个随机数 d，0 &lt; d &lt; n</p></li>
-
-<li><p>计算 K = dG</p></li>
-
-<li><p>密钥对则为：$k<em>{pub}$ = (K)，$k</em>{pri}$ = (d)</p></li>
+<li>生成元为 G，G 生成的循环群的阶(即元素的个数)为 n</li>
+</ul>
+</li>
+<li>
+<p>选择一个随机数 d，0 &lt; d &lt; n</p>
+</li>
+<li>
+<p>计算 K = dG</p>
+</li>
+<li>
+<p>密钥对则为：$k_{pub}$ = (K)，$k_{pri}$ = (d)</p>
+</li>
 </ol>
-
 <p>签名的生成(x 为消息)：</p>
-
 <ol>
 <li>随机生成一个整数最为临时密钥 $k_E$，且 0 &lt; $k_E$ &lt; q。</li>
 <li>$R_{(x_R,y_R)}$ = $k_E$G</li>
 <li>r = $x_R$ mod n</li>
 <li>s = (hash(x)+d * r)$k_E^{-1}$ mod n</li>
 </ol>
-
 <p>签名的验证：</p>
-
 <ol>
 <li>计算辅助值 w = $s^{-1}$ mod n</li>
 <li>计算辅助值 $u_1$ = w * hash(x) mod n</li>
@@ -463,46 +389,8 @@
 <li>$P_(x_P,y_P)$ = $u_1$G + $u_2$K</li>
 <li>如果 $x_P$ == r mod n，则签名有效</li>
 </ol>
-
 <p>Golang SDK ecdsa 签名过程代码：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">for {
+<pre><code>for {
 		for {
 			k, err = randFieldElement(c, csprng)  //生成临时密钥
 			if err != nil {
@@ -534,32 +422,26 @@
 		if s.Sign() != 0 {
 			break
 		}
-	}</pre></td></tr></table>
-</div>
-</div>
-<p><strong>pubkey recovery：</strong></p>
-
+	}
+</code></pre><p><strong>pubkey recovery：</strong></p>
 <p>从签名信息中恢复公钥</p>
-
 <p>比特币跟以太坊都有实现，但最终的签名信息序列化格式不同</p>
-
 <blockquote>
 <p>// btc 中的格式
-&lt;(byte of 27+public key solution)+4 if compressed &gt;&lt; padded bytes for
-signature R&gt;<padded bytes for signature S></p>
-
+&lt;(byte of 27+public key solution)+4 if compressed &gt;&lt; padded bytes for 
+signature R&gt;<!-- raw HTML omitted --></p>
+</blockquote>
+<blockquote>
 <p>// 以太坊中的格式
 [R || S || V] format where V is 0 or 1.</p>
 </blockquote>
-
 <p>以太坊中的 go 实现也引用了btcd的代码，所以需要转换一下，具体可参考以太坊代码signature_nocgo.go</p>
-
 <p>另：btc签名脚本中同时含有签名和公钥</p>
-
-<p><strong>公钥长度：</strong>
-  * compressed： 65 byte （1+32+32）
-  * uncompressed： 33 byte （1+32 ）</p>
-
+<p><strong>公钥长度：</strong></p>
+<ul>
+<li>compressed： 65 byte （1+32+32）</li>
+<li>uncompressed： 33 byte （1+32 ）</li>
+</ul>
 <h2 id="schnorr">Schnorr</h2>
 
     </div>

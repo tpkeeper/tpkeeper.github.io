@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/encryption-overview/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-10-23T18:28:03+08:00" />
 <meta itemprop="name" content="密码学系列：概述">
 <meta itemprop="description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、">
-
-
 <meta itemprop="datePublished" content="2019-09-02T17:04:19&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-23T18:28:03&#43;08:00" />
 <meta itemprop="wordCount" content="942">
 
 
 
-<meta itemprop="keywords" content="Encrypt," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：概述"/>
 <meta name="twitter:description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、"/>
 
@@ -266,46 +263,35 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#对称加密算法">对称加密算法</a></li>
-<li><a href="#非对称加密算法">非对称加密算法</a></li>
-<li><a href="#密钥交换算法">密钥交换算法</a></li>
-<li><a href="#签名算法">签名算法</a></li>
-<li><a href="#常用的散列函数">常用的散列函数</a></li>
-<li><a href="#常见术语">常见术语</a></li>
-<li><a href="#密码学相关书籍">密码学相关书籍</a></li>
-<li><a href="#参考代码合集">参考代码合集</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#heading">对称加密算法</a></li>
+    <li><a href="#heading1">非对称加密算法</a></li>
+    <li><a href="#heading2">密钥交换算法</a></li>
+    <li><a href="#heading3">签名算法</a></li>
+    <li><a href="#heading4">常用的散列函数</a></li>
+    <li><a href="#heading5">常见术语</a></li>
+    <li><a href="#heading6">密码学相关书籍</a></li>
+    <li><a href="#heading7">参考代码合集</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、密钥协商、签名等，也在讨论范围之内。</p>
-
+      <p>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、密钥协商、签名等，也在讨论范围之内。</p>
 <ul>
 <li>将现实世界的东西映射为比特序列的操作为编码</li>
 <li>将表示明文的比特序列转换为表示密码的比特序列为加密</li>
 </ul>
-
-<h2 id="对称加密算法">对称加密算法</h2>
-
+<h2 id="heading">对称加密算法</h2>
 <p>常用的对称加密算法：</p>
-
 <ul>
 <li>DES（Data Encryption Standard）</li>
 <li>三重DES（triple-DES）</li>
 <li>AES（Advanced Encryption Standard）Rijndael</li>
 </ul>
-
 <p>上边三种算法都只能加密固定长度的一个字节分组，故也可以叫做分组密码。如果要加密大段明文，还需要对明文迭代进行加密，不同的迭代方式就称为模式，主要有以下几种：</p>
-
 <ul>
 <li>ECB（Electronic CodeBook）</li>
 <li>CBC（Cipher Block Chaining）</li>
@@ -313,70 +299,55 @@
 <li>OFB（Output FeedBack）</li>
 <li>CTR（Counter）</li>
 </ul>
-
-<h2 id="非对称加密算法">非对称加密算法</h2>
-
+<h2 id="heading1">非对称加密算法</h2>
 <p>常用的算法：</p>
-
 <ul>
 <li>RSA</li>
 <li>ECC</li>
 </ul>
-
 <p>特点：</p>
-
 <p>需要极其复杂的计算，因此相比对称加密速度比较慢（速度是对称加密的几百分之一）</p>
-
 <p>主要应用：</p>
-
 <ul>
 <li>密钥协商</li>
 <li>数字签名（DSA、ECDSA）</li>
 <li>加解密（RSA、ECC）</li>
 </ul>
-
-<h2 id="密钥交换算法">密钥交换算法</h2>
-
+<h2 id="heading2">密钥交换算法</h2>
 <ul>
 <li>Diff-Hellman 密钥交换(DHKE)</li>
 <li>ECDH</li>
 </ul>
-
-<h2 id="签名算法">签名算法</h2>
-
+<h2 id="heading3">签名算法</h2>
 <ul>
 <li>RSA数字签名 (基于大数的分解问题)</li>
 <li>DSA (基于离散对数问题)</li>
 <li>ECDSA (基于椭圆曲线的推广的离散对数问题)</li>
 <li>Schnorr</li>
 </ul>
-
-<h2 id="常用的散列函数">常用的散列函数</h2>
-
+<h2 id="heading4">常用的散列函数</h2>
 <ul>
 <li>MD4（Message Digest）：128 bit，不安全</li>
 <li>MD5 ：128 bit，不安全</li>
 <li>SHA-1 ：160 bit，不安全，山大王小云攻破 message，长度上限 2^64 -1 bit</li>
 <li>SHA-2
-
 <ul>
 <li>SHA-256 ：256 bit，message 长度上限 2^64 - 1 bit</li>
 <li>SHA-384 ：384 bit，message 长度上限 2^128 - 1 bit</li>
 <li>SHA-512 ：512 bit，message 长度上限 2^128 -1 bit</li>
-</ul></li>
+</ul>
+</li>
 <li>RIPEMD-160 ：160 bit</li>
 <li>SHA-3（Keccak）：理论可以生成任何长度散列值，message 长度无限制
-
 <ul>
 <li>SHA3-224</li>
 <li>SHA3-256</li>
 <li>SHA3-384</li>
 <li>SHA3-512</li>
-</ul></li>
 </ul>
-
-<h2 id="常见术语">常见术语</h2>
-
+</li>
+</ul>
+<h2 id="heading5">常见术语</h2>
 <ul>
 <li>EC, Elliptic Curve, 椭圆曲线</li>
 <li>ECC, Elliptic Curve Cryptography, 椭圆曲线密码学</li>
@@ -387,20 +358,13 @@
 <li>ECIES, Elliptic Curve Integrated Encryption Schema, 椭圆曲线集成加密框架</li>
 <li>KDF, Key Derivation Function, 密钥(私钥)生成函数</li>
 </ul>
-
-<h2 id="密码学相关书籍">密码学相关书籍</h2>
-
+<h2 id="heading6">密码学相关书籍</h2>
 <p>《图解密码技术》- 结城浩 著</p>
-
 <p>《深入浅出密码学》- Christof Paar / Jan Pelzl 著 马小婷 译</p>
-
 <p>《应用密码学：协议、算法与C源程序》- Bruce Schneier 著</p>
-
 <p>《公钥密码学的数学基础》- 王小云 著</p>
-
-<h2 id="参考代码合集">参考代码合集</h2>
-
-<p><a href="https://github.com/tpkeeper/crypto">https://github.com/tpkeeper/crypto</a></p>
+<h2 id="heading7">参考代码合集</h2>
+<p><a href="https://github.com/tpkeeper/crypto"><a href="https://github.com/tpkeeper/crypto">https://github.com/tpkeeper/crypto</a></a></p>
 
     </div>
 

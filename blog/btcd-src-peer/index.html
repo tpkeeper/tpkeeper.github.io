@@ -31,7 +31,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.59.0" />
+<meta name="generator" content="Hugo 0.60.1" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-peer/" />
@@ -66,16 +66,13 @@
 <meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：4 - p2p网络的peer">
 <meta itemprop="description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对">
-
-
 <meta itemprop="datePublished" content="2019-08-30T17:04:14&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="2602">
+<meta itemprop="wordCount" content="2587">
 
 
 
-<meta itemprop="keywords" content="btcd," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：4 - p2p网络的peer"/>
 <meta name="twitter:description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对"/>
 
@@ -248,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 2602 words </span>
+        <span class="more-meta"> 2587 words </span>
           <span class="more-meta"> 6 min read </span>
 
         
@@ -265,41 +262,35 @@
   <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#一-创建peer对象">一、创建peer对象</a></li>
-<li><a href="#二-启动peer">二、启动peer</a></li>
-<li><a href="#三-交换协议version-inbound端">三、交换协议version（inbound端）</a></li>
-<li><a href="#发送消息">发送消息</a></li>
-<li><a href="#接收消息">接收消息</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#peer">一、创建peer对象</a></li>
+    <li><a href="#peer1">二、启动peer</a></li>
+    <li><a href="#versioninbound">三、交换协议version（inbound端）</a></li>
+    <li><a href="#heading">发送消息</a></li>
+    <li><a href="#heading1">接收消息</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/peer">btcd</a></p>
 </blockquote>
-
 <ul>
 <li>btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。</li>
 </ul>
-
-<h2 id="一-创建peer对象">一、创建peer对象</h2>
-
-<p>peer具体分为两种：
-* inbound 当connmanager监听到其他节点的请求时创建
-* outbound 当connmanager主动连接其他节点时创建
-* 两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</p>
+<h2 id="peer">一、创建peer对象</h2>
+<p>peer具体分为两种：</p>
+<ul>
+<li>inbound 当connmanager监听到其他节点的请求时创建</li>
+<li>outbound 当connmanager主动连接其他节点时创建</li>
+<li>两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -374,10 +365,11 @@
 </span><span class="lnt">73
 </span><span class="lnt">74
 </span><span class="lnt">75
+</span><span class="lnt">76
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewInboundPeer returns a new inbound bitcoin peer. Use Start to begin
-</span><span class="c1">// processing incoming and outgoing messages.
+</span><span class="c1"></span><span class="c1">// processing incoming and outgoing messages.
 </span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewInboundPeer</span><span class="p">(</span><span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="o">*</span><span class="nx">Peer</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="nf">newPeerBase</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
 <span class="p">}</span>
@@ -398,13 +390,13 @@
 	<span class="p">}</span>
 
 	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">HostToNetAddress</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="nx">na</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">cfg</span><span class="p">.</span><span class="nf">HostToNetAddress</span><span class="p">(</span><span class="nx">host</span><span class="p">,</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="nx">na</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">cfg</span><span class="p">.</span><span class="nf">HostToNetAddress</span><span class="p">(</span><span class="nx">host</span><span class="p">,</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">)</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 			<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
 		<span class="p">}</span>
 		<span class="nx">p</span><span class="p">.</span><span class="nx">na</span> <span class="p">=</span> <span class="nx">na</span>
 	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">na</span> <span class="p">=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewNetAddressIPPort</span><span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nf">ParseIP</span><span class="p">(</span><span class="nx">host</span><span class="p">),</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="nx">p</span><span class="p">.</span><span class="nx">na</span> <span class="p">=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewNetAddressIPPort</span><span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nf">ParseIP</span><span class="p">(</span><span class="nx">host</span><span class="p">)</span><span class="p">,</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">)</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 	<span class="p">}</span>
 
 	<span class="k">return</span> <span class="nx">p</span><span class="p">,</span> <span class="kc">nil</span>
@@ -412,8 +404,8 @@
 
 
 <span class="c1">// newPeerBase returns a new base bitcoin peer based on the inbound flag.  This
-</span><span class="c1">// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
-</span><span class="c1">// setup needed by both types of peers.
+</span><span class="c1"></span><span class="c1">// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
+</span><span class="c1"></span><span class="c1">// setup needed by both types of peers.
 </span><span class="c1"></span><span class="kd">func</span> <span class="nf">newPeerBase</span><span class="p">(</span><span class="nx">origCfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">,</span> <span class="nx">inbound</span> <span class="kt">bool</span><span class="p">)</span> <span class="o">*</span><span class="nx">Peer</span> <span class="p">{</span>
 	<span class="c1">// Default to the max supported protocol version if not specified by the
 </span><span class="c1"></span>	<span class="c1">// caller.
@@ -435,38 +427,43 @@
 	<span class="nx">p</span> <span class="o">:=</span> <span class="nx">Peer</span><span class="p">{</span>
 		<span class="nx">inbound</span><span class="p">:</span>         <span class="nx">inbound</span><span class="p">,</span>
 		<span class="nx">wireEncoding</span><span class="p">:</span>    <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">,</span>
-		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">),</span>
-		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">),</span>
-		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>   <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{},</span> <span class="mi">1</span><span class="p">),</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">),</span>
-		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
+		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span>   <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
 		<span class="nx">cfg</span><span class="p">:</span>             <span class="nx">cfg</span><span class="p">,</span> <span class="c1">// Copy so caller can&#39;t mutate.
 </span><span class="c1"></span>		<span class="nx">services</span><span class="p">:</span>        <span class="nx">cfg</span><span class="p">.</span><span class="nx">Services</span><span class="p">,</span>
 		<span class="nx">protocolVersion</span><span class="p">:</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">,</span>
 	<span class="p">}</span>
 	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">p</span>
-<span class="p">}</span></code></pre></td></tr></table>
-</div>
-</div>
-<h2 id="二-启动peer">二、启动peer</h2>
+<span class="p">}</span>
 
-<p>启动顺序
-1. 通过versionMsg交换协议版本，进行protocol version判断（如果是outbound先发送自己的version再读取对方的，如果是inbound则反之）
-2. 如果version握手成功，启动其他handler goroutine
-    * p.stallHandler() 处理消息超时
-    * p.inHandler() 处理接收的消息
-    * p.queueHandler() 处理消息发送队列
-    * p.outHandler() 处理发送的消息
-    * p.pingHandler() 发送周期心跳
-3. 最后发送verAck确认，完成握手</p>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="peer1">二、启动peer</h2>
+<p>启动顺序</p>
+<ol>
+<li>通过versionMsg交换协议版本，进行protocol version判断（如果是outbound先发送自己的version再读取对方的，如果是inbound则反之）</li>
+<li>如果version握手成功，启动其他handler goroutine
+<ul>
+<li>p.stallHandler() 处理消息超时</li>
+<li>p.inHandler() 处理接收的消息</li>
+<li>p.queueHandler() 处理消息发送队列</li>
+<li>p.outHandler() 处理发送的消息</li>
+<li>p.pingHandler() 发送周期心跳</li>
+</ul>
+</li>
+<li>最后发送verAck确认，完成握手</li>
+</ol>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -507,59 +504,61 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// start begins processing input and output messages.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">start</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">start</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
 	<span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Starting peer %s&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
 
 	<span class="nx">negotiateErr</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">error</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">inbound</span> <span class="p">{</span>
-			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateInboundProtocol</span><span class="p">()</span>
+			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateInboundProtocol</span><span class="p">(</span><span class="p">)</span>
 		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateOutboundProtocol</span><span class="p">()</span>
+			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateOutboundProtocol</span><span class="p">(</span><span class="p">)</span>
 		<span class="p">}</span>
-	<span class="p">}()</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Negotiate the protocol within the specified negotiateTimeout.
 </span><span class="c1"></span>	<span class="k">select</span> <span class="p">{</span>
 	<span class="k">case</span> <span class="nx">err</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">negotiateErr</span><span class="p">:</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">()</span>
+			<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
 			<span class="k">return</span> <span class="nx">err</span>
 		<span class="p">}</span>
-	<span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="nx">negotiateTimeout</span><span class="p">):</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">()</span>
+	<span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="nx">negotiateTimeout</span><span class="p">)</span><span class="p">:</span>
+		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;protocol negotiation timeout&#34;</span><span class="p">)</span>
 	<span class="p">}</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Connected to %s&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Addr</span><span class="p">())</span>
+	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Connected to %s&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 
 	<span class="c1">// The protocol has been negotiated successfully so start processing input
 </span><span class="c1"></span>	<span class="c1">// and output messages.
-</span><span class="c1"></span>	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">stallHandler</span><span class="p">()</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">inHandler</span><span class="p">()</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">queueHandler</span><span class="p">()</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">outHandler</span><span class="p">()</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">pingHandler</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">stallHandler</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">inHandler</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">queueHandler</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">outHandler</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">pingHandler</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Send our verack message now that the IO processing machinery has started.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgVerAck</span><span class="p">(),</span> <span class="kc">nil</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgVerAck</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
 	<span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="三-交换协议version-inbound端">三、交换协议version（inbound端）</h2>
-
-<p>主要流程：
-* 读取接收的协议
-* 发送自己的协议</p>
-
-<p>检测协议过程：
-* 检测nonce（防止跟自己建立连接）
-* 填充peer的基础信息（block高度，id，代理、services，address等）
-* 回调onVersion()方法
-* 判断版本是否符合要求</p>
+</div><h2 id="versioninbound">三、交换协议version（inbound端）</h2>
+<p>主要流程：</p>
+<ul>
+<li>读取接收的协议</li>
+<li>发送自己的协议</li>
+</ul>
+<p>检测协议过程：</p>
+<ul>
+<li>检测nonce（防止跟自己建立连接）</li>
+<li>填充peer的基础信息（block高度，id，代理、services，address等）</li>
+<li>回调onVersion()方法</li>
+<li>判断版本是否符合要求</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt">  1
+<pre class="chroma"><code><span class="lnt">  1
 </span><span class="lnt">  2
 </span><span class="lnt">  3
 </span><span class="lnt">  4
@@ -667,24 +666,25 @@
 </span><span class="lnt">106
 </span><span class="lnt">107
 </span><span class="lnt">108
+</span><span class="lnt">109
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// negotiateInboundProtocol waits to receive a version message from the peer
-</span><span class="c1">// then sends our version message. If the events do not occur in that order then
-</span><span class="c1">// it returns an error.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">negotiateInboundProtocol</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readRemoteVersionMsg</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// then sends our version message. If the events do not occur in that order then
+</span><span class="c1"></span><span class="c1">// it returns an error.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">negotiateInboundProtocol</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readRemoteVersionMsg</span><span class="p">(</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="nx">err</span>
 	<span class="p">}</span>
 
-	<span class="k">return</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeLocalVersionMsg</span><span class="p">()</span>
+	<span class="k">return</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeLocalVersionMsg</span><span class="p">(</span><span class="p">)</span>
 <span class="p">}</span>
 
 
 <span class="c1">// readRemoteVersionMsg waits for the next message to arrive from the remote
-</span><span class="c1">// peer.  If the next message is not a version message or the version is not
-</span><span class="c1">// acceptable then return an error.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">readRemoteVersionMsg</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// peer.  If the next message is not a version message or the version is not
+</span><span class="c1"></span><span class="c1">// acceptable then return an error.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">readRemoteVersionMsg</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
 	<span class="c1">// Read their version message.
 </span><span class="c1"></span>	<span class="nx">remoteMsg</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readMessage</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
 	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
@@ -693,10 +693,10 @@
 
 	<span class="c1">// Notify and disconnect clients if the first message is not a version
 </span><span class="c1"></span>	<span class="c1">// message.
-</span><span class="c1"></span>	<span class="nx">msg</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">remoteMsg</span><span class="p">.(</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVersion</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">msg</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">remoteMsg</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVersion</span><span class="p">)</span>
 	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
 		<span class="nx">reason</span> <span class="o">:=</span> <span class="s">&#34;a version message must precede all others&#34;</span>
-		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(),</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectMalformed</span><span class="p">,</span>
+		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectMalformed</span><span class="p">,</span>
 			<span class="nx">reason</span><span class="p">)</span>
 		<span class="nx">_</span> <span class="p">=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeMessage</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">reason</span><span class="p">)</span>
@@ -709,26 +709,26 @@
 
 	<span class="c1">// Negotiate the protocol version and set the services to what the remote
 </span><span class="c1"></span>	<span class="c1">// peer advertised.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">advertisedProtoVer</span> <span class="p">=</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span> <span class="p">=</span> <span class="nf">minUint32</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nx">advertisedProtoVer</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">versionKnown</span> <span class="p">=</span> <span class="kc">true</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">services</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Services</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Negotiated protocol version %d for peer %s&#34;</span><span class="p">,</span>
 		<span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
 
 	<span class="c1">// Updating a bunch of stats including block based stats, and the
 </span><span class="c1"></span>	<span class="c1">// peer&#39;s time offset.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">lastBlock</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">LastBlock</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">startingHeight</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">LastBlock</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">timeOffset</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Timestamp</span><span class="p">.</span><span class="nf">Unix</span><span class="p">()</span> <span class="o">-</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Unix</span><span class="p">()</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+	<span class="nx">p</span><span class="p">.</span><span class="nx">timeOffset</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Timestamp</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span> <span class="o">-</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Set the peer&#39;s ID, user agent, and potentially the flag which
 </span><span class="c1"></span>	<span class="c1">// specifies the witness support is enabled.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">id</span> <span class="p">=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">nodeCount</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">userAgent</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">UserAgent</span>
 
@@ -737,7 +737,7 @@
 </span><span class="c1"></span>	<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">services</span><span class="o">&amp;</span><span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="o">==</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="p">{</span>
 		<span class="nx">p</span><span class="p">.</span><span class="nx">witnessEnabled</span> <span class="p">=</span> <span class="kc">true</span>
 	<span class="p">}</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 
 	<span class="c1">// Once the version message has been exchanged, we&#39;re able to determine
 </span><span class="c1"></span>	<span class="c1">// if this peer knows how to encode witness data over the wire
@@ -769,33 +769,33 @@
 </span><span class="c1"></span>		<span class="c1">// disconnecting.
 </span><span class="c1"></span>		<span class="nx">reason</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;protocol version must be %d or greater&#34;</span><span class="p">,</span>
 			<span class="nx">MinAcceptableProtocolVersion</span><span class="p">)</span>
-		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(),</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectObsolete</span><span class="p">,</span>
+		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectObsolete</span><span class="p">,</span>
 			<span class="nx">reason</span><span class="p">)</span>
 		<span class="nx">_</span> <span class="p">=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeMessage</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
 		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">reason</span><span class="p">)</span>
 	<span class="p">}</span>
 
 	<span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span></code></pre></td></tr></table>
-</div>
-</div>
-<h2 id="发送消息">发送消息</h2>
+<span class="p">}</span>
 
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="heading">发送消息</h2>
 <ul>
 <li>发送消息的直接入口是QueueMessage()方法</li>
 <li>outMesage 被发送到了outputQueue队列（带缓冲的channel）</li>
 <li>然后再由queueHandler发给sendQueue</li>
 <li>outHandler 对sendQueue处理
-
 <ul>
 <li>发给 stallContol</li>
 <li>发给peer</li>
-</ul></li>
-
-<li><p>stallhandler 对stallContol 处理</p>
+</ul>
+</li>
+<li>stallhandler 对stallContol 处理</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -822,33 +822,34 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// QueueMessage adds the passed bitcoin message to the peer send queue.
-</span><span class="c1">//
-</span><span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{})</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">//
+</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">{</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nf">QueueMessageWithEncoding</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">doneChan</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessageWithEncoding</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{},</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessageWithEncoding</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span>
 	<span class="nx">encoding</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">MessageEncoding</span><span class="p">)</span> <span class="p">{</span>
 
 	<span class="c1">// Avoid risk of deadlock if goroutine already exited.  The goroutine
 </span><span class="c1"></span>	<span class="c1">// we will be sending to hangs around until it knows for a fact that
 </span><span class="c1"></span>	<span class="c1">// it is marked as disconnected and *then* it drains the channels.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nx">p</span><span class="p">.</span><span class="nf">Connected</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nx">p</span><span class="p">.</span><span class="nf">Connected</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">if</span> <span class="nx">doneChan</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
-				<span class="nx">doneChan</span> <span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{}{}</span>
-			<span class="p">}()</span>
+			<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">doneChan</span> <span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">{</span><span class="p">}</span>
+			<span class="p">}</span><span class="p">(</span><span class="p">)</span>
 		<span class="p">}</span>
 		<span class="k">return</span>
 	<span class="p">}</span>
 	<span class="nx">p</span><span class="p">.</span><span class="nx">outputQueue</span> <span class="o">&lt;-</span> <span class="nx">outMsg</span><span class="p">{</span><span class="nx">msg</span><span class="p">:</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">encoding</span><span class="p">:</span> <span class="nx">encoding</span><span class="p">,</span> <span class="nx">doneChan</span><span class="p">:</span> <span class="nx">doneChan</span><span class="p">}</span>
-<span class="p">}</span></code></pre></td></tr></table>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
 </div><div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -870,36 +871,33 @@
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">p</span> <span class="o">:=</span> <span class="nx">Peer</span><span class="p">{</span>
 		<span class="nx">inbound</span><span class="p">:</span>         <span class="nx">inbound</span><span class="p">,</span>
 		<span class="nx">wireEncoding</span><span class="p">:</span>    <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">,</span>
-		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">),</span>
-		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">),</span>
-		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>   <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{},</span> <span class="mi">1</span><span class="p">),</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">),</span>
-		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
-		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}),</span>
+		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span>   <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
+</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
 		<span class="nx">cfg</span><span class="p">:</span>             <span class="nx">cfg</span><span class="p">,</span> <span class="c1">// Copy so caller can&#39;t mutate.
 </span><span class="c1"></span>		<span class="nx">services</span><span class="p">:</span>        <span class="nx">cfg</span><span class="p">.</span><span class="nx">Services</span><span class="p">,</span>
 		<span class="nx">protocolVersion</span><span class="p">:</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">,</span>
-	<span class="p">}</span></code></pre></td></tr></table>
+	<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
-<h2 id="接收消息">接收消息</h2>
-
+</div><h2 id="heading1">接收消息</h2>
 <ul>
 <li>通过inHandler,监听peer消息</li>
 <li>向stallControl发送 sccReceiveMessage</li>
 <li>向stallControl发送 sccHandlerStart</li>
 <li>调用onXXX相应消息，并通过queueMessage发送结果</li>
-
-<li><p>向stallContol 发送 sccHandlerDone</p>
+<li>向stallContol 发送 sccHandlerDone</li>
+</ul>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="lnt"> 1
+<pre class="chroma"><code><span class="lnt"> 1
 </span><span class="lnt"> 2
 </span><span class="lnt"> 3
 </span><span class="lnt"> 4
@@ -981,14 +979,14 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// inHandler handles all incoming messages for the peer.  It must be run as a
-</span><span class="c1">// goroutine.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">inHandler</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="c1">// goroutine.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">inHandler</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// The timer is stopped when a new message is received and reset after it
 </span><span class="c1"></span>	<span class="c1">// is processed.
-</span><span class="c1"></span>	<span class="nx">idleTimer</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">AfterFunc</span><span class="p">(</span><span class="nx">idleTimeout</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="nx">idleTimer</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">AfterFunc</span><span class="p">(</span><span class="nx">idleTimeout</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
 		<span class="nx">log</span><span class="p">.</span><span class="nf">Warnf</span><span class="p">(</span><span class="s">&#34;Peer %s no answer for %s -- disconnecting&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">idleTimeout</span><span class="p">)</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">()</span>
-	<span class="p">})</span>
+		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}</span><span class="p">)</span>
 
 <span class="nx">out</span><span class="p">:</span>
 	<span class="k">for</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">p</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
@@ -996,7 +994,7 @@
 </span><span class="c1"></span>		<span class="c1">// is done.  The timer is reset below for the next iteration if
 </span><span class="c1"></span>		<span class="c1">// needed.
 </span><span class="c1"></span>		<span class="nx">rmsg</span><span class="p">,</span> <span class="nx">buf</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readMessage</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">wireEncoding</span><span class="p">)</span>
-		<span class="nx">idleTimer</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
+		<span class="nx">idleTimer</span><span class="p">.</span><span class="nf">Stop</span><span class="p">(</span><span class="p">)</span>
 		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 			<span class="c1">// In order to allow regression tests with malformed messages, don&#39;t
 </span><span class="c1"></span>			<span class="c1">// disconnect the peer when we&#39;re in regression test mode and the
@@ -1028,15 +1026,15 @@
 			<span class="p">}</span>
 			<span class="k">break</span> <span class="nx">out</span>
 		<span class="p">}</span>
-		<span class="nx">atomic</span><span class="p">.</span><span class="nf">StoreInt64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">p</span><span class="p">.</span><span class="nx">lastRecv</span><span class="p">,</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Unix</span><span class="p">())</span>
+		<span class="nx">atomic</span><span class="p">.</span><span class="nf">StoreInt64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">p</span><span class="p">.</span><span class="nx">lastRecv</span><span class="p">,</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
 		<span class="nx">p</span><span class="p">.</span><span class="nx">stallControl</span> <span class="o">&lt;-</span> <span class="nx">stallControlMsg</span><span class="p">{</span><span class="nx">sccReceiveMessage</span><span class="p">,</span> <span class="nx">rmsg</span><span class="p">}</span>
 
 		<span class="c1">// Handle each supported message type.
 </span><span class="c1"></span>		<span class="nx">p</span><span class="p">.</span><span class="nx">stallControl</span> <span class="o">&lt;-</span> <span class="nx">stallControlMsg</span><span class="p">{</span><span class="nx">sccHandlerStart</span><span class="p">,</span> <span class="nx">rmsg</span><span class="p">}</span>
-		<span class="k">switch</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">rmsg</span><span class="p">.(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">switch</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">rmsg</span><span class="p">.</span><span class="p">(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">case</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVersion</span><span class="p">:</span>
 			<span class="c1">// Limit to one version message per peer.
-</span><span class="c1"></span>			<span class="nx">p</span><span class="p">.</span><span class="nf">PushRejectMsg</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(),</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectDuplicate</span><span class="p">,</span>
+</span><span class="c1"></span>			<span class="nx">p</span><span class="p">.</span><span class="nf">PushRejectMsg</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectDuplicate</span><span class="p">,</span>
 				<span class="s">&#34;duplicate version message&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
 			<span class="k">break</span> <span class="nx">out</span>
 
@@ -1049,20 +1047,19 @@
 					<span class="s">&#34;disconnecting&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
 				<span class="k">break</span> <span class="nx">out</span>
 			<span class="p">}</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
 			<span class="nx">p</span><span class="p">.</span><span class="nx">verAckReceived</span> <span class="p">=</span> <span class="kc">true</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
 			<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nx">OnVerAck</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 				<span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nf">OnVerAck</span><span class="p">(</span><span class="nx">p</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
 			<span class="p">}</span>
             
             
-        <span class="o">...</span><span class="p">.</span>
-<span class="p">}</span></code></pre></td></tr></table>
+            <span class="o">...</span><span class="p">.</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
+</div>
     </div>
 
     
