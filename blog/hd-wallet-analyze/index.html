@@ -68,7 +68,7 @@
 <meta itemprop="description" content="概述 分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系： 助记词与种子公钥与">
 <meta itemprop="datePublished" content="2019-10-30T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2019-12-31T02:22:55&#43;08:00" />
-<meta itemprop="wordCount" content="2023">
+<meta itemprop="wordCount" content="2304">
 
 
 
@@ -245,7 +245,7 @@
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 2023 words </span>
+        <span class="more-meta"> 2304 words </span>
           <span class="more-meta"> 5 min read </span>
 
         
@@ -432,29 +432,46 @@
 <ul>
 <li>定义了由种子推导树状扩展密钥对的算法与规则</li>
 </ul>
-<p><strong>密钥扩展算法：</strong></p>
 <p>基本概念：</p>
-<p>扩展私钥定义为：(k , c)，其中 k 为私钥，c 为 链码 chaincode</p>
-<p>扩展公钥定义为：(K , c)，其中 K 为公钥，c 为 链码 chaincode</p>
-<p>子秘钥扩展方法定义为：CKD(extended key , index），其中参数为扩展秘钥和索引。</p>
+<ul>
+<li>扩展秘钥有两种，扩展私钥和扩展公钥，扩展私钥可以扩展子私钥，扩展公钥可以扩展子公钥</li>
+<li>扩展私钥定义为：(k , c)，其中 k 为私钥，c 为 链码 chaincode</li>
+<li>扩展公钥定义为：(K , c)，其中 K 为公钥，c 为 链码 chaincode</li>
+<li>子秘钥扩展方法定义为：CKD(extended key , index），其中参数为扩展秘钥和索引。</li>
+</ul>
 <p>需要注意：</p>
 <ul>
 <li>扩展为非强化子秘钥时 index 范围为: 0 ~ ($2^{31}-1$)，扩展为强化子秘钥时 index 范围为: $2^{31}$ ~ $(2^{32}-1)$</li>
 <li>只有扩展私钥才能扩展强化子扩展秘钥</li>
 </ul>
-<p>可推导的规则：</p>
-<ul>
+<p>扩展的具体过程：</p>
+<ol>
+<li>首先计算主扩展秘钥，即树根对应的扩展秘钥。
+计算 HMAC-SHA512(&ldquo;Bitcoin seed&rdquo; , seed) 得到 512 bits，其中参数 seed 是在 BIP32 中生成的种子。然后将结果分为 L 和 R，各占 32 字节，分别作为主扩展秘钥的私钥和链码，得到主扩展秘钥。</li>
+<li>然后通过 CKD(extended key , index) 方法向下层层扩展子密钥。</li>
+</ol>
+<p>CKD()方法扩展子秘钥有如下场景：</p>
+<ol>
 <li>父扩展私钥 -&gt; 强化子扩展私钥</li>
 <li>父扩展私钥 -&gt; 非强化子扩展私钥</li>
 <li>父扩展公钥 -&gt; 非强化子扩展公钥</li>
 <li>父扩展公钥 -&gt; 强化子扩展公钥(不允许)</li>
-</ul>
-<p>扩展的具体过程：</p>
-<ol>
-<li>计算主扩展秘钥即树根对应的扩展秘钥。
-计算 HMAC-SHA512(&ldquo;Bitcoin seed&rdquo; , seed) 得到 512 bits，其中参数 seed 是在 BIP32 中生成的种子。然后将结果分为 L 和 R，各占 32 字节，分别作为主扩展秘钥的私钥和链码，得到主扩展秘钥。</li>
-<li>通过 CKD(extended key , index) 方法扩展子密钥。</li>
 </ol>
+<p><img src="/image/ckd.png" alt="ckd.png"></p>
+<p>有上图可知，场景 3，可以在不生成私钥的情况下，通过公钥扩展子公钥。这些公钥对应的私钥正好需要通过场景 2 来额外生成。具体的原理用到了椭圆曲线加密算法 ECC 的运算特性。途中的 <code>||</code> 是字节拼接操作，<code>+</code> 和 <code>x</code> 都是 ECC 里的运算。在 ECC 中有以下定义：</p>
+<p>key x G = pubKey</p>
+<p>(key1 + key2) x G = pubKey1 + pubkey2</p>
+<p>现在我们来证明 childPrivKey 就是 childPubKey 的私钥：</p>
+<p>已知：</p>
+<p>上图中场景 2 和场景 3，推导出的 il 是同一个值</p>
+<p>il + parentPrivKey = childPrivKey</p>
+<p>il x G + parentPubKey = childPubKey</p>
+<p>我们可以得出：</p>
+<p>il x G + parentPrivKey x G = childPrivKey x G</p>
+<p>parentPrivKey x G = parentPubKey</p>
+<p>进而得出：</p>
+<p>il x G + parentPubkey = childPrivKey x G = childPubKey</p>
+<p>所以 childPrivKey 就是 childPubkey 对应的私钥</p>
 <p><strong>代码参考:</strong> <a href="https://github.com/tpkeeper/addrtool"><a href="https://github.com/tpkeeper/addrtool/">https://github.com/tpkeeper/addrtool/</a></a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
