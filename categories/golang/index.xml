@@ -6,10 +6,19 @@
     <description>Recent content in Golang on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Mon, 25 Nov 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 25 Dec 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="http://www.tpkeep.com/categories/golang/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Golang 中的 json 处理</title>
+      <link>http://www.tpkeep.com/blog/golang-deal-json/</link>
+      <pubDate>Wed, 25 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-deal-json/</guid>
+      <description>介绍 JSON 是一种轻量级的数据交换格式，易于阅读和编写，同时也易于机器解析与生成。其采用的是独立于语言的文本格式。可以去官网 json.org 详细了解。 JSON 中有两种</description>
+    </item>
     
     <item>
       <title>Golang 单元测试</title>
