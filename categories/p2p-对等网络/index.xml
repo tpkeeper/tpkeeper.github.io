@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>P2P 对等网络 on 大远的博客</title>
+    <link>http://www.tpkeep.com/categories/p2p-%E5%AF%B9%E7%AD%89%E7%BD%91%E7%BB%9C/</link>
+    <description>Recent content in P2P 对等网络 on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Tue, 31 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/categories/p2p-%E5%AF%B9%E7%AD%89%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>P2P对等网络 - upnp实现内网穿透</title>
+      <link>http://www.tpkeep.com/blog/p2p-upnp/</link>
+      <pubDate>Tue, 31 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/p2p-upnp/</guid>
+      <description>什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自</description>
+    </item>
+    
+  </channel>
+</rss>

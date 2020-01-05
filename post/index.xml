@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Thu, 26 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 31 Dec 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="http://www.tpkeep.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>P2P对等网络 - upnp实现内网穿透</title>
+      <link>http://www.tpkeep.com/blog/p2p-upnp/</link>
+      <pubDate>Tue, 31 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/p2p-upnp/</guid>
+      <description>什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自</description>
+    </item>
     
     <item>
       <title>Golang 反射三定律</title>

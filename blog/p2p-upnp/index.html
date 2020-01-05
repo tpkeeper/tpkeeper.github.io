@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>P2P对等网络 - upnp实现内网穿透 - 大远的博客</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="大远" />
+  <meta name="description" content="什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.60.1" />
+
+
+<link rel="canonical" href="http://www.tpkeep.com/blog/p2p-upnp/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="P2P对等网络 - upnp实现内网穿透" />
+<meta property="og:description" content="什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://www.tpkeep.com/blog/p2p-upnp/" />
+<meta property="article:published_time" content="2019-12-31T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-12-31T00:00:00+00:00" />
+<meta itemprop="name" content="P2P对等网络 - upnp实现内网穿透">
+<meta itemprop="description" content="什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自">
+<meta itemprop="datePublished" content="2019-12-31T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-12-31T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="2417">
+
+
+
+<meta itemprop="keywords" content="P2P 对等网络," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="P2P对等网络 - upnp实现内网穿透"/>
+<meta name="twitter:description" content="什么是内网穿透 正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">大远的博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      大远的博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">P2P对等网络 - upnp实现内网穿透</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-12-31" class="post-time">
+          2019-12-31
+        </time>
+        <div class="post-category">
+            
+          </div>
+        <span class="more-meta"> 2417 words </span>
+          <span class="more-meta"> 5 min read </span>
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#heading">什么是内网穿透</a></li>
+    <li><a href="#-upnp">什么是 upnp</a></li>
+    <li><a href="#heading1">代码演示</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <h2 id="heading">什么是内网穿透</h2>
+<p>正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自己电脑上的 ip 是私有的，服务器返回的网页是怎么到达我们个人的电脑上的呢？这个其实是路由器帮我们解决了这个问题。当我们的请求到达路由器时，它会将数据包的的原ip地址和端口替换为外网的ip和端口，这个外网的端口是随机产生的没有冲突的。服务端收到消息之后，自然会向这个外网ip和端口发送数据，而路由器会把所有接收到的关于这个外网端口的数据全部发给我们内网的电脑。相当于我们内网的ip+端口映射了一个外网的ip+端口，只要这个映射关系存在，内网就能与外网打通。这个机制其实可以通过 napt 协议自动来实现，无需手动配置。总结起来就是，我们内网向外网请求，然后有一个ip+端口的映射关系，然后就能愉快的上网了。但是有一个问题，就是这个映射关系只有内网才能触发，而且不用的话很快会清除并不会永存。如果外网想随时请求内网里的服务怎么办？我们把这个映射弄成持久的就行了，我们可以去路由器里手动配置这个映射关系，当然我们也可以通过 upnp 协议来自动设置，这样在我们写的程序里，只要发一个upnp 协议的消息就可以设置这个映射关系了。有了这个映射关系，外网甚至是另一个内网就可以通过我们的外网ip+端口，访问我们内网的服务了。也就是达到了所谓的内网穿透。</p>
+<h2 id="-upnp">什么是 upnp</h2>
+<p>全名为 Universal Plug and Play，通用即插即用，通过 <a href="https://openconnectivity.org/developer/specifications/upnp-resources/upnp/">这里</a> 可以详细了解。这是一套开放的协议，旨在让局域网中的设备能够无缝连接并自动交换控制命令和信息，独立于任何操作系统、编程语言。最大的特点就是<strong>零配置和自动发现</strong>。具体的协议栈如下：
+<img src="/image/upnp.png" alt="upnp.png"></p>
+<p>可以看到，它们是基于互联网中已有的协议，又在上层定义了自己特有的一套协议。该协议栈中分为两个角色，被控制的设备和控制点，被控制的设备类似于一个server，控制点类似于一个client，它们之间通过这套协议通信。这两种都可以在各种类型的设备上实现比如个人电脑、嵌入式设备等。</p>
+<p>所有的设备先获取ip地址，然后具体的工作过程可分为以下几步：</p>
+<p><strong>1. 设备发现</strong></p>
+<p>通过 ssdp 协议实现，该协议传输层使用 udp 协议，具体内容如下：</p>
+<p>当控制点加入网络时，发送组播寻找 upnp 设备：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">M-SEARCH * HTTP/1.1  
+HOST: 239.255.255.250:1900  
+MAN: &#34;ssdp:discover&#34;  
+MX: seconds to delay response  
+ST: search target  
+USER-AGENT: OS/version UPnP/2.0 product/version  
+CPFN.UPNP.ORG: friendly name of the control point   
+CPUUID.UPNP.ORG: uuid of the control point 
+</code></pre></td></tr></table>
+</div>
+</div><p>返回：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">HTTP/1.1 200 OK  
+CACHE-CONTROL: max-age = seconds until advertisement expires  
+DATE: when response was generated  
+EXT:  
+LOCATION: URL for UPnP description for root device  
+SERVER: OS/version UPnP/2.0 product/version  
+ST: search target  
+USN: composite identifier for the advertisement  
+BOOTID.UPNP.ORG: number increased each time device sends an initial announce or an update message  
+CONFIGID.UPNP.ORG: number used for caching description information  
+SEARCHPORT.UPNP.ORG: number identifies port on which device responds to unicast M-SEARCH 
+</code></pre></td></tr></table>
+</div>
+</div><p>当 upnp 设备加入网络，发送组播宣告自己的存在：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">NOTIFY * HTTP/1.1  
+HOST: 239.255.255.250:1900  
+LOCATION: URL for UPnP description for root device  
+NT: notification type  
+NTS: ssdp:update  
+USN: composite identifier for the advertisement  
+BOOTID.UPNP.ORG: BOOTID value that the device has used in its previous announcements  
+CONFIGID.UPNP.ORG: number used for caching description information  
+NEXTBOOTID.UPNP.ORG: new BOOTID value that the device will use in subsequent announcements  
+SEARCHPORT.UPNP.ORG: number identifies port on which device responds to unicast M-SEARCH   
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>2. 设备描述</strong></p>
+<p>控制点获取设备描述，比如 UUID、服务</p>
+<p>通过 soap 协议实现，该协议是基于 http 协议，传输层使用 tcp 协议，使用 xml 描述设备和服务：</p>
+<p>设备描述：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+
+<span class="nt">&lt;root</span> <span class="na">xmlns=</span><span class="s">&#34;urn:schemas-upnp-org:device-1-0&#34;</span> <span class="na">configId=</span><span class="s">&#34;configuration number&#34;</span><span class="nt">&gt;</span>  
+  <span class="nt">&lt;specVersion</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;major</span><span class="nt">&gt;</span>2<span class="nt">&lt;/major&gt;</span>  
+    <span class="nt">&lt;minor</span><span class="nt">&gt;</span>0<span class="nt">&lt;/minor&gt;</span> 
+  <span class="nt">&lt;/specVersion&gt;</span>  
+  <span class="nt">&lt;device</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;deviceType</span><span class="nt">&gt;</span>urn:schemas-upnp-org:device:deviceType:v<span class="nt">&lt;/deviceType&gt;</span>  
+    <span class="nt">&lt;friendlyName</span><span class="nt">&gt;</span>short user-friendly title<span class="nt">&lt;/friendlyName&gt;</span>  
+    <span class="nt">&lt;manufacturer</span><span class="nt">&gt;</span>manufacturer name<span class="nt">&lt;/manufacturer&gt;</span>  
+    <span class="nt">&lt;manufacturerURL</span><span class="nt">&gt;</span>URL to manufacturer site<span class="nt">&lt;/manufacturerURL&gt;</span>  
+    <span class="nt">&lt;modelDescription</span><span class="nt">&gt;</span>long user-friendly title<span class="nt">&lt;/modelDescription&gt;</span>  
+    <span class="nt">&lt;modelName</span><span class="nt">&gt;</span>model name<span class="nt">&lt;/modelName&gt;</span>  
+    <span class="nt">&lt;modelNumber</span><span class="nt">&gt;</span>model number<span class="nt">&lt;/modelNumber&gt;</span>  
+    <span class="nt">&lt;modelURL</span><span class="nt">&gt;</span>URL to model site<span class="nt">&lt;/modelURL&gt;</span>  
+    <span class="nt">&lt;serialNumber</span><span class="nt">&gt;</span>manufacturer&#39;s serial number<span class="nt">&lt;/serialNumber&gt;</span>  
+    <span class="nt">&lt;UDN</span><span class="nt">&gt;</span>uuid:UUID<span class="nt">&lt;/UDN&gt;</span>  
+    <span class="nt">&lt;UPC</span><span class="nt">&gt;</span>Universal Product Code<span class="nt">&lt;/UPC&gt;</span>  
+    <span class="nt">&lt;iconList</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;icon</span><span class="nt">&gt;</span> 
+        <span class="nt">&lt;mimetype</span><span class="nt">&gt;</span>image/format<span class="nt">&lt;/mimetype&gt;</span>  
+        <span class="nt">&lt;width</span><span class="nt">&gt;</span>horizontal pixels<span class="nt">&lt;/width&gt;</span>  
+        <span class="nt">&lt;height</span><span class="nt">&gt;</span>vertical pixels<span class="nt">&lt;/height&gt;</span>  
+        <span class="nt">&lt;depth</span><span class="nt">&gt;</span>color depth<span class="nt">&lt;/depth&gt;</span>  
+        <span class="nt">&lt;url</span><span class="nt">&gt;</span>URL to icon<span class="nt">&lt;/url&gt;</span> 
+      <span class="nt">&lt;/icon&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> XML to declare other icons, if any, go here </span><span class="c">--&gt;</span> 
+    <span class="nt">&lt;/iconList&gt;</span>  
+    <span class="nt">&lt;serviceList</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;service</span><span class="nt">&gt;</span> 
+        <span class="nt">&lt;serviceType</span><span class="nt">&gt;</span>urn:schemas-upnp-org:service:serviceType:v<span class="nt">&lt;/serviceType&gt;</span>  
+        <span class="nt">&lt;serviceId</span><span class="nt">&gt;</span>urn:upnp-org:serviceId:serviceID<span class="nt">&lt;/serviceId&gt;</span>  
+        <span class="nt">&lt;SCPDURL</span><span class="nt">&gt;</span>URL to service description<span class="nt">&lt;/SCPDURL&gt;</span>  
+        <span class="nt">&lt;controlURL</span><span class="nt">&gt;</span>URL for control<span class="nt">&lt;/controlURL&gt;</span>  
+        <span class="nt">&lt;eventSubURL</span><span class="nt">&gt;</span>URL for eventing<span class="nt">&lt;/eventSubURL&gt;</span> 
+      <span class="nt">&lt;/service&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> Declarations for other services defined by a UPnP Forum working committee          (if any) go here </span><span class="c">--&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> Declarations for other services added by UPnP vendor (if any) go here </span><span class="c">--&gt;</span> 
+    <span class="nt">&lt;/serviceList&gt;</span>  
+    <span class="nt">&lt;deviceList</span><span class="nt">&gt;</span> 
+      <span class="c">&lt;!--</span><span class="c"> Description of embedded devices defined by a UPnP Forum working committee         (if any) go here </span><span class="c">--&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> Description of embedded devices added by UPnP vendor (if any) go here </span><span class="c">--&gt;</span> 
+    <span class="nt">&lt;/deviceList&gt;</span>  
+    <span class="nt">&lt;presentationURL</span><span class="nt">&gt;</span>URL for presentation<span class="nt">&lt;/presentationURL&gt;</span> 
+  <span class="nt">&lt;/device&gt;</span> 
+<span class="nt">&lt;/root&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>服务描述：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+
+<span class="nt">&lt;scpd</span> <span class="na">xmlns=</span><span class="s">&#34;urn:schemas-upnp-org:service-1-0&#34;</span> <span class="na">xmlns:dt1=</span><span class="s">&#34;urn:domain-name:more-datatypes&#34;</span> <span class="na">configId=</span><span class="s">&#34;configuration number&#34;</span><span class="nt">&gt;</span>  
+  <span class="nt">&lt;specVersion</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;major</span><span class="nt">&gt;</span>2<span class="nt">&lt;/major&gt;</span>  
+    <span class="nt">&lt;minor</span><span class="nt">&gt;</span>0<span class="nt">&lt;/minor&gt;</span> 
+  <span class="nt">&lt;/specVersion&gt;</span>  
+  <span class="nt">&lt;actionList</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;action</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;name</span><span class="nt">&gt;</span>actionName<span class="nt">&lt;/name&gt;</span>  
+      <span class="nt">&lt;argumentList</span><span class="nt">&gt;</span> 
+        <span class="nt">&lt;argument</span><span class="nt">&gt;</span> 
+          <span class="nt">&lt;name</span><span class="nt">&gt;</span>argumentNameIn1<span class="nt">&lt;/name&gt;</span>  
+          <span class="nt">&lt;direction</span><span class="nt">&gt;</span>in<span class="nt">&lt;/direction&gt;</span>  
+          <span class="nt">&lt;relatedStateVariable</span><span class="nt">&gt;</span>stateVariableName<span class="nt">&lt;/relatedStateVariable&gt;</span> 
+        <span class="nt">&lt;/argument&gt;</span>  
+        <span class="nt">&lt;argument</span><span class="nt">&gt;</span> 
+          <span class="nt">&lt;name</span><span class="nt">&gt;</span>argumentNameOut1<span class="nt">&lt;/name&gt;</span>  
+          <span class="nt">&lt;direction</span><span class="nt">&gt;</span>out<span class="nt">&lt;/direction&gt;</span>  
+          <span class="nt">&lt;retval</span><span class="nt">/&gt;</span>  
+          <span class="nt">&lt;relatedStateVariable</span><span class="nt">&gt;</span>stateVariableName<span class="nt">&lt;/relatedStateVariable&gt;</span> 
+        <span class="nt">&lt;/argument&gt;</span>  
+        <span class="nt">&lt;argument</span><span class="nt">&gt;</span> 
+          <span class="nt">&lt;name</span><span class="nt">&gt;</span>argumentNameOut2<span class="nt">&lt;/name&gt;</span>  
+          <span class="nt">&lt;direction</span><span class="nt">&gt;</span>out<span class="nt">&lt;/direction&gt;</span>  
+          <span class="nt">&lt;relatedStateVariable</span><span class="nt">&gt;</span>stateVariableName<span class="nt">&lt;/relatedStateVariable&gt;</span> 
+        <span class="nt">&lt;/argument&gt;</span> 
+      <span class="nt">&lt;/argumentList&gt;</span> 
+    <span class="nt">&lt;/action&gt;</span> 
+  <span class="nt">&lt;/actionList&gt;</span>  
+  <span class="nt">&lt;serviceStateTable</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;stateVariable</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;name</span><span class="nt">&gt;</span>variableName<span class="nt">&lt;/name&gt;</span>  
+      <span class="nt">&lt;dataType</span><span class="nt">&gt;</span>basic data type<span class="nt">&lt;/dataType&gt;</span>  
+      <span class="nt">&lt;defaultValue</span><span class="nt">&gt;</span>default value<span class="nt">&lt;/defaultValue&gt;</span>  
+      <span class="nt">&lt;allowedValueRange</span><span class="nt">&gt;</span> 
+        <span class="nt">&lt;minimum</span><span class="nt">&gt;</span>minimum value<span class="nt">&lt;/minimum&gt;</span>  
+        <span class="nt">&lt;maximum</span><span class="nt">&gt;</span>maximum value<span class="nt">&lt;/maximum&gt;</span>  
+        <span class="nt">&lt;step</span><span class="nt">&gt;</span>increment value<span class="nt">&lt;/step&gt;</span> 
+      <span class="nt">&lt;/allowedValueRange&gt;</span> 
+    <span class="nt">&lt;/stateVariable&gt;</span>  
+    <span class="nt">&lt;stateVariable</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;name</span><span class="nt">&gt;</span>variableName<span class="nt">&lt;/name&gt;</span>  
+      <span class="nt">&lt;dataType</span> <span class="na">type=</span><span class="s">&#34;dt1:variable data type&#34;</span><span class="nt">&gt;</span>string<span class="nt">&lt;/dataType&gt;</span>  
+      <span class="nt">&lt;defaultValue</span><span class="nt">&gt;</span>default value<span class="nt">&lt;/defaultValue&gt;</span>  
+      <span class="nt">&lt;allowedValueList</span><span class="nt">&gt;</span> 
+        <span class="nt">&lt;allowedValue</span><span class="nt">&gt;</span>enumerated value<span class="nt">&lt;/allowedValue&gt;</span> 
+      <span class="nt">&lt;/allowedValueList&gt;</span> 
+    <span class="nt">&lt;/stateVariable&gt;</span>  
+    <span class="nt">&lt;stateVariable</span><span class="nt">&gt;</span> 
+      <span class="nt">&lt;name</span><span class="nt">&gt;</span>variableName<span class="nt">&lt;/name&gt;</span>  
+      <span class="nt">&lt;dataType</span> <span class="na">type=</span><span class="s">&#34;dt2:vendor data type&#34;</span><span class="nt">&gt;</span>string<span class="nt">&lt;/dataType&gt;</span>  
+      <span class="nt">&lt;defaultValue</span><span class="nt">&gt;</span>default value<span class="nt">&lt;/defaultValue&gt;</span> 
+    <span class="nt">&lt;/stateVariable&gt;</span> 
+  <span class="nt">&lt;/serviceStateTable&gt;</span> 
+<span class="nt">&lt;/scpd&gt;</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>3. 设备控制（描述之后即可发生）</strong></p>
+<p>控制点发送控制命令给设备</p>
+<p>通过 soap 协议实现，：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml">POST path control URL HTTP/1.0  
+HOST: hostname:portNumber  
+CONTENT-LENGTH: bytes in body  
+CONTENT-TYPE: text/xml; charset=&#34;utf-8&#34;  
+USER-AGENT: OS/version UPnP/2.0 product/version  
+SOAPACTION: &#34;urn:schemas-upnp-org:service:serviceType:v#actionName&#34;
+
+<span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+
+<span class="nt">&lt;s:Envelope</span> <span class="na">xmlns:s=</span><span class="s">&#34;http://schemas.xmlsoap.org/soap/envelope/&#34;</span> <span class="na">s:encodingStyle=</span><span class="s">&#34;http://schemas.xmlsoap.org/soap/encoding/&#34;</span><span class="nt">&gt;</span>  
+  <span class="nt">&lt;s:Body</span><span class="nt">&gt;</span> 
+    <span class="nt">&lt;u:actionName</span> <span class="na">xmlns:u=</span><span class="s">&#34;urn:schemas-upnp-org:service:serviceType:v&#34;</span><span class="nt">&gt;</span>  
+      <span class="nt">&lt;argumentName</span><span class="nt">&gt;</span>in arg value<span class="nt">&lt;/argumentName&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> other in args and their values  go here, if any </span><span class="c">--&gt;</span> 
+    <span class="nt">&lt;/u:actionName&gt;</span> 
+  <span class="nt">&lt;/s:Body&gt;</span> 
+<span class="nt">&lt;/s:Envelope&gt;</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><p>返回：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html">HTTP/1.0 200 OK  
+CONTENT-TYPE: text/xml; charset=&#34;utf-8&#34;  
+DATE: when response was generated  
+SERVER: OS/version UPnP/2.0 product/version  
+CONTENT-LENGTH: bytes in body
+
+<span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">s:Envelope</span> <span class="na">xmlns:s</span><span class="o">=</span><span class="s">&#34;http://schemas.xmlsoap.org/soap/envelope/&#34;</span> <span class="na">s:encodingStyle</span><span class="o">=</span><span class="s">&#34;http://schemas.xmlsoap.org/soap/encoding/&#34;</span><span class="p"></span><span class="p">&gt;</span>  
+  <span class="p">&lt;</span><span class="nt">s:Body</span><span class="p"></span><span class="p">&gt;</span> 
+    <span class="p">&lt;</span><span class="nt">u:actionNameResponse</span> <span class="na">xmlns:u</span><span class="o">=</span><span class="s">&#34;urn:schemas-upnp-org:service:serviceType:v&#34;</span><span class="p"></span><span class="p">&gt;</span>  
+      <span class="p">&lt;</span><span class="nt">argumentName</span><span class="p"></span><span class="p">&gt;</span>out arg value<span class="p">&lt;</span><span class="p">/</span><span class="nt">argumentName</span><span class="p">&gt;</span>  
+      <span class="c">&lt;!--</span><span class="c"> other out args and their values go here, if any </span><span class="c">--&gt;</span> 
+    <span class="p">&lt;</span><span class="p">/</span><span class="nt">u:actionNameResponse</span><span class="p">&gt;</span> 
+  <span class="p">&lt;</span><span class="p">/</span><span class="nt">s:Body</span><span class="p">&gt;</span> 
+<span class="p">&lt;</span><span class="p">/</span><span class="nt">s:Envelope</span><span class="p">&gt;</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>4. 设备事件（描述之后即可发生）</strong></p>
+<p>设备状态更改，通知订阅监听事件的的控制点</p>
+<p><strong>5. 展示（描述之后即可发生）</strong></p>
+<p>控制点在获取设备的描述信息后比如url，就可以通过网页的形式展示信息</p>
+<p>我们用来穿透内网的用到的就是步骤 1、2、3，接下来我们就通过代码来演示一下</p>
+<h2 id="heading1">代码演示</h2>
+<p>为了演示，在局域网内部搭建了一个子网，这个子网用于模拟内网，外边的局域网用于模拟外网。内外网各有一台机器 a、b。</p>
+<p>首先获取机器 a 的 ip，执行如下命令，获取到 a 的 ip 为 192.168.0.100</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">$ ifconfig |grep &#34;inet&#34;
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	inet6 fe80::aede:48ff:fe00:1122%en6 prefixlen 64 scopeid 0x5
+	inet6 fe80::828:a93c:e028:17a6%en1 prefixlen 64 secured scopeid 0x7
+	inet 192.168.0.100 netmask 0xffffff00 broadcast 192.168.0.255
+	inet6 fe80::e437:eff:fe97:3ff8%awdl0 prefixlen 64 scopeid 0x9
+	inet6 fe80::e437:eff:fe97:3ff8%llw0 prefixlen 64 scopeid 0xa
+	inet6 fe80::a4a:662a:3383:708f%utun0 prefixlen 64 scopeid 0x10
+	inet6 fe80::6085:579d:d0b6:7aa1%utun1 prefixlen 64 scopeid 0x11
+</code></pre></td></tr></table>
+</div>
+</div><p>外网 b 的 ip 为 192.168.1.73，在内网中测试 b 联通性，访问正常</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">$ ping 192.168.1.73
+PING 192.168.1.73 (192.168.1.73): 56 data bytes
+64 bytes from 192.168.1.73: icmp_seq=0 ttl=63 time=1.706 ms
+64 bytes from 192.168.1.73: icmp_seq=1 ttl=63 time=7.846 ms
+64 bytes from 192.168.1.73: icmp_seq=2 ttl=63 time=1.561 ms
+64 bytes from 192.168.1.73: icmp_seq=3 ttl=63 time=8.108 ms
+</code></pre></td></tr></table>
+</div>
+</div><p>在外网中测试内网 a 的联通性，无法访问，因为此时还未穿透内网，由外网无法访问内网的机器。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">$ ping 192.168.0.100
+PING 192.168.0.100 (192.168.0.100) 56(84) bytes of data.
+
+^C
+--- 192.168.0.100 ping statistics ---
+100 packets transmitted, 0 received, 100% packet loss, time 101364ms
+</code></pre></td></tr></table>
+</div>
+</div><p>我们在机器 a 上运行以下测试代码，这段代码会在发现设备（也就是路由器）之后，将外网的 6666 端口映射到内网 192.168.0.100 的 8888端口，并监听 8888端口：</p>
+<p><em>upnp 协议相关代码使用的是 <a href="https://github.com/btcsuite/btcd/blob/master/upnp.go">btcd</a> 中的。</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">TestDiscover</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">discovered</span> <span class="o">:=</span> <span class="nf">discoverUPnP</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">discovered</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatalf</span><span class="p">(</span><span class="s">&#34;not discovered&#34;</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">upnp</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">discovered</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">upnp</span><span class="p">)</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="nx">upnp</span><span class="p">.</span><span class="nx">service</span><span class="p">)</span>
+	<span class="nx">err</span><span class="o">:=</span><span class="nx">upnp</span><span class="p">.</span><span class="nf">AddMapping</span><span class="p">(</span><span class="s">&#34;tcp&#34;</span><span class="p">,</span> <span class="mi">6666</span><span class="p">,</span> <span class="mi">8888</span><span class="p">,</span>
+		<span class="s">&#34;hcd listen port&#34;</span><span class="p">,</span> <span class="mi">20</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">extIP</span><span class="p">,</span><span class="nx">_</span><span class="o">:=</span><span class="nx">upnp</span><span class="p">.</span><span class="nf">ExternalIP</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;ExternalIP:&#34;</span><span class="p">,</span><span class="nx">extIP</span><span class="p">)</span>
+	<span class="nx">interIP</span><span class="p">,</span><span class="nx">_</span><span class="o">:=</span><span class="nx">upnp</span><span class="p">.</span><span class="nf">internalAddress</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;internalAddress:&#34;</span><span class="p">,</span><span class="nx">interIP</span><span class="p">)</span>
+
+
+	<span class="nx">l</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">net</span><span class="p">.</span><span class="nf">Listen</span><span class="p">(</span><span class="s">&#34;tcp&#34;</span><span class="p">,</span> <span class="s">&#34;:8888&#34;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;listen error:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="k">return</span>
+	<span class="p">}</span>
+
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">client</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">l</span><span class="p">.</span><span class="nf">Accept</span><span class="p">(</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;accept error:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+			<span class="k">break</span>
+		<span class="p">}</span>
+		<span class="c1">// start a new goroutine to handle
+</span><span class="c1"></span>		<span class="c1">// the new connection.
+</span><span class="c1"></span>		<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;a client come:&#34;</span><span class="p">,</span><span class="nx">client</span><span class="p">.</span><span class="nf">RemoteAddr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+		<span class="k">break</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>路由器的外网 ip 为 192.168.1.43，从 b 访问路由器 6666 端口，执行如下命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">telnet 192.168.1.43  6666
+</code></pre></td></tr></table>
+</div>
+</div><p>机器 a 输出如下，说明外网的机器 b 成功穿透了内网访问到了机器 a。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">natupnp_test.go:39: IGDv1-IP1
+natupnp_test.go:46: ExternalIP: 192.168.1.143
+natupnp_test.go:48: internalAddress: 192.168.0.100
+natupnp_test.go:65: a client come: 192.168.1.73:57626
+</code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">大远</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      2019-12-31
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/blog/golang-laws-of-reflect/">
+            <span class="next-text nav-default">Golang 反射三定律</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+
+
+<a href="http://www.tpkeep.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2017 -
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        大远
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.dee43230127a73d039a734510fa896c89c3c7ce0cf0be0c7a7433f8fd69b76dc.js" integrity="sha256-3uQyMBJ6c9A5pzRRD6iWyJw8fODPC&#43;DHp0M/j9abdtw=" crossorigin="anonymous"></script>
+
+
+
+  <script type="text/javascript">
+    window.MathJax = {
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css"
+    integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG"
+    crossorigin="anonymous">
+
+  
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js"
+    integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1"
+    crossorigin="anonymous"></script>
+
+  
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js"
+    integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
+    crossorigin="anonymous" onload="renderMathInElement(document.body);">
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        
+      });
+    });
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

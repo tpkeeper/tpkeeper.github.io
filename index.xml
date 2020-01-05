@@ -6,10 +6,598 @@
     <description>Recent content on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Thu, 26 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 31 Dec 2019 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="http://www.tpkeep.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>P2P对等网络 - upnp实现内网穿透</title>
+      <link>http://www.tpkeep.com/blog/p2p-upnp/</link>
+      <pubDate>Tue, 31 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/p2p-upnp/</guid>
+      
+        <description>&lt;h2 id=&#34;heading&#34;&gt;什么是内网穿透&lt;/h2&gt;
+&lt;p&gt;正常我们使用的电脑都是在局域网内部，我们的 ip 也是私有 ip。当我们请求网页的时候，先通过路由器，然后再到达目的服务器。既然我们自己电脑上的 ip 是私有的，服务器返回的网页是怎么到达我们个人的电脑上的呢？这个其实是路由器帮我们解决了这个问题。当我们的请求到达路由器时，它会将数据包的的原ip地址和端口替换为外网的ip和端口，这个外网的端口是随机产生的没有冲突的。服务端收到消息之后，自然会向这个外网ip和端口发送数据，而路由器会把所有接收到的关于这个外网端口的数据全部发给我们内网的电脑。相当于我们内网的ip+端口映射了一个外网的ip+端口，只要这个映射关系存在，内网就能与外网打通。这个机制其实可以通过 napt 协议自动来实现，无需手动配置。总结起来就是，我们内网向外网请求，然后有一个ip+端口的映射关系，然后就能愉快的上网了。但是有一个问题，就是这个映射关系只有内网才能触发，而且不用的话很快会清除并不会永存。如果外网想随时请求内网里的服务怎么办？我们把这个映射弄成持久的就行了，我们可以去路由器里手动配置这个映射关系，当然我们也可以通过 upnp 协议来自动设置，这样在我们写的程序里，只要发一个upnp 协议的消息就可以设置这个映射关系了。有了这个映射关系，外网甚至是另一个内网就可以通过我们的外网ip+端口，访问我们内网的服务了。也就是达到了所谓的内网穿透。&lt;/p&gt;
+&lt;h2 id=&#34;-upnp&#34;&gt;什么是 upnp&lt;/h2&gt;
+&lt;p&gt;全名为 Universal Plug and Play，通用即插即用，通过 &lt;a href=&#34;https://openconnectivity.org/developer/specifications/upnp-resources/upnp/&#34;&gt;这里&lt;/a&gt; 可以详细了解。这是一套开放的协议，旨在让局域网中的设备能够无缝连接并自动交换控制命令和信息，独立于任何操作系统、编程语言。最大的特点就是&lt;strong&gt;零配置和自动发现&lt;/strong&gt;。具体的协议栈如下：
+&lt;img src=&#34;http://www.tpkeep.com/image/upnp.png&#34; alt=&#34;upnp.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看到，它们是基于互联网中已有的协议，又在上层定义了自己特有的一套协议。该协议栈中分为两个角色，被控制的设备和控制点，被控制的设备类似于一个server，控制点类似于一个client，它们之间通过这套协议通信。这两种都可以在各种类型的设备上实现比如个人电脑、嵌入式设备等。&lt;/p&gt;
+&lt;p&gt;所有的设备先获取ip地址，然后具体的工作过程可分为以下几步：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1. 设备发现&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;通过 ssdp 协议实现，该协议传输层使用 udp 协议，具体内容如下：&lt;/p&gt;
+&lt;p&gt;当控制点加入网络时，发送组播寻找 upnp 设备：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;M-SEARCH * HTTP/1.1  
+HOST: 239.255.255.250:1900  
+MAN: &amp;#34;ssdp:discover&amp;#34;  
+MX: seconds to delay response  
+ST: search target  
+USER-AGENT: OS/version UPnP/2.0 product/version  
+CPFN.UPNP.ORG: friendly name of the control point   
+CPUUID.UPNP.ORG: uuid of the control point 
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;返回：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;HTTP/1.1 200 OK  
+CACHE-CONTROL: max-age = seconds until advertisement expires  
+DATE: when response was generated  
+EXT:  
+LOCATION: URL for UPnP description for root device  
+SERVER: OS/version UPnP/2.0 product/version  
+ST: search target  
+USN: composite identifier for the advertisement  
+BOOTID.UPNP.ORG: number increased each time device sends an initial announce or an update message  
+CONFIGID.UPNP.ORG: number used for caching description information  
+SEARCHPORT.UPNP.ORG: number identifies port on which device responds to unicast M-SEARCH 
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;当 upnp 设备加入网络，发送组播宣告自己的存在：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;NOTIFY * HTTP/1.1  
+HOST: 239.255.255.250:1900  
+LOCATION: URL for UPnP description for root device  
+NT: notification type  
+NTS: ssdp:update  
+USN: composite identifier for the advertisement  
+BOOTID.UPNP.ORG: BOOTID value that the device has used in its previous announcements  
+CONFIGID.UPNP.ORG: number used for caching description information  
+NEXTBOOTID.UPNP.ORG: new BOOTID value that the device will use in subsequent announcements  
+SEARCHPORT.UPNP.ORG: number identifies port on which device responds to unicast M-SEARCH   
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;2. 设备描述&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;控制点获取设备描述，比如 UUID、服务&lt;/p&gt;
+&lt;p&gt;通过 soap 协议实现，该协议是基于 http 协议，传输层使用 tcp 协议，使用 xml 描述设备和服务：&lt;/p&gt;
+&lt;p&gt;设备描述：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;39
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;40
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;41
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;42
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;43
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;44
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;45
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;46
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;47
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span class=&#34;cp&#34;&gt;&amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;utf-8&amp;#34;?&amp;gt;&lt;/span&gt;
+
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;root&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;urn:schemas-upnp-org:device-1-0&amp;#34;&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;configId=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;configuration number&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;specVersion&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;major&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;2&lt;span class=&#34;nt&#34;&gt;&amp;lt;/major&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;minor&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;0&lt;span class=&#34;nt&#34;&gt;&amp;lt;/minor&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/specVersion&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;device&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;deviceType&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;urn:schemas-upnp-org:device:deviceType:v&lt;span class=&#34;nt&#34;&gt;&amp;lt;/deviceType&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;friendlyName&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;short user-friendly title&lt;span class=&#34;nt&#34;&gt;&amp;lt;/friendlyName&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;manufacturer&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;manufacturer name&lt;span class=&#34;nt&#34;&gt;&amp;lt;/manufacturer&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;manufacturerURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL to manufacturer site&lt;span class=&#34;nt&#34;&gt;&amp;lt;/manufacturerURL&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;modelDescription&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;long user-friendly title&lt;span class=&#34;nt&#34;&gt;&amp;lt;/modelDescription&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;modelName&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;model name&lt;span class=&#34;nt&#34;&gt;&amp;lt;/modelName&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;modelNumber&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;model number&lt;span class=&#34;nt&#34;&gt;&amp;lt;/modelNumber&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;modelURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL to model site&lt;span class=&#34;nt&#34;&gt;&amp;lt;/modelURL&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;serialNumber&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;manufacturer&amp;#39;s serial number&lt;span class=&#34;nt&#34;&gt;&amp;lt;/serialNumber&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;UDN&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;uuid:UUID&lt;span class=&#34;nt&#34;&gt;&amp;lt;/UDN&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;UPC&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;Universal Product Code&lt;span class=&#34;nt&#34;&gt;&amp;lt;/UPC&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;iconList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;icon&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;mimetype&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;image/format&lt;span class=&#34;nt&#34;&gt;&amp;lt;/mimetype&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;width&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;horizontal pixels&lt;span class=&#34;nt&#34;&gt;&amp;lt;/width&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;height&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;vertical pixels&lt;span class=&#34;nt&#34;&gt;&amp;lt;/height&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;depth&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;color depth&lt;span class=&#34;nt&#34;&gt;&amp;lt;/depth&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;url&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL to icon&lt;span class=&#34;nt&#34;&gt;&amp;lt;/url&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;/icon&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; XML to declare other icons, if any, go here &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/iconList&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;serviceList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;service&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;serviceType&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;urn:schemas-upnp-org:service:serviceType:v&lt;span class=&#34;nt&#34;&gt;&amp;lt;/serviceType&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;serviceId&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;urn:upnp-org:serviceId:serviceID&lt;span class=&#34;nt&#34;&gt;&amp;lt;/serviceId&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;SCPDURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL to service description&lt;span class=&#34;nt&#34;&gt;&amp;lt;/SCPDURL&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;controlURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL for control&lt;span class=&#34;nt&#34;&gt;&amp;lt;/controlURL&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;eventSubURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL for eventing&lt;span class=&#34;nt&#34;&gt;&amp;lt;/eventSubURL&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;/service&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; Declarations for other services defined by a UPnP Forum working committee          (if any) go here &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; Declarations for other services added by UPnP vendor (if any) go here &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/serviceList&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;deviceList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; Description of embedded devices defined by a UPnP Forum working committee         (if any) go here &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; Description of embedded devices added by UPnP vendor (if any) go here &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/deviceList&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;presentationURL&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;URL for presentation&lt;span class=&#34;nt&#34;&gt;&amp;lt;/presentationURL&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/device&amp;gt;&lt;/span&gt; 
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;/root&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;服务描述：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;37
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;38
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;39
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;40
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;41
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;42
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;43
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;44
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;45
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;46
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;47
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;48
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;49
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;50
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;51
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;52
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;53
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;54
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;55
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;56
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;57
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span class=&#34;cp&#34;&gt;&amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;utf-8&amp;#34;?&amp;gt;&lt;/span&gt;
+
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;scpd&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;urn:schemas-upnp-org:service-1-0&amp;#34;&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns:dt1=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;urn:domain-name:more-datatypes&amp;#34;&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;configId=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;configuration number&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;specVersion&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;major&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;2&lt;span class=&#34;nt&#34;&gt;&amp;lt;/major&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;minor&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;0&lt;span class=&#34;nt&#34;&gt;&amp;lt;/minor&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/specVersion&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;actionList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;action&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;actionName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;argumentList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;argument&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;argumentNameIn1&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;direction&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;in&lt;span class=&#34;nt&#34;&gt;&amp;lt;/direction&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;relatedStateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;stateVariableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/relatedStateVariable&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;/argument&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;argument&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;argumentNameOut1&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;direction&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;out&lt;span class=&#34;nt&#34;&gt;&amp;lt;/direction&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;retval&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;/&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;relatedStateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;stateVariableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/relatedStateVariable&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;/argument&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;argument&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;argumentNameOut2&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;direction&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;out&lt;span class=&#34;nt&#34;&gt;&amp;lt;/direction&amp;gt;&lt;/span&gt;  
+          &lt;span class=&#34;nt&#34;&gt;&amp;lt;relatedStateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;stateVariableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/relatedStateVariable&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;/argument&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;/argumentList&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/action&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/actionList&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;serviceStateTable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;stateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;variableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;dataType&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;basic data type&lt;span class=&#34;nt&#34;&gt;&amp;lt;/dataType&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;defaultValue&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;default value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/defaultValue&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;allowedValueRange&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;minimum&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;minimum value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/minimum&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;maximum&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;maximum value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/maximum&amp;gt;&lt;/span&gt;  
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;step&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;increment value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/step&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;/allowedValueRange&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/stateVariable&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;stateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;variableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;dataType&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;type=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;dt1:variable data type&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;string&lt;span class=&#34;nt&#34;&gt;&amp;lt;/dataType&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;defaultValue&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;default value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/defaultValue&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;allowedValueList&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+        &lt;span class=&#34;nt&#34;&gt;&amp;lt;allowedValue&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;enumerated value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/allowedValue&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;/allowedValueList&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/stateVariable&amp;gt;&lt;/span&gt;  
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;stateVariable&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;name&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;variableName&lt;span class=&#34;nt&#34;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;dataType&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;type=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;dt2:vendor data type&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;string&lt;span class=&#34;nt&#34;&gt;&amp;lt;/dataType&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;defaultValue&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;default value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/defaultValue&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/stateVariable&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/serviceStateTable&amp;gt;&lt;/span&gt; 
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;/scpd&amp;gt;&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;3. 设备控制（描述之后即可发生）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;控制点发送控制命令给设备&lt;/p&gt;
+&lt;p&gt;通过 soap 协议实现，：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;POST path control URL HTTP/1.0  
+HOST: hostname:portNumber  
+CONTENT-LENGTH: bytes in body  
+CONTENT-TYPE: text/xml; charset=&amp;#34;utf-8&amp;#34;  
+USER-AGENT: OS/version UPnP/2.0 product/version  
+SOAPACTION: &amp;#34;urn:schemas-upnp-org:service:serviceType:v#actionName&amp;#34;
+
+&lt;span class=&#34;cp&#34;&gt;&amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;utf-8&amp;#34;?&amp;gt;&lt;/span&gt;
+
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;s:Envelope&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns:s=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;http://schemas.xmlsoap.org/soap/envelope/&amp;#34;&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;s:encodingStyle=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;http://schemas.xmlsoap.org/soap/encoding/&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;s:Body&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;u:actionName&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns:u=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;urn:schemas-upnp-org:service:serviceType:v&amp;#34;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;nt&#34;&gt;&amp;lt;argumentName&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;&amp;gt;&lt;/span&gt;in arg value&lt;span class=&#34;nt&#34;&gt;&amp;lt;/argumentName&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; other in args and their values  go here, if any &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;nt&#34;&gt;&amp;lt;/u:actionName&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;nt&#34;&gt;&amp;lt;/s:Body&amp;gt;&lt;/span&gt; 
+&lt;span class=&#34;nt&#34;&gt;&amp;lt;/s:Envelope&amp;gt;&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;返回：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-html&#34; data-lang=&#34;html&#34;&gt;HTTP/1.0 200 OK  
+CONTENT-TYPE: text/xml; charset=&amp;#34;utf-8&amp;#34;  
+DATE: when response was generated  
+SERVER: OS/version UPnP/2.0 product/version  
+CONTENT-LENGTH: bytes in body
+
+&lt;span class=&#34;cp&#34;&gt;&amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;utf-8&amp;#34;?&amp;gt;&lt;/span&gt;
+
+&lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;s:Envelope&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns:s&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;http://schemas.xmlsoap.org/soap/envelope/&amp;#34;&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;s:encodingStyle&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;http://schemas.xmlsoap.org/soap/encoding/&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt;  
+  &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;s:Body&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;u:actionNameResponse&lt;/span&gt; &lt;span class=&#34;na&#34;&gt;xmlns:u&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;urn:schemas-upnp-org:service:serviceType:v&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;argumentName&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt;out arg value&lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;argumentName&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt;  
+      &lt;span class=&#34;c&#34;&gt;&amp;lt;!--&lt;/span&gt;&lt;span class=&#34;c&#34;&gt; other out args and their values go here, if any &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;--&amp;gt;&lt;/span&gt; 
+    &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;u:actionNameResponse&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt; 
+  &lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;s:Body&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt; 
+&lt;span class=&#34;p&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;s:Envelope&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;4. 设备事件（描述之后即可发生）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;设备状态更改，通知订阅监听事件的的控制点&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;5. 展示（描述之后即可发生）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;控制点在获取设备的描述信息后比如url，就可以通过网页的形式展示信息&lt;/p&gt;
+&lt;p&gt;我们用来穿透内网的用到的就是步骤 1、2、3，接下来我们就通过代码来演示一下&lt;/p&gt;
+&lt;h2 id=&#34;heading1&#34;&gt;代码演示&lt;/h2&gt;
+&lt;p&gt;为了演示，在局域网内部搭建了一个子网，这个子网用于模拟内网，外边的局域网用于模拟外网。内外网各有一台机器 a、b。&lt;/p&gt;
+&lt;p&gt;首先获取机器 a 的 ip，执行如下命令，获取到 a 的 ip 为 192.168.0.100&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ ifconfig |grep &amp;#34;inet&amp;#34;
+	inet 127.0.0.1 netmask 0xff000000
+	inet6 ::1 prefixlen 128
+	inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1
+	inet6 fe80::aede:48ff:fe00:1122%en6 prefixlen 64 scopeid 0x5
+	inet6 fe80::828:a93c:e028:17a6%en1 prefixlen 64 secured scopeid 0x7
+	inet 192.168.0.100 netmask 0xffffff00 broadcast 192.168.0.255
+	inet6 fe80::e437:eff:fe97:3ff8%awdl0 prefixlen 64 scopeid 0x9
+	inet6 fe80::e437:eff:fe97:3ff8%llw0 prefixlen 64 scopeid 0xa
+	inet6 fe80::a4a:662a:3383:708f%utun0 prefixlen 64 scopeid 0x10
+	inet6 fe80::6085:579d:d0b6:7aa1%utun1 prefixlen 64 scopeid 0x11
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;外网 b 的 ip 为 192.168.1.73，在内网中测试 b 联通性，访问正常&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ ping 192.168.1.73
+PING 192.168.1.73 (192.168.1.73): 56 data bytes
+64 bytes from 192.168.1.73: icmp_seq=0 ttl=63 time=1.706 ms
+64 bytes from 192.168.1.73: icmp_seq=1 ttl=63 time=7.846 ms
+64 bytes from 192.168.1.73: icmp_seq=2 ttl=63 time=1.561 ms
+64 bytes from 192.168.1.73: icmp_seq=3 ttl=63 time=8.108 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在外网中测试内网 a 的联通性，无法访问，因为此时还未穿透内网，由外网无法访问内网的机器。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ ping 192.168.0.100
+PING 192.168.0.100 (192.168.0.100) 56(84) bytes of data.
+
+^C
+--- 192.168.0.100 ping statistics ---
+100 packets transmitted, 0 received, 100% packet loss, time 101364ms
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;我们在机器 a 上运行以下测试代码，这段代码会在发现设备（也就是路由器）之后，将外网的 6666 端口映射到内网 192.168.0.100 的 8888端口，并监听 8888端口：&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;upnp 协议相关代码使用的是 &lt;a href=&#34;https://github.com/btcsuite/btcd/blob/master/upnp.go&#34;&gt;btcd&lt;/a&gt; 中的。&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;35
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;36
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;TestDiscover&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;T&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;discovered&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;discoverUPnP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;discovered&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;==&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatalf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;not discovered&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;_&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;discovered&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;service&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;AddMapping&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;6666&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;8888&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;
+		&lt;span class=&#34;s&#34;&gt;&amp;#34;hcd listen port&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;20&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;60&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;extIP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;_&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;ExternalIP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;ExternalIP:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;extIP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;interIP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;_&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;upnp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;internalAddress&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;internalAddress:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;interIP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+
+	&lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;net&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Listen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;s&#34;&gt;&amp;#34;:8888&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;listen error:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;return&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+	&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;l&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Accept&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+			&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;accept error:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+			&lt;span class=&#34;k&#34;&gt;break&lt;/span&gt;
+		&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+		&lt;span class=&#34;c1&#34;&gt;// start a new goroutine to handle
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;		&lt;span class=&#34;c1&#34;&gt;// the new connection.
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;a client come:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;client&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;RemoteAddr&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+		&lt;span class=&#34;k&#34;&gt;break&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;路由器的外网 ip 为 192.168.1.43，从 b 访问路由器 6666 端口，执行如下命令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;telnet 192.168.1.43  6666
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;机器 a 输出如下，说明外网的机器 b 成功穿透了内网访问到了机器 a。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;natupnp_test.go:39: IGDv1-IP1
+natupnp_test.go:46: ExternalIP: 192.168.1.143
+natupnp_test.go:48: internalAddress: 192.168.0.100
+natupnp_test.go:65: a client come: 192.168.1.73:57626
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+      
+    </item>
     
     <item>
       <title>Golang 反射三定律</title>
