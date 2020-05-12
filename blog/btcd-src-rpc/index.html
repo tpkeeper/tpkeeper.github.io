@@ -1,279 +1,79 @@
 <!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>btcd 源码分析系列：7 - rpc - 大远的博客</title>
-  
-
-<meta name="renderer" content="webkit" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-
-<meta name="MobileOptimized" content="width"/>
-<meta name="HandheldFriendly" content="true"/>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.71.0-DEV" />
 
 
-<meta name="applicable-device" content="pc,mobile">
-
-<meta name="theme-color" content="#f8f5ec" />
-<meta name="msapplication-navbutton-color" content="#f8f5ec">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
-
-<meta name="mobile-web-app-capable" content="yes">
-
-<meta name="author" content="大远" />
-  <meta name="description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock" />
+<title>btcd 源码分析系列：7 - rpc - 大远的博客</title>
+<meta property="og:title" content="btcd 源码分析系列：7 - rpc - 大远的博客">
 
 
+  <link href='http://www.tpkeep.com/favicon.jpg' rel='icon' type='image/x-icon'/>
 
-
-
-
-
-<meta name="generator" content="Hugo 0.60.1" />
-
-
-<link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-rpc/" />
-
-
-
-
-
-<link rel="icon" href="/favicon.ico" />
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
-
-
-
-
-
-<meta property="og:title" content="btcd 源码分析系列：7 - rpc" />
-<meta property="og:description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.tpkeep.com/blog/btcd-src-rpc/" />
-<meta property="article:published_time" content="2019-08-30T17:04:40+08:00" />
-<meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
-<meta itemprop="name" content="btcd 源码分析系列：7 - rpc">
-<meta itemprop="description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock">
-<meta itemprop="datePublished" content="2019-08-30T17:04:40&#43;08:00" />
-<meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="985">
-
-
-
-<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="btcd 源码分析系列：7 - rpc"/>
-<meta name="twitter:description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock"/>
-
-<!--[if lte IE 9]>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
-<![endif]-->
-
-<!--[if lt IE 9]>
-  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
-<![endif]-->
-
-
-
-
-</head>
-<body>
-  <div id="mobile-navbar" class="mobile-navbar">
-  <div class="mobile-header-logo">
-    <a href="/" class="logo">大远的博客</a>
-  </div>
-  <div class="mobile-navbar-icon">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-<nav id="mobile-menu" class="mobile-menu slideout-menu">
-  <ul class="mobile-menu-list">
-    <li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-        
-      </li>
-    
-
-    
-  </ul>
-</nav>
 
 
   
 
-  
 
-  
 
-  <header id="header" class="header container">
-    <div class="logo-wrapper">
-  <a href="/" class="logo">
-    
-      大远的博客
-    
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/%3cnil%3e"
+         width=""
+         height=""
+         alt="">
   </a>
-</div>
 
-<nav class="site-navbar">
-  <ul id="menu" class="menu">
+  <ul class="nav-links">
     
+    <li><a href="/">首页</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-
-        
-
-      </li>
+    <li><a href="/post">归档</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-
-        
-
-      </li>
+    <li><a href="/tags">标签</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-
-        
-
-      </li>
+    <li><a href="/categories">分类</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-
-        
-
-      </li>
-    
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-
-        
-
-      </li>
-    
-
-    
-    
-
+    <li><a href="/about">关于</a></li>
     
   </ul>
 </nav>
 
-  </header>
+      </header>
 
-  <div id="mobile-panel">
-    <main id="main" class="main bg-llight">
-      <div class="content-wrapper">
-        <div id="content" class="content container">
-          <article class="post bg-white">
+
+<main class="content" role="main">
+
+  <article class="article">
     
-    <header class="post-header">
-      <h1 class="post-title">btcd 源码分析系列：7 - rpc</h1>
-      
-      <div class="post-meta">
-        <time datetime="2019-08-30" class="post-time">
-          2019-08-30
-        </time>
-        <div class="post-category">
-            
-          </div>
-        <span class="more-meta"> 985 words </span>
-          <span class="more-meta"> 2 min read </span>
+    <span class="article-duration">2 min read</span>
+    
 
-        
-        
-
-        
-        
-      </div>
-    </header>
+    <h1 class="article-title">btcd 源码分析系列：7 - rpc</h1>
 
     
+    <span class="article-date">2019-08-30</span>
     
-<div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">Table of Contents</h2>
-  <div class="post-toc-content">
-    <nav id="TableOfContents">
-  <ul>
-    <li><a href="#start">一、start</a></li>
-    <li><a href="#heading">二、解析参数</a></li>
-    <li><a href="#heading1">三、执行</a></li>
-    <li><a href="#heading2">四、返回</a></li>
-  </ul>
-</nav>
-  </div>
-</div>
 
-    
-    <div class="post-content">
+    <div class="article-content">
       <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/blob/master/rpcserver.go">btcd</a></p>
 </blockquote>
@@ -282,7 +82,7 @@
 <li>websocket通道 支持所有的请求类型，http通道不支持通知类（notify）的请求</li>
 <li>http/websocket是传输协议，json是序列化协议。</li>
 </ul>
-<h2 id="start">一、start</h2>
+<h2 id="一start">一、start</h2>
 <ul>
 <li>
 <p>启动一个server,监听路径&rdquo;/&ldquo;和&rdquo;/ws&rdquo;,分别对应http/websocket。</p>
@@ -292,548 +92,209 @@
 </li>
 <li>
 <p>通过limitConnections（）对单个地址的并发连接数量做限制</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go">    <span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Connection&#34;</span><span class="p">,</span> <span class="s">&#34;close&#34;</span><span class="p">)</span>
-        <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span>
-        <span class="nx">r</span><span class="p">.</span><span class="nx">Close</span> <span class="p">=</span> <span class="kc">true</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">rpcServeMux</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+        <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Header</span>().<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Connection&#34;</span>, <span style="color:#e6db74">&#34;close&#34;</span>)
+        <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Header</span>().<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Type&#34;</span>, <span style="color:#e6db74">&#34;application/json&#34;</span>)
+        <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Close</span> = <span style="color:#66d9ef">true</span>
 
-        <span class="c1">// Limit the number of connections to max allowed.
-</span><span class="c1"></span>        <span class="k">if</span> <span class="nx">s</span><span class="p">.</span><span class="nf">limitConnections</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">RemoteAddr</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span>
-        <span class="p">}</span>
+        <span style="color:#75715e">// Limit the number of connections to max allowed.
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">limitConnections</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">RemoteAddr</span>) {
+            <span style="color:#66d9ef">return</span>
+        }
 
-        <span class="c1">// Keep track of the number of connected clients.
-</span><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nf">incrementClients</span><span class="p">(</span><span class="p">)</span>
-        <span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nf">decrementClients</span><span class="p">(</span><span class="p">)</span>
-        <span class="nx">_</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">checkAuth</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-            <span class="nf">jsonAuthFail</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="p">}</span>
+        <span style="color:#75715e">// Keep track of the number of connected clients.
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">incrementClients</span>()
+        <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">decrementClients</span>()
+        <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">isAdmin</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">checkAuth</span>(<span style="color:#a6e22e">r</span>, <span style="color:#66d9ef">true</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#a6e22e">jsonAuthFail</span>(<span style="color:#a6e22e">w</span>)
+            <span style="color:#66d9ef">return</span>
+        }
 
-        <span class="c1">// Read and respond to the request.
-</span><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nf">jsonRPCRead</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-    <span class="p">}</span><span class="p">)</span>
+        <span style="color:#75715e">// Read and respond to the request.
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">jsonRPCRead</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">isAdmin</span>)
+    })
 
-    <span class="c1">// Websocket endpoint.
-</span><span class="c1"></span>    <span class="nx">rpcServeMux</span><span class="p">.</span><span class="nf">HandleFunc</span><span class="p">(</span><span class="s">&#34;/ws&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">authenticated</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">checkAuth</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-            <span class="nf">jsonAuthFail</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="p">}</span>
+    <span style="color:#75715e">// Websocket endpoint.
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">rpcServeMux</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/ws&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+        <span style="color:#a6e22e">authenticated</span>, <span style="color:#a6e22e">isAdmin</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">checkAuth</span>(<span style="color:#a6e22e">r</span>, <span style="color:#66d9ef">false</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#a6e22e">jsonAuthFail</span>(<span style="color:#a6e22e">w</span>)
+            <span style="color:#66d9ef">return</span>
+        }
 
-        <span class="c1">// Attempt to upgrade the connection to a websocket connection
-</span><span class="c1"></span>        <span class="c1">// using the default size for read/write buffers.
-</span><span class="c1"></span>        <span class="nx">ws</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">websocket</span><span class="p">.</span><span class="nf">Upgrade</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">HandshakeError</span><span class="p">)</span><span class="p">;</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
-                <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Unexpected websocket error: %v&#34;</span><span class="p">,</span>
-                    <span class="nx">err</span><span class="p">)</span>
-            <span class="p">}</span>
-            <span class="nx">http</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="s">&#34;400 Bad Request.&#34;</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusBadRequest</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="p">}</span>
-        <span class="nx">s</span><span class="p">.</span><span class="nf">WebsocketHandler</span><span class="p">(</span><span class="nx">ws</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">RemoteAddr</span><span class="p">,</span> <span class="nx">authenticated</span><span class="p">,</span> <span class="nx">isAdmin</span><span class="p">)</span>
-    <span class="p">}</span><span class="p">)</span>
+        <span style="color:#75715e">// Attempt to upgrade the connection to a websocket connection
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// using the default size for read/write buffers.
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">ws</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">Upgrade</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">websocket</span>.<span style="color:#a6e22e">HandshakeError</span>); !<span style="color:#a6e22e">ok</span> {
+                <span style="color:#a6e22e">rpcsLog</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Unexpected websocket error: %v&#34;</span>,
+                    <span style="color:#a6e22e">err</span>)
+            }
+            <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;400 Bad Request.&#34;</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span>)
+            <span style="color:#66d9ef">return</span>
+        }
+        <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">WebsocketHandler</span>(<span style="color:#a6e22e">ws</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">RemoteAddr</span>, <span style="color:#a6e22e">authenticated</span>, <span style="color:#a6e22e">isAdmin</span>)
+    })
 
-</code></pre></td></tr></table>
-</div>
-</div></li>
+</code></pre></div></li>
 </ul>
-<h2 id="heading">二、解析参数</h2>
+<h2 id="二解析参数">二、解析参数</h2>
 <ul>
 <li>
 <p>通过对body进行unmarshal，可以直接拿到此结构</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Request</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">Jsonrpc</span> <span class="kt">string</span>            <span class="s">`</span><span class="s">json:&#34;jsonrpc&#34;</span><span class="s">`</span>
-    <span class="nx">Method</span>  <span class="kt">string</span>            <span class="s">`</span><span class="s">json:&#34;method&#34;</span><span class="s">`</span>
-    <span class="nx">Params</span>  <span class="p">[</span><span class="p">]</span><span class="nx">json</span><span class="p">.</span><span class="nx">RawMessage</span> <span class="s">`</span><span class="s">json:&#34;params&#34;</span><span class="s">`</span>
-    <span class="nx">ID</span>      <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>       <span class="s">`</span><span class="s">json:&#34;id&#34;</span><span class="s">`</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Request</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">Jsonrpc</span> <span style="color:#66d9ef">string</span>            <span style="color:#e6db74">`json:&#34;jsonrpc&#34;`</span>
+    <span style="color:#a6e22e">Method</span>  <span style="color:#66d9ef">string</span>            <span style="color:#e6db74">`json:&#34;method&#34;`</span>
+    <span style="color:#a6e22e">Params</span>  []<span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">RawMessage</span> <span style="color:#e6db74">`json:&#34;params&#34;`</span>
+    <span style="color:#a6e22e">ID</span>      <span style="color:#66d9ef">interface</span>{}       <span style="color:#e6db74">`json:&#34;id&#34;`</span>
+}
+</code></pre></div></li>
 <li>
 <p>进一步通过反射拿到此结构体，cmd对应method cmd（实际上就是参数）的结构体反射值</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">parsedRPCCmd</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">id</span>     <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
-    <span class="nx">method</span> <span class="kt">string</span>
-    <span class="nx">cmd</span>    <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
-    <span class="nx">err</span>    <span class="o">*</span><span class="nx">hcjson</span><span class="p">.</span><span class="nx">RPCError</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">parsedRPCCmd</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">id</span>     <span style="color:#66d9ef">interface</span>{}
+    <span style="color:#a6e22e">method</span> <span style="color:#66d9ef">string</span>
+    <span style="color:#a6e22e">cmd</span>    <span style="color:#66d9ef">interface</span>{}
+    <span style="color:#a6e22e">err</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">hcjson</span>.<span style="color:#a6e22e">RPCError</span>
+}
+</code></pre></div></li>
 <li>
 <p>一个具体的method,对应的cmd结构体，也就是method的参数</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// CreateRawTransactionCmd defines the createrawtransaction JSON-RPC command.
-</span><span class="c1"></span><span class="kd">type</span> <span class="nx">CreateRawTransactionCmd</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">Inputs</span>   <span class="p">[</span><span class="p">]</span><span class="nx">TransactionInput</span>
-    <span class="nx">Amounts</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">float64</span> <span class="s">`</span><span class="s">jsonrpcusage:&#34;</span><span class="s">{</span><span class="s">\&#34;address\&#34;:amount,...}&#34;</span><span class="s">`</span> <span class="c1">// In HC
-</span><span class="c1"></span>    <span class="nx">LockTime</span> <span class="o">*</span><span class="kt">int64</span>
-    <span class="nx">PayLoad</span>  <span class="o">*</span><span class="kt">string</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// CreateRawTransactionCmd defines the createrawtransaction JSON-RPC command.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">CreateRawTransactionCmd</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">Inputs</span>   []<span style="color:#a6e22e">TransactionInput</span>
+    <span style="color:#a6e22e">Amounts</span>  <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">float64</span> <span style="color:#e6db74">`jsonrpcusage:&#34;{\&#34;address\&#34;:amount,...}&#34;`</span> <span style="color:#75715e">// In HC
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">LockTime</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int64</span>
+    <span style="color:#a6e22e">PayLoad</span>  <span style="color:#f92672">*</span><span style="color:#66d9ef">string</span>
+}
+</code></pre></div></li>
 </ul>
-<h2 id="heading1">三、执行</h2>
+<h2 id="三执行">三、执行</h2>
 <ul>
 <li>
 <p>通过method找到相应的handler，传入之前拿到的参数，并执行</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">)</span> <span class="nf">standardCmdResult</span><span class="p">(</span><span class="nx">cmd</span> <span class="o">*</span><span class="nx">parsedRPCCmd</span><span class="p">,</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">handler</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">rpcHandlers</span><span class="p">[</span><span class="nx">cmd</span><span class="p">.</span><span class="nx">method</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
-        <span class="k">goto</span> <span class="nx">handled</span>
-    <span class="p">}</span>
-    <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="p">=</span> <span class="nx">rpcAskWallet</span><span class="p">[</span><span class="nx">cmd</span><span class="p">.</span><span class="nx">method</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
-        <span class="nx">handler</span> <span class="p">=</span> <span class="nx">handleAskWallet</span>
-        <span class="k">goto</span> <span class="nx">handled</span>
-    <span class="p">}</span>
-    <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="p">=</span> <span class="nx">rpcUnimplemented</span><span class="p">[</span><span class="nx">cmd</span><span class="p">.</span><span class="nx">method</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
-        <span class="nx">handler</span> <span class="p">=</span> <span class="nx">handleUnimplemented</span>
-        <span class="k">goto</span> <span class="nx">handled</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">hcjson</span><span class="p">.</span><span class="nx">ErrRPCMethodNotFound</span>
-<span class="nx">handled</span><span class="p">:</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rpcServer</span>) <span style="color:#a6e22e">standardCmdResult</span>(<span style="color:#a6e22e">cmd</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">parsedRPCCmd</span>, <span style="color:#a6e22e">closeChan</span> <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+    <span style="color:#a6e22e">handler</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rpcHandlers</span>[<span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">method</span>]
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+        <span style="color:#66d9ef">goto</span> <span style="color:#a6e22e">handled</span>
+    }
+    <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> = <span style="color:#a6e22e">rpcAskWallet</span>[<span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">method</span>]
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+        <span style="color:#a6e22e">handler</span> = <span style="color:#a6e22e">handleAskWallet</span>
+        <span style="color:#66d9ef">goto</span> <span style="color:#a6e22e">handled</span>
+    }
+    <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> = <span style="color:#a6e22e">rpcUnimplemented</span>[<span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">method</span>]
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+        <span style="color:#a6e22e">handler</span> = <span style="color:#a6e22e">handleUnimplemented</span>
+        <span style="color:#66d9ef">goto</span> <span style="color:#a6e22e">handled</span>
+    }
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">hcjson</span>.<span style="color:#a6e22e">ErrRPCMethodNotFound</span>
+<span style="color:#a6e22e">handled</span>:
 
-    <span class="k">return</span> <span class="nf">handler</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">cmd</span><span class="p">,</span> <span class="nx">closeChan</span><span class="p">)</span>
-<span class="p">}</span>
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">cmd</span>.<span style="color:#a6e22e">cmd</span>, <span style="color:#a6e22e">closeChan</span>)
+}
 
-</code></pre></td></tr></table>
-</div>
-</div></li>
+</code></pre></div></li>
 <li>
 <p>具体的执行方法</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go">
-<span class="c1">// handleCreateRawTransaction handles createrawtransaction commands.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">handleCreateRawTransaction</span><span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rpcServer</span><span class="p">,</span> <span class="nx">cmd</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="nx">closeChan</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">c</span> <span class="o">:=</span> <span class="nx">cmd</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">hcjson</span><span class="p">.</span><span class="nx">CreateRawTransactionCmd</span><span class="p">)</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
+<span style="color:#75715e">// handleCreateRawTransaction handles createrawtransaction commands.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">handleCreateRawTransaction</span>(<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rpcServer</span>, <span style="color:#a6e22e">cmd</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">closeChan</span> <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+    <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cmd</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">hcjson</span>.<span style="color:#a6e22e">CreateRawTransactionCmd</span>)
 
-    <span class="c1">// Validate the locktime, if given.
-</span><span class="c1"></span>    <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span>
-        <span class="p">(</span><span class="o">*</span><span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="p">&lt;</span> <span class="mi">0</span> <span class="o">||</span>
-            <span class="o">*</span><span class="nx">c</span><span class="p">.</span><span class="nx">LockTime</span> <span class="p">&gt;</span> <span class="nb">int64</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MaxTxInSequenceNum</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nf">rpcInvalidError</span><span class="p">(</span><span class="s">&#34;Locktime out of range&#34;</span><span class="p">)</span>
-    <span class="p">}</span>
+    <span style="color:#75715e">// Validate the locktime, if given.
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">LockTime</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span>
+        (<span style="color:#f92672">*</span><span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">LockTime</span> &lt; <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span>
+            <span style="color:#f92672">*</span><span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">LockTime</span> &gt; int64(<span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">MaxTxInSequenceNum</span>)) {
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">rpcInvalidError</span>(<span style="color:#e6db74">&#34;Locktime out of range&#34;</span>)
+    }
 
-    <span class="c1">// Add all transaction inputs to a new transaction after performing
-</span><span class="c1"></span>    <span class="c1">// some validity checks.
-</span><span class="c1"></span>    <span class="nx">mtx</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgTx</span><span class="p">(</span><span class="p">)</span>
-    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">input</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Inputs</span> <span class="p">{</span>
-        <span class="nx">txHash</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">chainhash</span><span class="p">.</span><span class="nf">NewHashFromStr</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">Txid</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nf">rpcDecodeHexError</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">Txid</span><span class="p">)</span>
-        <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div></li>
+    <span style="color:#75715e">// Add all transaction inputs to a new transaction after performing
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// some validity checks.
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">mtx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">NewMsgTx</span>()
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">input</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Inputs</span> {
+        <span style="color:#a6e22e">txHash</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chainhash</span>.<span style="color:#a6e22e">NewHashFromStr</span>(<span style="color:#a6e22e">input</span>.<span style="color:#a6e22e">Txid</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">rpcDecodeHexError</span>(<span style="color:#a6e22e">input</span>.<span style="color:#a6e22e">Txid</span>)
+        }
+}
+</code></pre></div></li>
 </ul>
-<h2 id="heading2">四、返回</h2>
+<h2 id="四返回">四、返回</h2>
 <ul>
 <li>
 <p>最后将结果序列化并返回，responseID=requestID</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go">    <span class="c1">// Marshal the response.
-</span><span class="c1"></span>    <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">createMarshalledReply</span><span class="p">(</span><span class="nx">responseID</span><span class="p">,</span> <span class="nx">result</span><span class="p">,</span> <span class="nx">jsonErr</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-        <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Failed to marshal reply: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-        <span class="k">return</span>
-    <span class="p">}</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#75715e">// Marshal the response.
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">msg</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">createMarshalledReply</span>(<span style="color:#a6e22e">responseID</span>, <span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">jsonErr</span>)
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        <span style="color:#a6e22e">rpcsLog</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Failed to marshal reply: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+        <span style="color:#66d9ef">return</span>
+    }
 
-    <span class="c1">// Write the response.
-</span><span class="c1"></span>    <span class="nx">err</span> <span class="p">=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">writeHTTPResponseHeaders</span><span class="p">(</span><span class="nx">r</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">,</span> <span class="nx">buf</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-        <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
-        <span class="k">return</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">buf</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-        <span class="nx">rpcsLog</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Failed to write marshalled reply: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-    <span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div></li>
+    <span style="color:#75715e">// Write the response.
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">writeHTTPResponseHeaders</span>(<span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Header</span>(), <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">buf</span>)
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        <span style="color:#a6e22e">rpcsLog</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
+        <span style="color:#66d9ef">return</span>
+    }
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">msg</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        <span style="color:#a6e22e">rpcsLog</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Failed to write marshalled reply: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+    }
+</code></pre></div></li>
 </ul>
 
     </div>
-
-    
-    
-<div class="post-copyright">
-  <p class="copyright-item">
-    <span class="item-title">Author</span>
-    <span class="item-content">大远</span>
-  </p>
-  <p class="copyright-item">
-    <span class="item-title">LastMod</span>
-    <span class="item-content">
-      2019-09-03
-      
-        
-        
-      
-    </span>
-  </p>
-  
-  <p class="copyright-item">
-    <span class="item-title">License</span>
-    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
-  </p>
-</div>
-
-
-    
-    
-
-    <footer class="post-footer">
-      <div class="post-tags">
-          <a href="http://www.tpkeep.com/tags/btcd/">btcd</a>
-          
-        </div>
-
-      
-      <nav class="post-nav">
-        
-          <a class="prev" href="/blog/encryption-overview/">
-            
-            <i class="iconfont">
-              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
-</svg>
-
-            </i>
-            <span class="prev-text nav-default">密码学系列：概述</span>
-            <span class="prev-text nav-mobile">Prev</span>
-          </a>
-        
-          <a class="next" href="/blog/btcd-src-mempool/">
-            <span class="next-text nav-default">btcd 源码分析系列：6 - mempool</span>
-            <span class="prev-text nav-mobile">Next</span>
-            
-            <i class="iconfont">
-              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
-</svg>
-
-            </i>
-          </a>
-      </nav>
-    </footer>
   </article>
 
   
-  
-
-  
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-    
-
-  
-
-        </div>
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="icon-links">
-  
 
 
-<a href="http://www.tpkeep.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
-    class="iconfont" title="rss" target="_blank">
-    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="30" height="30">
-  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
-</svg>
+</main>
 
-  </a>
-   
-</div>
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
 
-<div class="copyright">
-  <span class="power-by">
-    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
-  </span>
-  <span class="division">|</span>
-  <span class="theme-info">
-    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
-  </span>
-
-  <span class="copyright-year">
-    &copy;
-    
-      2017 -
-    2020
-    <span class="heart">
-      
-      <i class="iconfont">
-        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="14" height="14">
-  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
-   fill="#8a8a8a"></path>
-</svg>
-
-      </i>
-    </span><span class="author">
-        大远
-        
-      </span></span>
-
-  
-  
-
-  
-</div>
-
-    </footer>
-
-    <div class="back-to-top" id="back-to-top">
-      <i class="iconfont">
-        
-        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="35" height="35">
-  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
-</svg>
-
-      </i>
     </div>
-  </div>
-  
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+    
 
 
 
-
-<script type="text/javascript" src="/js/main.dee43230127a73d039a734510fa896c89c3c7ce0cf0be0c7a7433f8fd69b76dc.js" integrity="sha256-3uQyMBJ6c9A5pzRRD6iWyJw8fODPC&#43;DHp0M/j9abdtw=" crossorigin="anonymous"></script>
-
-
-
-  <script type="text/javascript">
-    window.MathJax = {
-      showProcessingMessages: false,
-      messageStyle: 'none'
-    };
-  </script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js//highlight.min.js"></script>
 
 
 
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css"
-    integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG"
-    crossorigin="anonymous">
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js"
-    integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1"
-    crossorigin="anonymous"></script>
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js"
-    integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
-    crossorigin="anonymous" onload="renderMathInElement(document.body);">
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      renderMathInElement(document.body, {
-        
-      });
-    });
-  </script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
 
 
 
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166290945-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</body>
+  </body>
 </html>
+

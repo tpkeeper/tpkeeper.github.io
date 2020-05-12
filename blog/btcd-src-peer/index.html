@@ -1,452 +1,169 @@
 <!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>btcd 源码分析系列：4 - p2p网络的peer - 大远的博客</title>
-  
-
-<meta name="renderer" content="webkit" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-
-<meta name="MobileOptimized" content="width"/>
-<meta name="HandheldFriendly" content="true"/>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.71.0-DEV" />
 
 
-<meta name="applicable-device" content="pc,mobile">
-
-<meta name="theme-color" content="#f8f5ec" />
-<meta name="msapplication-navbutton-color" content="#f8f5ec">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
-
-<meta name="mobile-web-app-capable" content="yes">
-
-<meta name="author" content="大远" />
-  <meta name="description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对" />
+<title>btcd 源码分析系列：4 - p2p网络的peer - 大远的博客</title>
+<meta property="og:title" content="btcd 源码分析系列：4 - p2p网络的peer - 大远的博客">
 
 
+  <link href='http://www.tpkeep.com/favicon.jpg' rel='icon' type='image/x-icon'/>
 
-
-
-
-
-<meta name="generator" content="Hugo 0.60.1" />
-
-
-<link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-peer/" />
-
-
-
-
-
-<link rel="icon" href="/favicon.ico" />
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
-
-
-
-
-
-<meta property="og:title" content="btcd 源码分析系列：4 - p2p网络的peer" />
-<meta property="og:description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.tpkeep.com/blog/btcd-src-peer/" />
-<meta property="article:published_time" content="2019-08-30T17:04:14+08:00" />
-<meta property="article:modified_time" content="2019-09-03T14:24:57+08:00" />
-<meta itemprop="name" content="btcd 源码分析系列：4 - p2p网络的peer">
-<meta itemprop="description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对">
-<meta itemprop="datePublished" content="2019-08-30T17:04:14&#43;08:00" />
-<meta itemprop="dateModified" content="2019-09-03T14:24:57&#43;08:00" />
-<meta itemprop="wordCount" content="2587">
-
-
-
-<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="btcd 源码分析系列：4 - p2p网络的peer"/>
-<meta name="twitter:description" content="参考：btcd btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对"/>
-
-<!--[if lte IE 9]>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
-<![endif]-->
-
-<!--[if lt IE 9]>
-  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
-<![endif]-->
-
-
-
-
-</head>
-<body>
-  <div id="mobile-navbar" class="mobile-navbar">
-  <div class="mobile-header-logo">
-    <a href="/" class="logo">大远的博客</a>
-  </div>
-  <div class="mobile-navbar-icon">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-<nav id="mobile-menu" class="mobile-menu slideout-menu">
-  <ul class="mobile-menu-list">
-    <li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-        
-      </li>
-    
-
-    
-  </ul>
-</nav>
 
 
   
 
-  
 
-  
 
-  <header id="header" class="header container">
-    <div class="logo-wrapper">
-  <a href="/" class="logo">
-    
-      大远的博客
-    
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/%3cnil%3e"
+         width=""
+         height=""
+         alt="">
   </a>
-</div>
 
-<nav class="site-navbar">
-  <ul id="menu" class="menu">
+  <ul class="nav-links">
     
+    <li><a href="/">首页</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-
-        
-
-      </li>
+    <li><a href="/post">归档</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-
-        
-
-      </li>
+    <li><a href="/tags">标签</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-
-        
-
-      </li>
+    <li><a href="/categories">分类</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-
-        
-
-      </li>
-    
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-
-        
-
-      </li>
-    
-
-    
-    
-
+    <li><a href="/about">关于</a></li>
     
   </ul>
 </nav>
 
-  </header>
+      </header>
 
-  <div id="mobile-panel">
-    <main id="main" class="main bg-llight">
-      <div class="content-wrapper">
-        <div id="content" class="content container">
-          <article class="post bg-white">
+
+<main class="content" role="main">
+
+  <article class="article">
     
-    <header class="post-header">
-      <h1 class="post-title">btcd 源码分析系列：4 - p2p网络的peer</h1>
-      
-      <div class="post-meta">
-        <time datetime="2019-08-30" class="post-time">
-          2019-08-30
-        </time>
-        <div class="post-category">
-            
-          </div>
-        <span class="more-meta"> 2587 words </span>
-          <span class="more-meta"> 6 min read </span>
+    <span class="article-duration">5 min read</span>
+    
 
-        
-        
-
-        
-        
-      </div>
-    </header>
+    <h1 class="article-title">btcd 源码分析系列：4 - p2p网络的peer</h1>
 
     
+    <span class="article-date">2019-08-30</span>
     
-<div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">Table of Contents</h2>
-  <div class="post-toc-content">
-    <nav id="TableOfContents">
-  <ul>
-    <li><a href="#peer">一、创建peer对象</a></li>
-    <li><a href="#peer1">二、启动peer</a></li>
-    <li><a href="#versioninbound">三、交换协议version（inbound端）</a></li>
-    <li><a href="#heading">发送消息</a></li>
-    <li><a href="#heading1">接收消息</a></li>
-  </ul>
-</nav>
-  </div>
-</div>
 
-    
-    <div class="post-content">
+    <div class="article-content">
       <blockquote>
 <p>参考：<a href="https://github.com/btcsuite/btcd/tree/master/peer">btcd</a></p>
 </blockquote>
 <ul>
 <li>btc在p2p网络中与每一个节点的连接都视为一个peer对象，与该节点的消息交换都是通过该peer进行。本文主要分析peer对象的创建以及wire协议消息的收发机制。对应btcd中package peer，该package主要提供了与其他节点连接建立之后peer的创建，协商，消息处理，以及close功能。</li>
 </ul>
-<h2 id="peer">一、创建peer对象</h2>
+<h2 id="一创建peer对象">一、创建peer对象</h2>
 <p>peer具体分为两种：</p>
 <ul>
 <li>inbound 当connmanager监听到其他节点的请求时创建</li>
 <li>outbound 当connmanager主动连接其他节点时创建</li>
 <li>两者在创建时都使用了newPeerBase()函数，但是outbound 增加了对addr和na属性的初始化</li>
 </ul>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span><span class="lnt">46
-</span><span class="lnt">47
-</span><span class="lnt">48
-</span><span class="lnt">49
-</span><span class="lnt">50
-</span><span class="lnt">51
-</span><span class="lnt">52
-</span><span class="lnt">53
-</span><span class="lnt">54
-</span><span class="lnt">55
-</span><span class="lnt">56
-</span><span class="lnt">57
-</span><span class="lnt">58
-</span><span class="lnt">59
-</span><span class="lnt">60
-</span><span class="lnt">61
-</span><span class="lnt">62
-</span><span class="lnt">63
-</span><span class="lnt">64
-</span><span class="lnt">65
-</span><span class="lnt">66
-</span><span class="lnt">67
-</span><span class="lnt">68
-</span><span class="lnt">69
-</span><span class="lnt">70
-</span><span class="lnt">71
-</span><span class="lnt">72
-</span><span class="lnt">73
-</span><span class="lnt">74
-</span><span class="lnt">75
-</span><span class="lnt">76
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// NewInboundPeer returns a new inbound bitcoin peer. Use Start to begin
-</span><span class="c1"></span><span class="c1">// processing incoming and outgoing messages.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewInboundPeer</span><span class="p">(</span><span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="o">*</span><span class="nx">Peer</span> <span class="p">{</span>
-	<span class="k">return</span> <span class="nf">newPeerBase</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
-<span class="p">}</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// NewInboundPeer returns a new inbound bitcoin peer. Use Start to begin
+</span><span style="color:#75715e">// processing incoming and outgoing messages.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewInboundPeer</span>(<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Config</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">newPeerBase</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#66d9ef">true</span>)
+}
 
-<span class="c1">// NewOutboundPeer returns a new outbound bitcoin peer.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewOutboundPeer</span><span class="p">(</span><span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">,</span> <span class="nx">addr</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">Peer</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">p</span> <span class="o">:=</span> <span class="nf">newPeerBase</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">addr</span> <span class="p">=</span> <span class="nx">addr</span>
+<span style="color:#75715e">// NewOutboundPeer returns a new outbound bitcoin peer.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewOutboundPeer</span>(<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Config</span>, <span style="color:#a6e22e">addr</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">newPeerBase</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#66d9ef">false</span>)
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">addr</span> = <span style="color:#a6e22e">addr</span>
 
-	<span class="nx">host</span><span class="p">,</span> <span class="nx">portStr</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">net</span><span class="p">.</span><span class="nf">SplitHostPort</span><span class="p">(</span><span class="nx">addr</span><span class="p">)</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
-	<span class="p">}</span>
+	<span style="color:#a6e22e">host</span>, <span style="color:#a6e22e">portStr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">SplitHostPort</span>(<span style="color:#a6e22e">addr</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
 
-	<span class="nx">port</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">ParseUint</span><span class="p">(</span><span class="nx">portStr</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
-	<span class="p">}</span>
+	<span style="color:#a6e22e">port</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseUint</span>(<span style="color:#a6e22e">portStr</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">16</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
 
-	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">HostToNetAddress</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="nx">na</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">cfg</span><span class="p">.</span><span class="nf">HostToNetAddress</span><span class="p">(</span><span class="nx">host</span><span class="p">,</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">)</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
-		<span class="p">}</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">na</span> <span class="p">=</span> <span class="nx">na</span>
-	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">na</span> <span class="p">=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewNetAddressIPPort</span><span class="p">(</span><span class="nx">net</span><span class="p">.</span><span class="nf">ParseIP</span><span class="p">(</span><span class="nx">host</span><span class="p">)</span><span class="p">,</span> <span class="nb">uint16</span><span class="p">(</span><span class="nx">port</span><span class="p">)</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-	<span class="p">}</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">HostToNetAddress</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">na</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">HostToNetAddress</span>(<span style="color:#a6e22e">host</span>, uint16(<span style="color:#a6e22e">port</span>), <span style="color:#ae81ff">0</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">na</span> = <span style="color:#a6e22e">na</span>
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">na</span> = <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">NewNetAddressIPPort</span>(<span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">ParseIP</span>(<span style="color:#a6e22e">host</span>), uint16(<span style="color:#a6e22e">port</span>), <span style="color:#ae81ff">0</span>)
+	}
 
-	<span class="k">return</span> <span class="nx">p</span><span class="p">,</span> <span class="kc">nil</span>
-<span class="p">}</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">p</span>, <span style="color:#66d9ef">nil</span>
+}
 
 
-<span class="c1">// newPeerBase returns a new base bitcoin peer based on the inbound flag.  This
-</span><span class="c1"></span><span class="c1">// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
-</span><span class="c1"></span><span class="c1">// setup needed by both types of peers.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">newPeerBase</span><span class="p">(</span><span class="nx">origCfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">,</span> <span class="nx">inbound</span> <span class="kt">bool</span><span class="p">)</span> <span class="o">*</span><span class="nx">Peer</span> <span class="p">{</span>
-	<span class="c1">// Default to the max supported protocol version if not specified by the
-</span><span class="c1"></span>	<span class="c1">// caller.
-</span><span class="c1"></span>	<span class="nx">cfg</span> <span class="o">:=</span> <span class="o">*</span><span class="nx">origCfg</span> <span class="c1">// Copy to avoid mutating caller.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
-		<span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span> <span class="p">=</span> <span class="nx">MaxProtocolVersion</span>
-	<span class="p">}</span>
+<span style="color:#75715e">// newPeerBase returns a new base bitcoin peer based on the inbound flag.  This
+</span><span style="color:#75715e">// is used by the NewInboundPeer and NewOutboundPeer functions to perform base
+</span><span style="color:#75715e">// setup needed by both types of peers.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">newPeerBase</span>(<span style="color:#a6e22e">origCfg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Config</span>, <span style="color:#a6e22e">inbound</span> <span style="color:#66d9ef">bool</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span> {
+	<span style="color:#75715e">// Default to the max supported protocol version if not specified by the
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// caller.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">origCfg</span> <span style="color:#75715e">// Copy to avoid mutating caller.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ProtocolVersion</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ProtocolVersion</span> = <span style="color:#a6e22e">MaxProtocolVersion</span>
+	}
 
-	<span class="c1">// Set the chain parameters to testnet if the caller did not specify any.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ChainParams</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="nx">cfg</span><span class="p">.</span><span class="nx">ChainParams</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">chaincfg</span><span class="p">.</span><span class="nx">TestNet3Params</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Set the chain parameters to testnet if the caller did not specify any.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ChainParams</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ChainParams</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">chaincfg</span>.<span style="color:#a6e22e">TestNet3Params</span>
+	}
 
-	<span class="c1">// Set the trickle interval if a non-positive value is specified.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">TrickleInterval</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
-		<span class="nx">cfg</span><span class="p">.</span><span class="nx">TrickleInterval</span> <span class="p">=</span> <span class="nx">DefaultTrickleInterval</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Set the trickle interval if a non-positive value is specified.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">TrickleInterval</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">TrickleInterval</span> = <span style="color:#a6e22e">DefaultTrickleInterval</span>
+	}
 
-	<span class="nx">p</span> <span class="o">:=</span> <span class="nx">Peer</span><span class="p">{</span>
-		<span class="nx">inbound</span><span class="p">:</span>         <span class="nx">inbound</span><span class="p">,</span>
-		<span class="nx">wireEncoding</span><span class="p">:</span>    <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">,</span>
-		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span>   <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">cfg</span><span class="p">:</span>             <span class="nx">cfg</span><span class="p">,</span> <span class="c1">// Copy so caller can&#39;t mutate.
-</span><span class="c1"></span>		<span class="nx">services</span><span class="p">:</span>        <span class="nx">cfg</span><span class="p">.</span><span class="nx">Services</span><span class="p">,</span>
-		<span class="nx">protocolVersion</span><span class="p">:</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">,</span>
-	<span class="p">}</span>
-	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">p</span>
-<span class="p">}</span>
+	<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Peer</span>{
+		<span style="color:#a6e22e">inbound</span>:         <span style="color:#a6e22e">inbound</span>,
+		<span style="color:#a6e22e">wireEncoding</span>:    <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">BaseEncoding</span>,
+		<span style="color:#a6e22e">knownInventory</span>:  <span style="color:#a6e22e">newMruInventoryMap</span>(<span style="color:#a6e22e">maxKnownInventory</span>),
+		<span style="color:#a6e22e">stallControl</span>:    make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">stallControlMsg</span>, <span style="color:#ae81ff">1</span>), <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">outputQueue</span>:     make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">outMsg</span>, <span style="color:#a6e22e">outputBufferSize</span>),
+		<span style="color:#a6e22e">sendQueue</span>:       make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">outMsg</span>, <span style="color:#ae81ff">1</span>),   <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendDoneQueue</span>:   make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}, <span style="color:#ae81ff">1</span>), <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">outputInvChan</span>:   make(<span style="color:#66d9ef">chan</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">InvVect</span>, <span style="color:#a6e22e">outputBufferSize</span>),
+		<span style="color:#a6e22e">inQuit</span>:          make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">queueQuit</span>:       make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">outQuit</span>:         make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">quit</span>:            make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">cfg</span>:             <span style="color:#a6e22e">cfg</span>, <span style="color:#75715e">// Copy so caller can&#39;t mutate.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">services</span>:        <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Services</span>,
+		<span style="color:#a6e22e">protocolVersion</span>: <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ProtocolVersion</span>,
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">p</span>
+}
 
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="peer1">二、启动peer</h2>
+</code></pre></div><h2 id="二启动peer">二、启动peer</h2>
 <p>启动顺序</p>
 <ol>
 <li>通过versionMsg交换协议版本，进行protocol version判断（如果是outbound先发送自己的version再读取对方的，如果是inbound则反之）</li>
@@ -461,89 +178,45 @@
 </li>
 <li>最后发送verAck确认，完成握手</li>
 </ol>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// start begins processing input and output messages.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">start</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Tracef</span><span class="p">(</span><span class="s">&#34;Starting peer %s&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// start begins processing input and output messages.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">start</span>() <span style="color:#66d9ef">error</span> {
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Tracef</span>(<span style="color:#e6db74">&#34;Starting peer %s&#34;</span>, <span style="color:#a6e22e">p</span>)
 
-	<span class="nx">negotiateErr</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">error</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-	<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">inbound</span> <span class="p">{</span>
-			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateInboundProtocol</span><span class="p">(</span><span class="p">)</span>
-		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-			<span class="nx">negotiateErr</span> <span class="o">&lt;-</span> <span class="nx">p</span><span class="p">.</span><span class="nf">negotiateOutboundProtocol</span><span class="p">(</span><span class="p">)</span>
-		<span class="p">}</span>
-	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
+	<span style="color:#a6e22e">negotiateErr</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">error</span>, <span style="color:#ae81ff">1</span>)
+	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">inbound</span> {
+			<span style="color:#a6e22e">negotiateErr</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">negotiateInboundProtocol</span>()
+		} <span style="color:#66d9ef">else</span> {
+			<span style="color:#a6e22e">negotiateErr</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">negotiateOutboundProtocol</span>()
+		}
+	}()
 
-	<span class="c1">// Negotiate the protocol within the specified negotiateTimeout.
-</span><span class="c1"></span>	<span class="k">select</span> <span class="p">{</span>
-	<span class="k">case</span> <span class="nx">err</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">negotiateErr</span><span class="p">:</span>
-		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
-			<span class="k">return</span> <span class="nx">err</span>
-		<span class="p">}</span>
-	<span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="nx">negotiateTimeout</span><span class="p">)</span><span class="p">:</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
-		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;protocol negotiation timeout&#34;</span><span class="p">)</span>
-	<span class="p">}</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Connected to %s&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Addr</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+	<span style="color:#75715e">// Negotiate the protocol within the specified negotiateTimeout.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">select</span> {
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">negotiateErr</span>:
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Disconnect</span>()
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+	<span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">After</span>(<span style="color:#a6e22e">negotiateTimeout</span>):
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Disconnect</span>()
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;protocol negotiation timeout&#34;</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;Connected to %s&#34;</span>, <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Addr</span>())
 
-	<span class="c1">// The protocol has been negotiated successfully so start processing input
-</span><span class="c1"></span>	<span class="c1">// and output messages.
-</span><span class="c1"></span>	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">stallHandler</span><span class="p">(</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">inHandler</span><span class="p">(</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">queueHandler</span><span class="p">(</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">outHandler</span><span class="p">(</span><span class="p">)</span>
-	<span class="k">go</span> <span class="nx">p</span><span class="p">.</span><span class="nf">pingHandler</span><span class="p">(</span><span class="p">)</span>
+	<span style="color:#75715e">// The protocol has been negotiated successfully so start processing input
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// and output messages.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">stallHandler</span>()
+	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">inHandler</span>()
+	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">queueHandler</span>()
+	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">outHandler</span>()
+	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">pingHandler</span>()
 
-	<span class="c1">// Send our verack message now that the IO processing machinery has started.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgVerAck</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
-	<span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="versioninbound">三、交换协议version（inbound端）</h2>
+	<span style="color:#75715e">// Send our verack message now that the IO processing machinery has started.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">QueueMessage</span>(<span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">NewMsgVerAck</span>(), <span style="color:#66d9ef">nil</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><h2 id="三交换协议versioninbound端">三、交换协议version（inbound端）</h2>
 <p>主要流程：</p>
 <ul>
 <li>读取接收的协议</li>
@@ -556,231 +229,116 @@
 <li>回调onVersion()方法</li>
 <li>判断版本是否符合要求</li>
 </ul>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">  1
-</span><span class="lnt">  2
-</span><span class="lnt">  3
-</span><span class="lnt">  4
-</span><span class="lnt">  5
-</span><span class="lnt">  6
-</span><span class="lnt">  7
-</span><span class="lnt">  8
-</span><span class="lnt">  9
-</span><span class="lnt"> 10
-</span><span class="lnt"> 11
-</span><span class="lnt"> 12
-</span><span class="lnt"> 13
-</span><span class="lnt"> 14
-</span><span class="lnt"> 15
-</span><span class="lnt"> 16
-</span><span class="lnt"> 17
-</span><span class="lnt"> 18
-</span><span class="lnt"> 19
-</span><span class="lnt"> 20
-</span><span class="lnt"> 21
-</span><span class="lnt"> 22
-</span><span class="lnt"> 23
-</span><span class="lnt"> 24
-</span><span class="lnt"> 25
-</span><span class="lnt"> 26
-</span><span class="lnt"> 27
-</span><span class="lnt"> 28
-</span><span class="lnt"> 29
-</span><span class="lnt"> 30
-</span><span class="lnt"> 31
-</span><span class="lnt"> 32
-</span><span class="lnt"> 33
-</span><span class="lnt"> 34
-</span><span class="lnt"> 35
-</span><span class="lnt"> 36
-</span><span class="lnt"> 37
-</span><span class="lnt"> 38
-</span><span class="lnt"> 39
-</span><span class="lnt"> 40
-</span><span class="lnt"> 41
-</span><span class="lnt"> 42
-</span><span class="lnt"> 43
-</span><span class="lnt"> 44
-</span><span class="lnt"> 45
-</span><span class="lnt"> 46
-</span><span class="lnt"> 47
-</span><span class="lnt"> 48
-</span><span class="lnt"> 49
-</span><span class="lnt"> 50
-</span><span class="lnt"> 51
-</span><span class="lnt"> 52
-</span><span class="lnt"> 53
-</span><span class="lnt"> 54
-</span><span class="lnt"> 55
-</span><span class="lnt"> 56
-</span><span class="lnt"> 57
-</span><span class="lnt"> 58
-</span><span class="lnt"> 59
-</span><span class="lnt"> 60
-</span><span class="lnt"> 61
-</span><span class="lnt"> 62
-</span><span class="lnt"> 63
-</span><span class="lnt"> 64
-</span><span class="lnt"> 65
-</span><span class="lnt"> 66
-</span><span class="lnt"> 67
-</span><span class="lnt"> 68
-</span><span class="lnt"> 69
-</span><span class="lnt"> 70
-</span><span class="lnt"> 71
-</span><span class="lnt"> 72
-</span><span class="lnt"> 73
-</span><span class="lnt"> 74
-</span><span class="lnt"> 75
-</span><span class="lnt"> 76
-</span><span class="lnt"> 77
-</span><span class="lnt"> 78
-</span><span class="lnt"> 79
-</span><span class="lnt"> 80
-</span><span class="lnt"> 81
-</span><span class="lnt"> 82
-</span><span class="lnt"> 83
-</span><span class="lnt"> 84
-</span><span class="lnt"> 85
-</span><span class="lnt"> 86
-</span><span class="lnt"> 87
-</span><span class="lnt"> 88
-</span><span class="lnt"> 89
-</span><span class="lnt"> 90
-</span><span class="lnt"> 91
-</span><span class="lnt"> 92
-</span><span class="lnt"> 93
-</span><span class="lnt"> 94
-</span><span class="lnt"> 95
-</span><span class="lnt"> 96
-</span><span class="lnt"> 97
-</span><span class="lnt"> 98
-</span><span class="lnt"> 99
-</span><span class="lnt">100
-</span><span class="lnt">101
-</span><span class="lnt">102
-</span><span class="lnt">103
-</span><span class="lnt">104
-</span><span class="lnt">105
-</span><span class="lnt">106
-</span><span class="lnt">107
-</span><span class="lnt">108
-</span><span class="lnt">109
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// negotiateInboundProtocol waits to receive a version message from the peer
-</span><span class="c1"></span><span class="c1">// then sends our version message. If the events do not occur in that order then
-</span><span class="c1"></span><span class="c1">// it returns an error.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">negotiateInboundProtocol</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readRemoteVersionMsg</span><span class="p">(</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">err</span>
-	<span class="p">}</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// negotiateInboundProtocol waits to receive a version message from the peer
+</span><span style="color:#75715e">// then sends our version message. If the events do not occur in that order then
+</span><span style="color:#75715e">// it returns an error.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">negotiateInboundProtocol</span>() <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">readRemoteVersionMsg</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
 
-	<span class="k">return</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeLocalVersionMsg</span><span class="p">(</span><span class="p">)</span>
-<span class="p">}</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">writeLocalVersionMsg</span>()
+}
 
 
-<span class="c1">// readRemoteVersionMsg waits for the next message to arrive from the remote
-</span><span class="c1"></span><span class="c1">// peer.  If the next message is not a version message or the version is not
-</span><span class="c1"></span><span class="c1">// acceptable then return an error.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">readRemoteVersionMsg</span><span class="p">(</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="c1">// Read their version message.
-</span><span class="c1"></span>	<span class="nx">remoteMsg</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readMessage</span><span class="p">(</span><span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">err</span>
-	<span class="p">}</span>
+<span style="color:#75715e">// readRemoteVersionMsg waits for the next message to arrive from the remote
+</span><span style="color:#75715e">// peer.  If the next message is not a version message or the version is not
+</span><span style="color:#75715e">// acceptable then return an error.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">readRemoteVersionMsg</span>() <span style="color:#66d9ef">error</span> {
+	<span style="color:#75715e">// Read their version message.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">remoteMsg</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">readMessage</span>(<span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">LatestEncoding</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
 
-	<span class="c1">// Notify and disconnect clients if the first message is not a version
-</span><span class="c1"></span>	<span class="c1">// message.
-</span><span class="c1"></span>	<span class="nx">msg</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">remoteMsg</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVersion</span><span class="p">)</span>
-	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
-		<span class="nx">reason</span> <span class="o">:=</span> <span class="s">&#34;a version message must precede all others&#34;</span>
-		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectMalformed</span><span class="p">,</span>
-			<span class="nx">reason</span><span class="p">)</span>
-		<span class="nx">_</span> <span class="p">=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeMessage</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
-		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">reason</span><span class="p">)</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Notify and disconnect clients if the first message is not a version
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// message.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">msg</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">remoteMsg</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">MsgVersion</span>)
+	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+		<span style="color:#a6e22e">reason</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;a version message must precede all others&#34;</span>
+		<span style="color:#a6e22e">rejectMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">NewMsgReject</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Command</span>(), <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">RejectMalformed</span>,
+			<span style="color:#a6e22e">reason</span>)
+		<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">writeMessage</span>(<span style="color:#a6e22e">rejectMsg</span>, <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">LatestEncoding</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">reason</span>)
+	}
 
-	<span class="c1">// Detect self connections.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nx">allowSelfConns</span> <span class="o">&amp;&amp;</span> <span class="nx">sentNonces</span><span class="p">.</span><span class="nf">Exists</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">Nonce</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;disconnecting peer connected to self&#34;</span><span class="p">)</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Detect self connections.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">allowSelfConns</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">sentNonces</span>.<span style="color:#a6e22e">Exists</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Nonce</span>) {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;disconnecting peer connected to self&#34;</span>)
+	}
 
-	<span class="c1">// Negotiate the protocol version and set the services to what the remote
-</span><span class="c1"></span>	<span class="c1">// peer advertised.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">advertisedProtoVer</span> <span class="p">=</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span> <span class="p">=</span> <span class="nf">minUint32</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nx">advertisedProtoVer</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">versionKnown</span> <span class="p">=</span> <span class="kc">true</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">services</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Services</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">log</span><span class="p">.</span><span class="nf">Debugf</span><span class="p">(</span><span class="s">&#34;Negotiated protocol version %d for peer %s&#34;</span><span class="p">,</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">protocolVersion</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
+	<span style="color:#75715e">// Negotiate the protocol version and set the services to what the remote
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// peer advertised.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">advertisedProtoVer</span> = uint32(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">ProtocolVersion</span>)
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">protocolVersion</span> = <span style="color:#a6e22e">minUint32</span>(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">protocolVersion</span>, <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">advertisedProtoVer</span>)
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">versionKnown</span> = <span style="color:#66d9ef">true</span>
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">services</span> = <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Services</span>
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Unlock</span>()
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;Negotiated protocol version %d for peer %s&#34;</span>,
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">protocolVersion</span>, <span style="color:#a6e22e">p</span>)
 
-	<span class="c1">// Updating a bunch of stats including block based stats, and the
-</span><span class="c1"></span>	<span class="c1">// peer&#39;s time offset.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">lastBlock</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">LastBlock</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">startingHeight</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">LastBlock</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">timeOffset</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Timestamp</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span> <span class="o">-</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">statsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
+	<span style="color:#75715e">// Updating a bunch of stats including block based stats, and the
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// peer&#39;s time offset.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">statsMtx</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">lastBlock</span> = <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">LastBlock</span>
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">startingHeight</span> = <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">LastBlock</span>
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">timeOffset</span> = <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Timestamp</span>.<span style="color:#a6e22e">Unix</span>() <span style="color:#f92672">-</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>()
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">statsMtx</span>.<span style="color:#a6e22e">Unlock</span>()
 
-	<span class="c1">// Set the peer&#39;s ID, user agent, and potentially the flag which
-</span><span class="c1"></span>	<span class="c1">// specifies the witness support is enabled.
-</span><span class="c1"></span>	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">id</span> <span class="p">=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">nodeCount</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">userAgent</span> <span class="p">=</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">UserAgent</span>
+	<span style="color:#75715e">// Set the peer&#39;s ID, user agent, and potentially the flag which
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// specifies the witness support is enabled.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">id</span> = <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">nodeCount</span>, <span style="color:#ae81ff">1</span>)
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">userAgent</span> = <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">UserAgent</span>
 
-	<span class="c1">// Determine if the peer would like to receive witness data with
-</span><span class="c1"></span>	<span class="c1">// transactions, or not.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">services</span><span class="o">&amp;</span><span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="o">==</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="p">{</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">witnessEnabled</span> <span class="p">=</span> <span class="kc">true</span>
-	<span class="p">}</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
+	<span style="color:#75715e">// Determine if the peer would like to receive witness data with
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// transactions, or not.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">services</span><span style="color:#f92672">&amp;</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">SFNodeWitness</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">SFNodeWitness</span> {
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">witnessEnabled</span> = <span style="color:#66d9ef">true</span>
+	}
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Unlock</span>()
 
-	<span class="c1">// Once the version message has been exchanged, we&#39;re able to determine
-</span><span class="c1"></span>	<span class="c1">// if this peer knows how to encode witness data over the wire
-</span><span class="c1"></span>	<span class="c1">// protocol. If so, then we&#39;ll switch to a decoding mode which is
-</span><span class="c1"></span>	<span class="c1">// prepared for the new transaction format introduced as part of
-</span><span class="c1"></span>	<span class="c1">// BIP0144.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">services</span><span class="o">&amp;</span><span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="o">==</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">SFNodeWitness</span> <span class="p">{</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">wireEncoding</span> <span class="p">=</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">WitnessEncoding</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Once the version message has been exchanged, we&#39;re able to determine
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// if this peer knows how to encode witness data over the wire
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// protocol. If so, then we&#39;ll switch to a decoding mode which is
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// prepared for the new transaction format introduced as part of
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// BIP0144.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">services</span><span style="color:#f92672">&amp;</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">SFNodeWitness</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">SFNodeWitness</span> {
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">wireEncoding</span> = <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">WitnessEncoding</span>
+	}
 
-	<span class="c1">// Invoke the callback if specified.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nx">OnVersion</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nf">OnVersion</span><span class="p">(</span><span class="nx">p</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
-		<span class="k">if</span> <span class="nx">rejectMsg</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="nx">_</span> <span class="p">=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeMessage</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
-			<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">.</span><span class="nx">Reason</span><span class="p">)</span>
-		<span class="p">}</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Invoke the callback if specified.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Listeners</span>.<span style="color:#a6e22e">OnVersion</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">rejectMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Listeners</span>.<span style="color:#a6e22e">OnVersion</span>(<span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">msg</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">rejectMsg</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">writeMessage</span>(<span style="color:#a6e22e">rejectMsg</span>, <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">LatestEncoding</span>)
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">rejectMsg</span>.<span style="color:#a6e22e">Reason</span>)
+		}
+	}
 
-	<span class="c1">// Notify and disconnect clients that have a protocol version that is
-</span><span class="c1"></span>	<span class="c1">// too old.
-</span><span class="c1"></span>	<span class="c1">//
-</span><span class="c1"></span>	<span class="c1">// NOTE: If minAcceptableProtocolVersion is raised to be higher than
-</span><span class="c1"></span>	<span class="c1">// wire.RejectVersion, this should send a reject packet before
-</span><span class="c1"></span>	<span class="c1">// disconnecting.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="nb">uint32</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">)</span> <span class="p">&lt;</span> <span class="nx">MinAcceptableProtocolVersion</span> <span class="p">{</span>
-		<span class="c1">// Send a reject message indicating the protocol version is
-</span><span class="c1"></span>		<span class="c1">// obsolete and wait for the message to be sent before
-</span><span class="c1"></span>		<span class="c1">// disconnecting.
-</span><span class="c1"></span>		<span class="nx">reason</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;protocol version must be %d or greater&#34;</span><span class="p">,</span>
-			<span class="nx">MinAcceptableProtocolVersion</span><span class="p">)</span>
-		<span class="nx">rejectMsg</span> <span class="o">:=</span> <span class="nx">wire</span><span class="p">.</span><span class="nf">NewMsgReject</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectObsolete</span><span class="p">,</span>
-			<span class="nx">reason</span><span class="p">)</span>
-		<span class="nx">_</span> <span class="p">=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">writeMessage</span><span class="p">(</span><span class="nx">rejectMsg</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">LatestEncoding</span><span class="p">)</span>
-		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">reason</span><span class="p">)</span>
-	<span class="p">}</span>
+	<span style="color:#75715e">// Notify and disconnect clients that have a protocol version that is
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// too old.
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">//
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// NOTE: If minAcceptableProtocolVersion is raised to be higher than
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// wire.RejectVersion, this should send a reject packet before
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// disconnecting.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> uint32(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">ProtocolVersion</span>) &lt; <span style="color:#a6e22e">MinAcceptableProtocolVersion</span> {
+		<span style="color:#75715e">// Send a reject message indicating the protocol version is
+</span><span style="color:#75715e"></span>		<span style="color:#75715e">// obsolete and wait for the message to be sent before
+</span><span style="color:#75715e"></span>		<span style="color:#75715e">// disconnecting.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">reason</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;protocol version must be %d or greater&#34;</span>,
+			<span style="color:#a6e22e">MinAcceptableProtocolVersion</span>)
+		<span style="color:#a6e22e">rejectMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">NewMsgReject</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Command</span>(), <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">RejectObsolete</span>,
+			<span style="color:#a6e22e">reason</span>)
+		<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">writeMessage</span>(<span style="color:#a6e22e">rejectMsg</span>, <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">LatestEncoding</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">reason</span>)
+	}
 
-	<span class="k">return</span> <span class="kc">nil</span>
-<span class="p">}</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
 
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="heading">发送消息</h2>
+</code></pre></div><h2 id="发送消息">发送消息</h2>
 <ul>
 <li>发送消息的直接入口是QueueMessage()方法</li>
 <li>outMesage 被发送到了outputQueue队列（带缓冲的channel）</li>
@@ -793,101 +351,48 @@
 </li>
 <li>stallhandler 对stallContol 处理</li>
 </ul>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// QueueMessage adds the passed bitcoin message to the peer send queue.
-</span><span class="c1"></span><span class="c1">//
-</span><span class="c1"></span><span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessage</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nf">QueueMessageWithEncoding</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">doneChan</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">)</span>
-<span class="p">}</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// QueueMessage adds the passed bitcoin message to the peer send queue.
+</span><span style="color:#75715e">//
+</span><span style="color:#75715e">// This function is safe for concurrent access.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">QueueMessage</span>(<span style="color:#a6e22e">msg</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">Message</span>, <span style="color:#a6e22e">doneChan</span> <span style="color:#66d9ef">chan</span><span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">struct</span>{}) {
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">QueueMessageWithEncoding</span>(<span style="color:#a6e22e">msg</span>, <span style="color:#a6e22e">doneChan</span>, <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">BaseEncoding</span>)
+}
 
-<span class="c1">// This function is safe for concurrent access.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">QueueMessageWithEncoding</span><span class="p">(</span><span class="nx">msg</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="nx">doneChan</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span>
-	<span class="nx">encoding</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">MessageEncoding</span><span class="p">)</span> <span class="p">{</span>
+<span style="color:#75715e">// This function is safe for concurrent access.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">QueueMessageWithEncoding</span>(<span style="color:#a6e22e">msg</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">Message</span>, <span style="color:#a6e22e">doneChan</span> <span style="color:#66d9ef">chan</span><span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">struct</span>{},
+	<span style="color:#a6e22e">encoding</span> <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">MessageEncoding</span>) {
 
-	<span class="c1">// Avoid risk of deadlock if goroutine already exited.  The goroutine
-</span><span class="c1"></span>	<span class="c1">// we will be sending to hangs around until it knows for a fact that
-</span><span class="c1"></span>	<span class="c1">// it is marked as disconnected and *then* it drains the channels.
-</span><span class="c1"></span>	<span class="k">if</span> <span class="p">!</span><span class="nx">p</span><span class="p">.</span><span class="nf">Connected</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="nx">doneChan</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-				<span class="nx">doneChan</span> <span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">{</span><span class="p">}</span>
-			<span class="p">}</span><span class="p">(</span><span class="p">)</span>
-		<span class="p">}</span>
-		<span class="k">return</span>
-	<span class="p">}</span>
-	<span class="nx">p</span><span class="p">.</span><span class="nx">outputQueue</span> <span class="o">&lt;-</span> <span class="nx">outMsg</span><span class="p">{</span><span class="nx">msg</span><span class="p">:</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">encoding</span><span class="p">:</span> <span class="nx">encoding</span><span class="p">,</span> <span class="nx">doneChan</span><span class="p">:</span> <span class="nx">doneChan</span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">p</span> <span class="o">:=</span> <span class="nx">Peer</span><span class="p">{</span>
-		<span class="nx">inbound</span><span class="p">:</span>         <span class="nx">inbound</span><span class="p">,</span>
-		<span class="nx">wireEncoding</span><span class="p">:</span>    <span class="nx">wire</span><span class="p">.</span><span class="nx">BaseEncoding</span><span class="p">,</span>
-		<span class="nx">knownInventory</span><span class="p">:</span>  <span class="nf">newMruInventoryMap</span><span class="p">(</span><span class="nx">maxKnownInventory</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">stallControl</span><span class="p">:</span>    <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">stallControlMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputQueue</span><span class="p">:</span>     <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">sendQueue</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">outMsg</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span>   <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">sendDoneQueue</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="p">,</span> <span class="c1">// nonblocking sync
-</span><span class="c1"></span>		<span class="nx">outputInvChan</span><span class="p">:</span>   <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">InvVect</span><span class="p">,</span> <span class="nx">outputBufferSize</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">inQuit</span><span class="p">:</span>          <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">queueQuit</span><span class="p">:</span>       <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">outQuit</span><span class="p">:</span>         <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">quit</span><span class="p">:</span>            <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{</span><span class="p">}</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">cfg</span><span class="p">:</span>             <span class="nx">cfg</span><span class="p">,</span> <span class="c1">// Copy so caller can&#39;t mutate.
-</span><span class="c1"></span>		<span class="nx">services</span><span class="p">:</span>        <span class="nx">cfg</span><span class="p">.</span><span class="nx">Services</span><span class="p">,</span>
-		<span class="nx">protocolVersion</span><span class="p">:</span> <span class="nx">cfg</span><span class="p">.</span><span class="nx">ProtocolVersion</span><span class="p">,</span>
-	<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="heading1">接收消息</h2>
+	<span style="color:#75715e">// Avoid risk of deadlock if goroutine already exited.  The goroutine
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// we will be sending to hangs around until it knows for a fact that
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// it is marked as disconnected and *then* it drains the channels.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Connected</span>() {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">doneChan</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+				<span style="color:#a6e22e">doneChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">struct</span>{}{}
+			}()
+		}
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">outputQueue</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">outMsg</span>{<span style="color:#a6e22e">msg</span>: <span style="color:#a6e22e">msg</span>, <span style="color:#a6e22e">encoding</span>: <span style="color:#a6e22e">encoding</span>, <span style="color:#a6e22e">doneChan</span>: <span style="color:#a6e22e">doneChan</span>}
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Peer</span>{
+		<span style="color:#a6e22e">inbound</span>:         <span style="color:#a6e22e">inbound</span>,
+		<span style="color:#a6e22e">wireEncoding</span>:    <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">BaseEncoding</span>,
+		<span style="color:#a6e22e">knownInventory</span>:  <span style="color:#a6e22e">newMruInventoryMap</span>(<span style="color:#a6e22e">maxKnownInventory</span>),
+		<span style="color:#a6e22e">stallControl</span>:    make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">stallControlMsg</span>, <span style="color:#ae81ff">1</span>), <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">outputQueue</span>:     make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">outMsg</span>, <span style="color:#a6e22e">outputBufferSize</span>),
+		<span style="color:#a6e22e">sendQueue</span>:       make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">outMsg</span>, <span style="color:#ae81ff">1</span>),   <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">sendDoneQueue</span>:   make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}, <span style="color:#ae81ff">1</span>), <span style="color:#75715e">// nonblocking sync
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">outputInvChan</span>:   make(<span style="color:#66d9ef">chan</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">InvVect</span>, <span style="color:#a6e22e">outputBufferSize</span>),
+		<span style="color:#a6e22e">inQuit</span>:          make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">queueQuit</span>:       make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">outQuit</span>:         make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">quit</span>:            make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}),
+		<span style="color:#a6e22e">cfg</span>:             <span style="color:#a6e22e">cfg</span>, <span style="color:#75715e">// Copy so caller can&#39;t mutate.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">services</span>:        <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Services</span>,
+		<span style="color:#a6e22e">protocolVersion</span>: <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">ProtocolVersion</span>,
+	}
+</code></pre></div><h2 id="接收消息">接收消息</h2>
 <ul>
 <li>通过inHandler,监听peer消息</li>
 <li>向stallControl发送 sccReceiveMessage</li>
@@ -895,397 +400,134 @@
 <li>调用onXXX相应消息，并通过queueMessage发送结果</li>
 <li>向stallContol 发送 sccHandlerDone</li>
 </ul>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
-</span><span class="lnt">22
-</span><span class="lnt">23
-</span><span class="lnt">24
-</span><span class="lnt">25
-</span><span class="lnt">26
-</span><span class="lnt">27
-</span><span class="lnt">28
-</span><span class="lnt">29
-</span><span class="lnt">30
-</span><span class="lnt">31
-</span><span class="lnt">32
-</span><span class="lnt">33
-</span><span class="lnt">34
-</span><span class="lnt">35
-</span><span class="lnt">36
-</span><span class="lnt">37
-</span><span class="lnt">38
-</span><span class="lnt">39
-</span><span class="lnt">40
-</span><span class="lnt">41
-</span><span class="lnt">42
-</span><span class="lnt">43
-</span><span class="lnt">44
-</span><span class="lnt">45
-</span><span class="lnt">46
-</span><span class="lnt">47
-</span><span class="lnt">48
-</span><span class="lnt">49
-</span><span class="lnt">50
-</span><span class="lnt">51
-</span><span class="lnt">52
-</span><span class="lnt">53
-</span><span class="lnt">54
-</span><span class="lnt">55
-</span><span class="lnt">56
-</span><span class="lnt">57
-</span><span class="lnt">58
-</span><span class="lnt">59
-</span><span class="lnt">60
-</span><span class="lnt">61
-</span><span class="lnt">62
-</span><span class="lnt">63
-</span><span class="lnt">64
-</span><span class="lnt">65
-</span><span class="lnt">66
-</span><span class="lnt">67
-</span><span class="lnt">68
-</span><span class="lnt">69
-</span><span class="lnt">70
-</span><span class="lnt">71
-</span><span class="lnt">72
-</span><span class="lnt">73
-</span><span class="lnt">74
-</span><span class="lnt">75
-</span><span class="lnt">76
-</span><span class="lnt">77
-</span><span class="lnt">78
-</span><span class="lnt">79
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// inHandler handles all incoming messages for the peer.  It must be run as a
-</span><span class="c1"></span><span class="c1">// goroutine.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Peer</span><span class="p">)</span> <span class="nf">inHandler</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-	<span class="c1">// The timer is stopped when a new message is received and reset after it
-</span><span class="c1"></span>	<span class="c1">// is processed.
-</span><span class="c1"></span>	<span class="nx">idleTimer</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">AfterFunc</span><span class="p">(</span><span class="nx">idleTimeout</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-		<span class="nx">log</span><span class="p">.</span><span class="nf">Warnf</span><span class="p">(</span><span class="s">&#34;Peer %s no answer for %s -- disconnecting&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">idleTimeout</span><span class="p">)</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nf">Disconnect</span><span class="p">(</span><span class="p">)</span>
-	<span class="p">}</span><span class="p">)</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// inHandler handles all incoming messages for the peer.  It must be run as a
+</span><span style="color:#75715e">// goroutine.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Peer</span>) <span style="color:#a6e22e">inHandler</span>() {
+	<span style="color:#75715e">// The timer is stopped when a new message is received and reset after it
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// is processed.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">idleTimer</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">AfterFunc</span>(<span style="color:#a6e22e">idleTimeout</span>, <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Warnf</span>(<span style="color:#e6db74">&#34;Peer %s no answer for %s -- disconnecting&#34;</span>, <span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">idleTimeout</span>)
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Disconnect</span>()
+	})
 
-<span class="nx">out</span><span class="p">:</span>
-	<span class="k">for</span> <span class="nx">atomic</span><span class="p">.</span><span class="nf">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">p</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
-		<span class="c1">// Read a message and stop the idle timer as soon as the read
-</span><span class="c1"></span>		<span class="c1">// is done.  The timer is reset below for the next iteration if
-</span><span class="c1"></span>		<span class="c1">// needed.
-</span><span class="c1"></span>		<span class="nx">rmsg</span><span class="p">,</span> <span class="nx">buf</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">readMessage</span><span class="p">(</span><span class="nx">p</span><span class="p">.</span><span class="nx">wireEncoding</span><span class="p">)</span>
-		<span class="nx">idleTimer</span><span class="p">.</span><span class="nf">Stop</span><span class="p">(</span><span class="p">)</span>
-		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-			<span class="c1">// In order to allow regression tests with malformed messages, don&#39;t
-</span><span class="c1"></span>			<span class="c1">// disconnect the peer when we&#39;re in regression test mode and the
-</span><span class="c1"></span>			<span class="c1">// error is one of the allowed errors.
-</span><span class="c1"></span>			<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nf">isAllowedReadError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-				<span class="nx">log</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;Allowed test error from %s: %v&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-				<span class="nx">idleTimer</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span><span class="nx">idleTimeout</span><span class="p">)</span>
-				<span class="k">continue</span>
-			<span class="p">}</span>
+<span style="color:#a6e22e">out</span>:
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">LoadInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">disconnect</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#75715e">// Read a message and stop the idle timer as soon as the read
+</span><span style="color:#75715e"></span>		<span style="color:#75715e">// is done.  The timer is reset below for the next iteration if
+</span><span style="color:#75715e"></span>		<span style="color:#75715e">// needed.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">rmsg</span>, <span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">readMessage</span>(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">wireEncoding</span>)
+		<span style="color:#a6e22e">idleTimer</span>.<span style="color:#a6e22e">Stop</span>()
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#75715e">// In order to allow regression tests with malformed messages, don&#39;t
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// disconnect the peer when we&#39;re in regression test mode and the
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// error is one of the allowed errors.
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">isAllowedReadError</span>(<span style="color:#a6e22e">err</span>) {
+				<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Allowed test error from %s: %v&#34;</span>, <span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">err</span>)
+				<span style="color:#a6e22e">idleTimer</span>.<span style="color:#a6e22e">Reset</span>(<span style="color:#a6e22e">idleTimeout</span>)
+				<span style="color:#66d9ef">continue</span>
+			}
 
-			<span class="c1">// Only log the error and send reject message if the
-</span><span class="c1"></span>			<span class="c1">// local peer is not forcibly disconnecting and the
-</span><span class="c1"></span>			<span class="c1">// remote peer has not disconnected.
-</span><span class="c1"></span>			<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nf">shouldHandleReadError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-				<span class="nx">errMsg</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;Can&#39;t read message from %s: %v&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-				<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="nx">io</span><span class="p">.</span><span class="nx">ErrUnexpectedEOF</span> <span class="p">{</span>
-					<span class="nx">log</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="nx">errMsg</span><span class="p">)</span>
-				<span class="p">}</span>
+			<span style="color:#75715e">// Only log the error and send reject message if the
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// local peer is not forcibly disconnecting and the
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// remote peer has not disconnected.
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">shouldHandleReadError</span>(<span style="color:#a6e22e">err</span>) {
+				<span style="color:#a6e22e">errMsg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;Can&#39;t read message from %s: %v&#34;</span>, <span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">err</span>)
+				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">ErrUnexpectedEOF</span> {
+					<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#a6e22e">errMsg</span>)
+				}
 
-				<span class="c1">// Push a reject message for the malformed message and wait for
-</span><span class="c1"></span>				<span class="c1">// the message to be sent before disconnecting.
-</span><span class="c1"></span>				<span class="c1">//
-</span><span class="c1"></span>				<span class="c1">// NOTE: Ideally this would include the command in the header if
-</span><span class="c1"></span>				<span class="c1">// at least that much of the message was valid, but that is not
-</span><span class="c1"></span>				<span class="c1">// currently exposed by wire, so just used malformed for the
-</span><span class="c1"></span>				<span class="c1">// command.
-</span><span class="c1"></span>				<span class="nx">p</span><span class="p">.</span><span class="nf">PushRejectMsg</span><span class="p">(</span><span class="s">&#34;malformed&#34;</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectMalformed</span><span class="p">,</span> <span class="nx">errMsg</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span>
-					<span class="kc">true</span><span class="p">)</span>
-			<span class="p">}</span>
-			<span class="k">break</span> <span class="nx">out</span>
-		<span class="p">}</span>
-		<span class="nx">atomic</span><span class="p">.</span><span class="nf">StoreInt64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">p</span><span class="p">.</span><span class="nx">lastRecv</span><span class="p">,</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unix</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-		<span class="nx">p</span><span class="p">.</span><span class="nx">stallControl</span> <span class="o">&lt;-</span> <span class="nx">stallControlMsg</span><span class="p">{</span><span class="nx">sccReceiveMessage</span><span class="p">,</span> <span class="nx">rmsg</span><span class="p">}</span>
+				<span style="color:#75715e">// Push a reject message for the malformed message and wait for
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// the message to be sent before disconnecting.
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">//
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// NOTE: Ideally this would include the command in the header if
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// at least that much of the message was valid, but that is not
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// currently exposed by wire, so just used malformed for the
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// command.
+</span><span style="color:#75715e"></span>				<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">PushRejectMsg</span>(<span style="color:#e6db74">&#34;malformed&#34;</span>, <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">RejectMalformed</span>, <span style="color:#a6e22e">errMsg</span>, <span style="color:#66d9ef">nil</span>,
+					<span style="color:#66d9ef">true</span>)
+			}
+			<span style="color:#66d9ef">break</span> <span style="color:#a6e22e">out</span>
+		}
+		<span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">StoreInt64</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">lastRecv</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>())
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">stallControl</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">stallControlMsg</span>{<span style="color:#a6e22e">sccReceiveMessage</span>, <span style="color:#a6e22e">rmsg</span>}
 
-		<span class="c1">// Handle each supported message type.
-</span><span class="c1"></span>		<span class="nx">p</span><span class="p">.</span><span class="nx">stallControl</span> <span class="o">&lt;-</span> <span class="nx">stallControlMsg</span><span class="p">{</span><span class="nx">sccHandlerStart</span><span class="p">,</span> <span class="nx">rmsg</span><span class="p">}</span>
-		<span class="k">switch</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">rmsg</span><span class="p">.</span><span class="p">(</span><span class="kd">type</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">case</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVersion</span><span class="p">:</span>
-			<span class="c1">// Limit to one version message per peer.
-</span><span class="c1"></span>			<span class="nx">p</span><span class="p">.</span><span class="nf">PushRejectMsg</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nf">Command</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">wire</span><span class="p">.</span><span class="nx">RejectDuplicate</span><span class="p">,</span>
-				<span class="s">&#34;duplicate version message&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
-			<span class="k">break</span> <span class="nx">out</span>
+		<span style="color:#75715e">// Handle each supported message type.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">stallControl</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">stallControlMsg</span>{<span style="color:#a6e22e">sccHandlerStart</span>, <span style="color:#a6e22e">rmsg</span>}
+		<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rmsg</span>.(<span style="color:#66d9ef">type</span>) {
+		<span style="color:#66d9ef">case</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">MsgVersion</span>:
+			<span style="color:#75715e">// Limit to one version message per peer.
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">PushRejectMsg</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Command</span>(), <span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">RejectDuplicate</span>,
+				<span style="color:#e6db74">&#34;duplicate version message&#34;</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#66d9ef">true</span>)
+			<span style="color:#66d9ef">break</span> <span style="color:#a6e22e">out</span>
 
-		<span class="k">case</span> <span class="o">*</span><span class="nx">wire</span><span class="p">.</span><span class="nx">MsgVerAck</span><span class="p">:</span>
+		<span style="color:#66d9ef">case</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wire</span>.<span style="color:#a6e22e">MsgVerAck</span>:
 
-			<span class="c1">// No read lock is necessary because verAckReceived is not written
-</span><span class="c1"></span>			<span class="c1">// to in any other goroutine.
-</span><span class="c1"></span>			<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">verAckReceived</span> <span class="p">{</span>
-				<span class="nx">log</span><span class="p">.</span><span class="nf">Infof</span><span class="p">(</span><span class="s">&#34;Already received &#39;verack&#39; from peer %v -- &#34;</span><span class="o">+</span>
-					<span class="s">&#34;disconnecting&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">)</span>
-				<span class="k">break</span> <span class="nx">out</span>
-			<span class="p">}</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Lock</span><span class="p">(</span><span class="p">)</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nx">verAckReceived</span> <span class="p">=</span> <span class="kc">true</span>
-			<span class="nx">p</span><span class="p">.</span><span class="nx">flagsMtx</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">(</span><span class="p">)</span>
-			<span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nx">OnVerAck</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-				<span class="nx">p</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Listeners</span><span class="p">.</span><span class="nf">OnVerAck</span><span class="p">(</span><span class="nx">p</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
-			<span class="p">}</span>
+			<span style="color:#75715e">// No read lock is necessary because verAckReceived is not written
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// to in any other goroutine.
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">verAckReceived</span> {
+				<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;Already received &#39;verack&#39; from peer %v -- &#34;</span><span style="color:#f92672">+</span>
+					<span style="color:#e6db74">&#34;disconnecting&#34;</span>, <span style="color:#a6e22e">p</span>)
+				<span style="color:#66d9ef">break</span> <span style="color:#a6e22e">out</span>
+			}
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Lock</span>()
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">verAckReceived</span> = <span style="color:#66d9ef">true</span>
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">flagsMtx</span>.<span style="color:#a6e22e">Unlock</span>()
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Listeners</span>.<span style="color:#a6e22e">OnVerAck</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Listeners</span>.<span style="color:#a6e22e">OnVerAck</span>(<span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">msg</span>)
+			}
             
             
-            <span class="o">...</span><span class="p">.</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div>
+            <span style="color:#f92672">...</span>.
+}
+</code></pre></div>
     </div>
-
-    
-    
-<div class="post-copyright">
-  <p class="copyright-item">
-    <span class="item-title">Author</span>
-    <span class="item-content">大远</span>
-  </p>
-  <p class="copyright-item">
-    <span class="item-title">LastMod</span>
-    <span class="item-content">
-      2019-09-03
-      
-        
-        
-      
-    </span>
-  </p>
-  
-  <p class="copyright-item">
-    <span class="item-title">License</span>
-    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
-  </p>
-</div>
-
-
-    
-    
-
-    <footer class="post-footer">
-      <div class="post-tags">
-          <a href="http://www.tpkeep.com/tags/btcd/">btcd</a>
-          
-        </div>
-
-      
-      <nav class="post-nav">
-        
-          <a class="prev" href="/blog/btcd-src-wire/">
-            
-            <i class="iconfont">
-              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
-</svg>
-
-            </i>
-            <span class="prev-text nav-default">btcd源码分析系列：5 - p2p网络的消息协议</span>
-            <span class="prev-text nav-mobile">Prev</span>
-          </a>
-        
-          <a class="next" href="/blog/btcd-src-connmanager/">
-            <span class="next-text nav-default">btcd 源码分析系列：3 - connmanager</span>
-            <span class="prev-text nav-mobile">Next</span>
-            
-            <i class="iconfont">
-              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
-</svg>
-
-            </i>
-          </a>
-      </nav>
-    </footer>
   </article>
 
   
-  
-
-  
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-    
-
-  
-
-        </div>
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="icon-links">
-  
 
 
-<a href="http://www.tpkeep.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
-    class="iconfont" title="rss" target="_blank">
-    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="30" height="30">
-  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
-</svg>
+</main>
 
-  </a>
-   
-</div>
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
 
-<div class="copyright">
-  <span class="power-by">
-    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
-  </span>
-  <span class="division">|</span>
-  <span class="theme-info">
-    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
-  </span>
-
-  <span class="copyright-year">
-    &copy;
-    
-      2017 -
-    2020
-    <span class="heart">
-      
-      <i class="iconfont">
-        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="14" height="14">
-  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
-   fill="#8a8a8a"></path>
-</svg>
-
-      </i>
-    </span><span class="author">
-        大远
-        
-      </span></span>
-
-  
-  
-
-  
-</div>
-
-    </footer>
-
-    <div class="back-to-top" id="back-to-top">
-      <i class="iconfont">
-        
-        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="35" height="35">
-  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
-</svg>
-
-      </i>
     </div>
-  </div>
-  
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+    
 
 
 
-
-<script type="text/javascript" src="/js/main.dee43230127a73d039a734510fa896c89c3c7ce0cf0be0c7a7433f8fd69b76dc.js" integrity="sha256-3uQyMBJ6c9A5pzRRD6iWyJw8fODPC&#43;DHp0M/j9abdtw=" crossorigin="anonymous"></script>
-
-
-
-  <script type="text/javascript">
-    window.MathJax = {
-      showProcessingMessages: false,
-      messageStyle: 'none'
-    };
-  </script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js//highlight.min.js"></script>
 
 
 
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css"
-    integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG"
-    crossorigin="anonymous">
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js"
-    integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1"
-    crossorigin="anonymous"></script>
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js"
-    integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
-    crossorigin="anonymous" onload="renderMathInElement(document.body);">
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      renderMathInElement(document.body, {
-        
-      });
-    });
-  </script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
 
 
 
+    
 
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166290945-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</body>
+  </body>
 </html>
+

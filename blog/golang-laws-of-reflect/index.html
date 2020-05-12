@@ -1,946 +1,316 @@
 <!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Golang 反射三定律 - 大远的博客</title>
-  
-
-<meta name="renderer" content="webkit" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-
-<meta name="MobileOptimized" content="width"/>
-<meta name="HandheldFriendly" content="true"/>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.71.0-DEV" />
 
 
-<meta name="applicable-device" content="pc,mobile">
-
-<meta name="theme-color" content="#f8f5ec" />
-<meta name="msapplication-navbutton-color" content="#f8f5ec">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
-
-<meta name="mobile-web-app-capable" content="yes">
-
-<meta name="author" content="大远" />
-  <meta name="description" content="这是我翻译的国外的一篇文章，原文: https://blog.golang.org/laws-of-reflection 介绍 在计算中的反射是程序检测自己结构的一种能力，尤其是通过类型来检测。它是元编程的一种形式，同时也会造成" />
+<title>Golang 反射三定律 - 大远的博客</title>
+<meta property="og:title" content="Golang 反射三定律 - 大远的博客">
 
 
+  <link href='http://www.tpkeep.com/favicon.jpg' rel='icon' type='image/x-icon'/>
 
-
-
-
-
-<meta name="generator" content="Hugo 0.60.1" />
-
-
-<link rel="canonical" href="http://www.tpkeep.com/blog/golang-laws-of-reflect/" />
-
-
-
-
-
-<link rel="icon" href="/favicon.ico" />
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
-
-
-
-
-
-<meta property="og:title" content="Golang 反射三定律" />
-<meta property="og:description" content="这是我翻译的国外的一篇文章，原文: https://blog.golang.org/laws-of-reflection 介绍 在计算中的反射是程序检测自己结构的一种能力，尤其是通过类型来检测。它是元编程的一种形式，同时也会造成" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.tpkeep.com/blog/golang-laws-of-reflect/" />
-<meta property="article:published_time" content="2019-12-26T00:00:00+00:00" />
-<meta property="article:modified_time" content="2020-01-02T20:23:12+08:00" />
-<meta itemprop="name" content="Golang 反射三定律">
-<meta itemprop="description" content="这是我翻译的国外的一篇文章，原文: https://blog.golang.org/laws-of-reflection 介绍 在计算中的反射是程序检测自己结构的一种能力，尤其是通过类型来检测。它是元编程的一种形式，同时也会造成">
-<meta itemprop="datePublished" content="2019-12-26T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2020-01-02T20:23:12&#43;08:00" />
-<meta itemprop="wordCount" content="3373">
-
-
-
-<meta itemprop="keywords" content="Golang," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Golang 反射三定律"/>
-<meta name="twitter:description" content="这是我翻译的国外的一篇文章，原文: https://blog.golang.org/laws-of-reflection 介绍 在计算中的反射是程序检测自己结构的一种能力，尤其是通过类型来检测。它是元编程的一种形式，同时也会造成"/>
-
-<!--[if lte IE 9]>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
-<![endif]-->
-
-<!--[if lt IE 9]>
-  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
-<![endif]-->
-
-
-
-
-</head>
-<body>
-  <div id="mobile-navbar" class="mobile-navbar">
-  <div class="mobile-header-logo">
-    <a href="/" class="logo">大远的博客</a>
-  </div>
-  <div class="mobile-navbar-icon">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-</div>
-<nav id="mobile-menu" class="mobile-menu slideout-menu">
-  <ul class="mobile-menu-list">
-    <li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-        
-      </li><li class="mobile-menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-        
-      </li>
-    
-
-    
-  </ul>
-</nav>
 
 
   
 
-  
 
-  
 
-  <header id="header" class="header container">
-    <div class="logo-wrapper">
-  <a href="/" class="logo">
-    
-      大远的博客
-    
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/%3cnil%3e"
+         width=""
+         height=""
+         alt="">
   </a>
-</div>
 
-<nav class="site-navbar">
-  <ul id="menu" class="menu">
+  <ul class="nav-links">
     
+    <li><a href="/">首页</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/">首页</a>
-          
-
-        
-
-      </li>
+    <li><a href="/post">归档</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
-          
-
-        
-
-      </li>
+    <li><a href="/tags">标签</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/tags">标签</a>
-          
-
-        
-
-      </li>
+    <li><a href="/categories">分类</a></li>
     
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/categories">分类</a>
-          
-
-        
-
-      </li>
-    
-        <li class="menu-item">
-        
-          
-          
-            <a class="menu-item-link" href="http://www.tpkeep.com/about">关于</a>
-          
-
-        
-
-      </li>
-    
-
-    
-    
-
+    <li><a href="/about">关于</a></li>
     
   </ul>
 </nav>
 
-  </header>
+      </header>
 
-  <div id="mobile-panel">
-    <main id="main" class="main bg-llight">
-      <div class="content-wrapper">
-        <div id="content" class="content container">
-          <article class="post bg-white">
+
+<main class="content" role="main">
+
+  <article class="article">
     
-    <header class="post-header">
-      <h1 class="post-title">Golang 反射三定律</h1>
-      
-      <div class="post-meta">
-        <time datetime="2019-12-26" class="post-time">
-          2019-12-26
-        </time>
-        <div class="post-category">
-            <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
-            
-          </div>
-        <span class="more-meta"> 3373 words </span>
-          <span class="more-meta"> 7 min read </span>
+    <span class="article-duration">7 min read</span>
+    
 
-        
-        
-
-        
-        
-      </div>
-    </header>
+    <h1 class="article-title">Golang 反射三定律</h1>
 
     
+    <span class="article-date">2019-12-26</span>
     
-<div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">Table of Contents</h2>
-  <div class="post-toc-content">
-    <nav id="TableOfContents">
-  <ul>
-    <li><a href="#heading">介绍</a></li>
-    <li><a href="#heading1">类型和接口</a></li>
-    <li><a href="#-go-">接口在 Go 中如何表示</a></li>
-    <li><a href="#heading2">反射的第一个定律</a></li>
-    <li><a href="#1-">1. 从接口值到反射对象</a></li>
-    <li><a href="#heading3">反射的第二定律</a></li>
-    <li><a href="#2">2.从反射对象到接口值</a></li>
-    <li><a href="#heading4">反射第三定律</a></li>
-    <li><a href="#3-">3. 要修改一个反射对象，要修改的值必须是可设置的</a></li>
-  </ul>
-</nav>
-  </div>
-</div>
 
-    
-    <div class="post-content">
-      <p>这是我翻译的国外的一篇文章，原文: <a href="https://blog.golang.org/laws-of-reflection"><a href="https://blog.golang.org/laws-of-reflection">https://blog.golang.org/laws-of-reflection</a></a></p>
-<h2 id="heading">介绍</h2>
+    <div class="article-content">
+      <p>这是我翻译的国外的一篇文章，原文: <a href="https://blog.golang.org/laws-of-reflection">https://blog.golang.org/laws-of-reflection</a></p>
+<h2 id="介绍">介绍</h2>
 <p>在计算中的反射是程序检测自己结构的一种能力，尤其是通过类型来检测。它是元编程的一种形式，同时也会造成很大的困惑。</p>
 <p>本篇文章，我将会尝试解释 Go 中的反射是如何工作的。每一种语言都有不同的反射模型（有些语言甚至不支持反射），但是本篇文章是关于 Go 的，所以在接下来的文章中所说的 <code>反射</code> 都是指 <code>Go 中的反射</code>。</p>
-<h2 id="heading1">类型和接口</h2>
+<h2 id="类型和接口">类型和接口</h2>
 <p>由于反射是建立在类型系统之上，让我们先熟悉一下 Go 中的类型。</p>
 <p>Go 是一个静态类型的语言。每一个变量都会对应一个静态类型，就是说一个变量的类型在编译期间就会被确定：int, float32, *MyType, []byte 等等。</p>
 <p>如果我们声明以下变量</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyInt</span> <span style="color:#66d9ef">int</span>
 
-<span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span>
-<span class="kd">var</span> <span class="nx">j</span> <span class="nx">MyInt</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>则 i 是 int 类型，j 是 MyInt 类型。虽然 i 和 j 有相同的底层类型，但是他们有着不同的静态类型，它们不能在没有转换的情况下直接赋值给对方。</p>
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">j</span> <span style="color:#a6e22e">MyInt</span>
+</code></pre></div><p>则 i 是 int 类型，j 是 MyInt 类型。虽然 i 和 j 有相同的底层类型，但是他们有着不同的静态类型，它们不能在没有转换的情况下直接赋值给对方。</p>
 <p>类型系统中有一个重要的类型，接口，它代表着固定方法的集合。一个接口变量就像一个盒子一样，可以包裹存储任何具体的值（非接口类型的），只要这个值实现了该接口的方法。一个众所周知的例子是 io.Reader 和 io.Writer, Reader 和 Writer 类型都是来自于 io 包：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Reader is the interface that wraps the basic Read method.
-</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Reader</span> <span class="kd">interface</span> <span class="p">{</span>
-    <span class="nf">Read</span><span class="p">(</span><span class="nx">p</span> <span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
-<span class="p">}</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Reader is the interface that wraps the basic Read method.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reader</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Read</span>(<span style="color:#a6e22e">p</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
+}
 
-<span class="c1">// Writer is the interface that wraps the basic Write method.
-</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Writer</span> <span class="kd">interface</span> <span class="p">{</span>
-    <span class="nf">Write</span><span class="p">(</span><span class="nx">p</span> <span class="p">[</span><span class="p">]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>一个类型实现了 一个具有这种签名的 Read(或者 Write)方法，我们就说这个类型实现了 io.Reader(或者 io.Writer)接口。也就是说一个 io.Reader 类型的变量可以持有任何值，只要这个值的类型有一个 Read 方法：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
-<span class="nx">r</span> <span class="p">=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Stdin</span>
-<span class="nx">r</span> <span class="p">=</span> <span class="nx">bufio</span><span class="p">.</span><span class="nf">NewReader</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span>
-<span class="nx">r</span> <span class="p">=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">bytes</span><span class="p">.</span><span class="nx">Buffer</span><span class="p">)</span>
-<span class="c1">// 等等
-</span></code></pre></td></tr></table>
-</div>
-</div><p>需要说明的是，无论变量 r 持有什么值，r 的类型总是 io.Reader，因为 Go 是静态类型语言，r 的静态类型是 io.Reader。</p>
+<span style="color:#75715e">// Writer is the interface that wraps the basic Write method.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Writer</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">p</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
+}
+</code></pre></div><p>一个类型实现了 一个具有这种签名的 Read(或者 Write)方法，我们就说这个类型实现了 io.Reader(或者 io.Writer)接口。也就是说一个 io.Reader 类型的变量可以持有任何值，只要这个值的类型有一个 Read 方法：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">r</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Reader</span>
+<span style="color:#a6e22e">r</span> = <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdin</span>
+<span style="color:#a6e22e">r</span> = <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">r</span>)
+<span style="color:#a6e22e">r</span> = new(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>)
+<span style="color:#75715e">// 等等
+</span></code></pre></div><p>需要说明的是，无论变量 r 持有什么值，r 的类型总是 io.Reader，因为 Go 是静态类型语言，r 的静态类型是 io.Reader。</p>
 <p>关于接口类型的另外一个重要的例子是空接口：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>它代表着一个空的方法集，任何类型的值都满足，因为任何类型的值都有零个或零个以上的方法。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">interface</span>{}
+</code></pre></div><p>它代表着一个空的方法集，任何类型的值都满足，因为任何类型的值都有零个或零个以上的方法。</p>
 <p>一些朋友会说 Go 的接口是动态的，这是错误的。它们是静态的：一个接口类型的变量只会有一个静态类型，即使在运行时存储在接口变量里的值的具体类型有可能会改变，那个值也总是会满足这个接口。</p>
 <p>我们需要特别注意这些，因为反射和接口紧密相关。</p>
-<h2 id="-go-">接口在 Go 中如何表示</h2>
+<h2 id="接口在-go-中如何表示">接口在 Go 中如何表示</h2>
 <p>Russ Cox 已经写了一篇博客是关于接口类型的值在 Go 中是如何表示的。我没必要在这里复述整个文章，就做一个简短的总结吧。</p>
 <p>一个接口类型的变量会存储一对数据：具体的值和值的类型。更精确一点的说，值就是底层具体的数据项并且实现了接口，类型是对整个数据项的描述。比如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">r</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Reader</span>
-<span class="nx">tty</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nf">OpenFile</span><span class="p">(</span><span class="s">&#34;/dev/tty&#34;</span><span class="p">,</span> <span class="nx">os</span><span class="p">.</span><span class="nx">O_RDWR</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
-<span class="p">}</span>
-<span class="nx">r</span> <span class="p">=</span> <span class="nx">tty</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>r 包含一对(value,type)数据，(tty,* os.File)。我们可以注意到 * os.File 不只是实现了 Read 方法。即使接口值只能够使用 Read 方法，内部的值也还是携带了所有的关于那个值的类型信息。所以我们能做以下的事情：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">w</span> <span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span>
-<span class="nx">w</span> <span class="p">=</span> <span class="nx">r</span><span class="p">.</span><span class="p">(</span><span class="nx">io</span><span class="p">.</span><span class="nx">Writer</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>这个赋值操作中的表达式是类型断言，断言的内容就是 r 内部的值也实现了 io.Writer 接口，所以我们可以将它赋值给 w。赋值之后，w
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">r</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Reader</span>
+<span style="color:#a6e22e">tty</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">OpenFile</span>(<span style="color:#e6db74">&#34;/dev/tty&#34;</span>, <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">O_RDWR</span>, <span style="color:#ae81ff">0</span>)
+<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+}
+<span style="color:#a6e22e">r</span> = <span style="color:#a6e22e">tty</span>
+</code></pre></div><p>r 包含一对(value,type)数据，(tty,* os.File)。我们可以注意到 * os.File 不只是实现了 Read 方法。即使接口值只能够使用 Read 方法，内部的值也还是携带了所有的关于那个值的类型信息。所以我们能做以下的事情：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">w</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Writer</span>
+<span style="color:#a6e22e">w</span> = <span style="color:#a6e22e">r</span>.(<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Writer</span>)
+</code></pre></div><p>这个赋值操作中的表达式是类型断言，断言的内容就是 r 内部的值也实现了 io.Writer 接口，所以我们可以将它赋值给 w。赋值之后，w
 将会包含一对数据项(tty,* os.File)。这是 r 曾经持有的同样的一对数据。接口的静态类型，决定了接口类型的变量可以调用哪些方法，即使内部存储的具体值有一个更大的方法集。</p>
 <p>继续来，我们也可以这样：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">empty</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
-<span class="nx">empty</span> <span class="p">=</span> <span class="nx">w</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>我们的空接口值 empty 将又包含同样的数据对, (tty,* os.File)。这样是很方便的: 一个空接口值可以持有任何值并且包含那个值所需要的所有信息。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">empty</span> <span style="color:#66d9ef">interface</span>{}
+<span style="color:#a6e22e">empty</span> = <span style="color:#a6e22e">w</span>
+</code></pre></div><p>我们的空接口值 empty 将又包含同样的数据对, (tty,* os.File)。这样是很方便的: 一个空接口值可以持有任何值并且包含那个值所需要的所有信息。</p>
 <p>这个地方我们不需要类型断言，因为 w 满足 空接口。我们从一个 Reader 类型的接口值 赋值给一个 Writer 类型的值中，我们需要明确的使用一个类型断言，因为 Writer 的方法集不是 Reader 的子集。</p>
 <p>有一个重要的细节，一个接口类型的值内部保存的数据对总是（值，具体类型），而不是（值，接口类型）。接口不会持有接口值。</p>
 <p>现在我们准备好了来认识反射。</p>
-<h2 id="heading2">反射的第一个定律</h2>
-<h2 id="1-">1. 从接口值到反射对象</h2>
+<h2 id="反射的第一个定律">反射的第一个定律</h2>
+<h2 id="1-从接口值到反射对象">1. 从接口值到反射对象</h2>
 <p>基本上来说，反射就是一个用来检测存储在接口变量内部的值和类型的一种机制。在开始之前，我们需要知道在 reflect 包中有两种类型：Type 和 Value。我们可以通过两个简单的方法 reflect.TypeOf 和 reflect.ValueOf 从接口值获取这两种类型的值。</p>
 <p>我们先从 TypeOf 开始：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
 
-<span class="kn">import</span> <span class="p">(</span>
-   <span class="s">&#34;fmt&#34;</span>
-   <span class="s">&#34;reflect&#34;</span>
-<span class="p">)</span>
+<span style="color:#f92672">import</span> (
+   <span style="color:#e6db74">&#34;fmt&#34;</span>
+   <span style="color:#e6db74">&#34;reflect&#34;</span>
+)
 
-<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-   <span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-   <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type:&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>这段代码的输出：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span><span class="p">:</span> <span class="kt">float64</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>你可能会疑惑，这里的接口在哪里，因为这段代码看起来是传了一个 float64 的变量 x 给 reflect.TypeOf 方法，而不是一个接口值。我们可以先看一下 reflect.TypeOf 这个方法的签名：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// TypeOf returns the reflection Type of the value in the interface{}.
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">TypeOf</span><span class="p">(</span><span class="nx">i</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span><span class="p">)</span> <span class="nx">Type</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>该方法接收一个空接口类型的值，当我们调用 reflect.TypeOf(x) 的时候，x 首先被转换为一个空接口类型的值，然后再作为参数传递。 reflect.TypeOf 方法会从空接口值恢复 type 信息。</p>
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+   <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+   <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">TypeOf</span>(<span style="color:#a6e22e">x</span>))
+}
+</code></pre></div><p>这段代码的输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span>: <span style="color:#66d9ef">float64</span>
+</code></pre></div><p>你可能会疑惑，这里的接口在哪里，因为这段代码看起来是传了一个 float64 的变量 x 给 reflect.TypeOf 方法，而不是一个接口值。我们可以先看一下 reflect.TypeOf 这个方法的签名：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// TypeOf returns the reflection Type of the value in the interface{}.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TypeOf</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#a6e22e">Type</span>
+</code></pre></div><p>该方法接收一个空接口类型的值，当我们调用 reflect.TypeOf(x) 的时候，x 首先被转换为一个空接口类型的值，然后再作为参数传递。 reflect.TypeOf 方法会从空接口值恢复 type 信息。</p>
 <p>当然，reflect.ValueOf 是用来恢复对应的 value 值的。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;value:&#34;</span><span class="p">,</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;value:&#34;</span>, <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>).<span style="color:#a6e22e">String</span>())
+</code></pre></div><p>输出：</p>
 <pre><code>value: &lt;float64 Value&gt;
 </code></pre><p>reflect.Type 和 reflect.Value 这两种类型都有很多方法供我们操作。比如 Value 类型有一个 Type()方法用以返回 reflect.Value 的 Type。另外 Type 和 Value 都有一个方法 Kind() 用来返回一个常量(Uint,Float64,Slice 等等)来表示存储的是什么类型的值。Value 类型还有一些方法比如 Int()、Float()等，可以获取内部存储的具体值：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;kind is float64:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">(</span><span class="p">)</span> <span class="o">==</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Float64</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;value:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Float</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Type</span>())
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;kind is float64:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Kind</span>() <span style="color:#f92672">==</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Float64</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;value:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Float</span>())
+</code></pre></div><p>输出：</p>
 <pre><code>type: float64
 kind is float64: true
 value: 3.4
 </code></pre><p>还有一些其他的方法像 SetInt() 和 SetFloat,但是在使用他们之前我们需要先理解可修改性，我们将会在反射的第三个定律中讨论。</p>
 <p>在反射的库中有几个点值得我们单独拎出来说一下。第一个需要说的就是，为了保证 API 的简洁，Value 类型的 setter 和 getter 方法 都使用了长度大的类型，比如 int64 用于所有的有符号整型，Value 类型的 Int() 方法会返回 int64 的值，SetInt() 方法的参数也是 int64。有时候就需要我们转换为实际的类型：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">uint8</span> <span class="p">=</span> <span class="sc">&#39;x&#39;</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Type</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>                            <span class="c1">// uint8.
-</span><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;kind is uint8: &#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">(</span><span class="p">)</span> <span class="o">==</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Uint8</span><span class="p">)</span> <span class="c1">// true.
-</span><span class="c1"></span><span class="nx">x</span> <span class="p">=</span> <span class="nb">uint8</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Uint</span><span class="p">(</span><span class="p">)</span><span class="p">)</span> 
-</code></pre></td></tr></table>
-</div>
-</div><p>第二个需要说的就是，反射对象的 kind() 方法，返回的是底层类型的信息而不是静态类型。如果一个反射对象包含了一个用于自定义整型值，比如：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">MyInt</span> <span class="kt">int</span>
-<span class="kd">var</span> <span class="nx">x</span> <span class="nx">MyInt</span> <span class="p">=</span> <span class="mi">7</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">reflect</span><span class="p">.</span><span class="nf">TypeOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">uint8</span> = <span style="color:#e6db74">&#39;x&#39;</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;type:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Type</span>())                            <span style="color:#75715e">// uint8.
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;kind is uint8: &#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Kind</span>() <span style="color:#f92672">==</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Uint8</span>) <span style="color:#75715e">// true.
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">x</span> = uint8(<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Uint</span>()) 
+</code></pre></div><p>第二个需要说的就是，反射对象的 kind() 方法，返回的是底层类型的信息而不是静态类型。如果一个反射对象包含了一个用于自定义整型值，比如：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyInt</span> <span style="color:#66d9ef">int</span>
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#a6e22e">MyInt</span> = <span style="color:#ae81ff">7</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">TypeOf</span>(<span style="color:#a6e22e">x</span>))
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Kind</span>())
+</code></pre></div><p>输出：</p>
 <pre><code>main.MyInt
 int
 </code></pre><p>v 调用 Kind(),返回的是 reflect.Int，即使 x 的静态类型是 MyInt.</p>
-<h2 id="heading3">反射的第二定律</h2>
-<h2 id="2">2.从反射对象到接口值</h2>
+<h2 id="反射的第二定律">反射的第二定律</h2>
+<h2 id="2从反射对象到接口值">2.从反射对象到接口值</h2>
 <p>就像物理中的反射一样，Go 中的反射也有自己的可逆机制</p>
 <p>我们可以使用方法 Interface() 从一个 reflect.Value 恢复一个接口值，这个方法将值和类型信息打包成一个接口值并返回：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Interface returns v&#39;s value as an interface{}.
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="nx">Value</span><span class="p">)</span> <span class="nf">Interface</span><span class="p">(</span><span class="p">)</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>也就是我们可以这样：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">y</span> <span class="nx">MyInt</span> <span class="p">=</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="p">(</span><span class="nx">MyInt</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">y</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="heading4">反射第三定律</h2>
-<h2 id="3-">3. 要修改一个反射对象，要修改的值必须是可设置的</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Interface returns v&#39;s value as an interface{}.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">Value</span>) <span style="color:#a6e22e">Interface</span>() <span style="color:#66d9ef">interface</span>{}
+</code></pre></div><p>也就是我们可以这样：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">y</span> <span style="color:#a6e22e">MyInt</span> = <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Interface</span>().(<span style="color:#a6e22e">MyInt</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">y</span>)
+</code></pre></div><h2 id="反射第三定律">反射第三定律</h2>
+<h2 id="3-要修改一个反射对象要修改的值必须是可设置的">3. 要修改一个反射对象，要修改的值必须是可设置的</h2>
 <p>第三个定律比较容易困惑的，但是如果我们从第一个定律思考，就很容易理解了</p>
 <p>下边的代码是不能运行的，但是值得学习一下</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-<span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span> <span class="c1">// Error: will panic.
-</span></code></pre></td></tr></table>
-</div>
-</div><p>如果你运行了上边的代码，将会出现一下错误信息</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">SetFloat</span>(<span style="color:#ae81ff">7.1</span>) <span style="color:#75715e">// Error: will panic.
+</span></code></pre></div><p>如果你运行了上边的代码，将会出现一下错误信息</p>
 <pre><code>panic: reflect.Value.SetFloat using unaddressable value
 </code></pre><p>问题不是 7.1 不能寻址，而是 v 是不可修改的。可修改性是反射值 Value 的一个属性，并不是所有的反射值 Values 都是可修改的。</p>
 <p>我们可以通过 CanSet() 方法来判断 Value 是否可设置的。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;settability of v:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">CanSet</span>())
+</code></pre></div><p>输出：</p>
 <pre><code>settability of v: false
 </code></pre><p>在一个不可修改的 Value 上调用 Set 会发生错误。什么是可修改性呢？</p>
 <p>可修改性有点像可寻址性，但是更严格一些。反射对象是否持有原值决定了该反射对象是否具有可修改性。如下代码：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>我们向 reflect.ValueOf 传递了一个 x 的 copy，所以创建的接口值持有的是 x 的  copy ，而不是 x 自己，所以如果下边的调用：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>可以被成功执行，那么 x 也不会被修改。修改的是 x 的 copy。这样是没有意义的。所以这样是非法的，可修改性这个属性的存在就是为了解决这个问题。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#a6e22e">x</span>)
+</code></pre></div><p>我们向 reflect.ValueOf 传递了一个 x 的 copy，所以创建的接口值持有的是 x 的  copy ，而不是 x 自己，所以如果下边的调用：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">SetFloat</span>(<span style="color:#ae81ff">7.1</span>)
+</code></pre></div><p>可以被成功执行，那么 x 也不会被修改。修改的是 x 的 copy。这样是没有意义的。所以这样是非法的，可修改性这个属性的存在就是为了解决这个问题。</p>
 <p>其实这跟函数的参数传递是很相似的：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="nf">f</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>  <span class="c1">//x 在函数内部的修改不会影响 x
-</span><span class="c1"></span><span class="nf">f</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">x</span><span class="p">)</span> <span class="c1">//x 可被函数修改
-</span></code></pre></td></tr></table>
-</div>
-</div><p>如果我们想要通过反射修改 x，必须传递 x 的指针：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">x</span> <span class="kt">float64</span> <span class="p">=</span> <span class="mf">3.4</span>
-<span class="nx">p</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">x</span><span class="p">)</span> <span class="c1">// Note: take the address of x.
-</span><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;type of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Type</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of p:&#34;</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">f</span>(<span style="color:#a6e22e">x</span>)  <span style="color:#75715e">//x 在函数内部的修改不会影响 x
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">f</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>) <span style="color:#75715e">//x 可被函数修改
+</span></code></pre></div><p>如果我们想要通过反射修改 x，必须传递 x 的指针：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">float64</span> = <span style="color:#ae81ff">3.4</span>
+<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>) <span style="color:#75715e">// Note: take the address of x.
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;type of p:&#34;</span>, <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Type</span>())
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;settability of p:&#34;</span>, <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">CanSet</span>())
+</code></pre></div><p>输出：</p>
 <pre><code>type of p: *float64
 settability of p: false
 </code></pre><p>反射对象 p 是不可设置的，但是我们想设置的不是 p，而是 * P 。我们可以通过 Elem() 方法来拿到 p 指向的那个值。并且保存到一个反射对象 v 中：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nf">Elem</span><span class="p">(</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;settability of v:&#34;</span><span class="p">,</span> <span class="nx">v</span><span class="p">.</span><span class="nf">CanSet</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>现在 v 是可设置的了</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Elem</span>()
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;settability of v:&#34;</span>, <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">CanSet</span>())
+</code></pre></div><p>现在 v 是可设置的了</p>
 <pre><code>settability of v: true
 </code></pre><p>我们可以通过 SetFloat() 函数来修改 x 的值：</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">v</span><span class="p">.</span><span class="nf">SetFloat</span><span class="p">(</span><span class="mf">7.1</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">v</span><span class="p">.</span><span class="nf">Interface</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">SetFloat</span>(<span style="color:#ae81ff">7.1</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Interface</span>())
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">x</span>)
+</code></pre></div><p>输出：</p>
 <pre><code>7.1
 7.1
 </code></pre><p>所以记住一点，反射对象 Values 需要一个地址才能修改原值，否则会报错。普通的方法也是需要一个地址才能修改原值，但是不会报错。这些值适用于非引用类型的值（基本类型、struct 类型）。</p>
 <p>对于结构体类型，除了传入指针，结构体的属性还必须是可导出才能有可设置性。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span><span class="lnt">15
-</span></code></pre></td>
-<td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">T</span> <span class="kd">struct</span> <span class="p">{</span>
-    <span class="nx">A</span> <span class="kt">int</span>
-    <span class="nx">B</span> <span class="kt">string</span>
-<span class="p">}</span>
-<span class="nx">t</span> <span class="o">:=</span> <span class="nx">T</span><span class="p">{</span><span class="mi">23</span><span class="p">,</span> <span class="s">&#34;skidoo&#34;</span><span class="p">}</span>
-<span class="nx">s</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">)</span><span class="p">.</span><span class="nf">Elem</span><span class="p">(</span><span class="p">)</span>
-<span class="nx">typeOfT</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Type</span><span class="p">(</span><span class="p">)</span>
-<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">s</span><span class="p">.</span><span class="nf">NumField</span><span class="p">(</span><span class="p">)</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
-    <span class="nx">f</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>
-    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d: %s %s = %v\n&#34;</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span>
-        <span class="nx">typeOfT</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Type</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Interface</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
-<span class="p">}</span>
-<span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="p">.</span><span class="nf">SetInt</span><span class="p">(</span><span class="mi">77</span><span class="p">)</span>
-<span class="nx">s</span><span class="p">.</span><span class="nf">Field</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="p">.</span><span class="nf">SetString</span><span class="p">(</span><span class="s">&#34;Sunset Strip&#34;</span><span class="p">)</span>
-<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;t is now&#34;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">T</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">A</span> <span style="color:#66d9ef">int</span>
+    <span style="color:#a6e22e">B</span> <span style="color:#66d9ef">string</span>
+}
+<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">T</span>{<span style="color:#ae81ff">23</span>, <span style="color:#e6db74">&#34;skidoo&#34;</span>}
+<span style="color:#a6e22e">s</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">ValueOf</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">t</span>).<span style="color:#a6e22e">Elem</span>()
+<span style="color:#a6e22e">typeOfT</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Type</span>()
+<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">NumField</span>(); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+    <span style="color:#a6e22e">f</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Field</span>(<span style="color:#a6e22e">i</span>)
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%d: %s %s = %v\n&#34;</span>, <span style="color:#a6e22e">i</span>,
+        <span style="color:#a6e22e">typeOfT</span>.<span style="color:#a6e22e">Field</span>(<span style="color:#a6e22e">i</span>).<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Type</span>(), <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Interface</span>())
+}
+<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Field</span>(<span style="color:#ae81ff">0</span>).<span style="color:#a6e22e">SetInt</span>(<span style="color:#ae81ff">77</span>)
+<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Field</span>(<span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">SetString</span>(<span style="color:#e6db74">&#34;Sunset Strip&#34;</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;t is now&#34;</span>, <span style="color:#a6e22e">t</span>)
+</code></pre></div><p>输出：</p>
 <pre><code>0: A int = 23
 1: B string = skidoo
 t is now {77 Sunset Strip}
 </code></pre>
     </div>
-
-    
-    
-<div class="post-copyright">
-  <p class="copyright-item">
-    <span class="item-title">Author</span>
-    <span class="item-content">大远</span>
-  </p>
-  <p class="copyright-item">
-    <span class="item-title">LastMod</span>
-    <span class="item-content">
-      2020-01-02
-      
-        
-        
-      
-    </span>
-  </p>
-  
-  <p class="copyright-item">
-    <span class="item-title">License</span>
-    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
-  </p>
-</div>
-
-
-    
-    
-
-    <footer class="post-footer">
-      <div class="post-tags">
-          <a href="http://www.tpkeep.com/tags/golang/">Golang</a>
-          
-        </div>
-
-      
-      <nav class="post-nav">
-        
-          <a class="prev" href="/blog/p2p-upnp/">
-            
-            <i class="iconfont">
-              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
-</svg>
-
-            </i>
-            <span class="prev-text nav-default">P2P对等网络 - upnp实现内网穿透</span>
-            <span class="prev-text nav-mobile">Prev</span>
-          </a>
-        
-          <a class="next" href="/blog/golang-deal-json/">
-            <span class="next-text nav-default">Golang 中的 json 处理</span>
-            <span class="prev-text nav-mobile">Next</span>
-            
-            <i class="iconfont">
-              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
-</svg>
-
-            </i>
-          </a>
-      </nav>
-    </footer>
   </article>
 
   
-  
-
-  
-  
-
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-    
-
-  
-
-        </div>
-      </div>
-    </main>
-
-    <footer id="footer" class="footer">
-      <div class="icon-links">
-  
 
 
-<a href="http://www.tpkeep.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
-    class="iconfont" title="rss" target="_blank">
-    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="30" height="30">
-  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
-</svg>
+</main>
 
-  </a>
-   
-</div>
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
 
-<div class="copyright">
-  <span class="power-by">
-    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
-  </span>
-  <span class="division">|</span>
-  <span class="theme-info">
-    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
-  </span>
-
-  <span class="copyright-year">
-    &copy;
-    
-      2017 -
-    2020
-    <span class="heart">
-      
-      <i class="iconfont">
-        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="14" height="14">
-  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
-   fill="#8a8a8a"></path>
-</svg>
-
-      </i>
-    </span><span class="author">
-        大远
-        
-      </span></span>
-
-  
-  
-
-  
-</div>
-
-    </footer>
-
-    <div class="back-to-top" id="back-to-top">
-      <i class="iconfont">
-        
-        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="35" height="35">
-  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
-</svg>
-
-      </i>
     </div>
-  </div>
-  
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+    
 
 
 
-
-<script type="text/javascript" src="/js/main.dee43230127a73d039a734510fa896c89c3c7ce0cf0be0c7a7433f8fd69b76dc.js" integrity="sha256-3uQyMBJ6c9A5pzRRD6iWyJw8fODPC&#43;DHp0M/j9abdtw=" crossorigin="anonymous"></script>
-
-
-
-  <script type="text/javascript">
-    window.MathJax = {
-      showProcessingMessages: false,
-      messageStyle: 'none'
-    };
-  </script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js//highlight.min.js"></script>
 
 
 
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css"
-    integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG"
-    crossorigin="anonymous">
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js"
-    integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1"
-    crossorigin="anonymous"></script>
-
-  
-  <script defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js"
-    integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
-    crossorigin="anonymous" onload="renderMathInElement(document.body);">
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      renderMathInElement(document.body, {
-        
-      });
-    });
-  </script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
 
 
 
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 
 
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166290945-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</body>
+  </body>
 </html>
+

@@ -1,2 +1,1 @@
 User-agent: *
-Sitemap: http://www.tpkeep.com/sitemap.xml
