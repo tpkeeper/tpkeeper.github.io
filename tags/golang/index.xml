@@ -35,7 +35,7 @@
       <pubDate>Mon, 25 Nov 2019 00:00:00 +0000</pubDate>
       
       <guid>http://www.tpkeep.com/blog/golang-test/</guid>
-      <description>简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： go test 输出： PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： go test -v 输出： === RUN TestPubkeyToAddress ---</description>
+      <description>简单使用 进入 package 所在目录，执行以下命令,该命令只会输出最终的测试结果： 1 go test 输出： 1 2 PASS ok addrtool 0.519s 使用 -v 参数，可以查看更多测试信息： 1 go test -v 输出：</description>
     </item>
     
   </channel>
