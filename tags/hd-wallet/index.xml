@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HD Wallet on 大远的博客</title>
+    <link>http://www.tpkeep.com/tags/hd-wallet/</link>
+    <description>Recent content in HD Wallet on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 30 Oct 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/tags/hd-wallet/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>HD Wallet 原理与分析</title>
+      <link>http://www.tpkeep.com/blog/hd-wallet-analyze/</link>
+      <pubDate>Wed, 30 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/hd-wallet-analyze/</guid>
+      <description>概述 分层确定性钱包，可以从一个种子派生出一系列密钥对用于生成地址，便于钱包的备份与管理 助记词、种子、公钥、地址之间的关系： 助记词与种子公钥与</description>
+    </item>
+    
+  </channel>
+</rss>
