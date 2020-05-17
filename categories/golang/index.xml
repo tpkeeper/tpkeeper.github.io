@@ -6,10 +6,28 @@
     <description>Recent content in Golang on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 26 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 16 Mar 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="http://www.tpkeep.com/categories/golang/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Golang 字符编码</title>
+      <link>http://www.tpkeep.com/blog/golang-char-encode/</link>
+      <pubDate>Mon, 16 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-char-encode/</guid>
+      <description>字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一</description>
+    </item>
+    
+    <item>
+      <title>Golang 中如何实现 set 最高效</title>
+      <link>http://www.tpkeep.com/blog/golang-how-to-use-set/</link>
+      <pubDate>Tue, 25 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-how-to-use-set/</guid>
+      <description>在写代码的过程中，避免不了用到 set 数据结构。但是在 Go 语言中并没有直接提供一个内置的的 set 类型供我们直接使用，这个时候就需要我们自己通过 Go 语言提供</description>
+    </item>
     
     <item>
       <title>Golang 反射三定律</title>

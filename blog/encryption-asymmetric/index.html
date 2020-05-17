@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="大远" />
-  <meta name="description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅" />
+  <meta name="description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单" />
 
   <meta name="keywords" content="大远, 博客, 区块链, Golang" />
 
@@ -60,22 +60,22 @@
 
 
 <meta property="og:title" content="密码学系列：非对称加密" />
-<meta property="og:description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅" />
+<meta property="og:description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://www.tpkeep.com/blog/encryption-asymmetric/" />
-<meta property="article:published_time" content="2019-09-09T17:04:19+08:00" />
-<meta property="article:modified_time" content="2019-09-09T17:04:19+08:00" />
+<meta property="article:published_time" content="2019-09-09T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-09-09T00:00:00+00:00" />
 <meta itemprop="name" content="密码学系列：非对称加密">
-<meta itemprop="description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅">
-<meta itemprop="datePublished" content="2019-09-09T17:04:19&#43;08:00" />
-<meta itemprop="dateModified" content="2019-09-09T17:04:19&#43;08:00" />
-<meta itemprop="wordCount" content="1638">
+<meta itemprop="description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单">
+<meta itemprop="datePublished" content="2019-09-09T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-09-09T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="2244">
 
 
 
 <meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：非对称加密"/>
-<meta name="twitter:description" content="非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 他们都源于一个公共原理：单向函数 单向函数的定义： 函数 f() 是一个单向函数，当且仅"/>
+<meta name="twitter:description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -316,8 +316,8 @@ if (!doNotTrack) {
             <a href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/"> 密码学系列 </a>
             
           </div>
-        <span class="more-meta"> 1638 words </span>
-          <span class="more-meta"> 4 min read </span>
+        <span class="more-meta"> 2244 words </span>
+          <span class="more-meta"> 5 min read </span>
 
         
         
@@ -338,13 +338,9 @@ if (!doNotTrack) {
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
+    <li><a href="#理论">理论</a></li>
     <li><a href="#rsa">RSA</a></li>
-    <li><a href="#ecc">ECC</a>
-      <ul>
-        <li><a href="#基础知识">基础知识</a></li>
-        <li><a href="#secp256k1曲线">secp256k1曲线</a></li>
-      </ul>
-    </li>
+    <li><a href="#ecc">ECC</a></li>
   </ul>
 </nav>
   </div>
@@ -352,7 +348,8 @@ if (!doNotTrack) {
 
     
     <div class="post-content">
-      <p>非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密</p>
+      <p>非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密</p>
+<p>本文主要介绍 RSA 跟 ECC 这两种非对称加密算法</p>
 <p>他们都源于一个公共原理：<strong>单向函数</strong></p>
 <p>单向函数的定义：</p>
 <blockquote>
@@ -362,136 +359,234 @@ if (!doNotTrack) {
 <li>x = f&rsquo; (y) 计算是不可行的(需要的时间太长)</li>
 </ol>
 </blockquote>
-<p>目前的公钥方案中主要使用了两个主流的单向函数：</p>
+<p>目前的非对称加密算法中主要使用了两个主流的单向函数：</p>
 <ol>
 <li>大整数的因式分解</li>
 <li>离散对数问题（DLP问题）</li>
 </ol>
-<p>本文主要介绍 RSA 跟 ECC 这两种非对称加密算法</p>
-<h2 id="rsa">RSA</h2>
-<p>安全建立在基于<strong>大整数的因数分解问题</strong>（即对 N 的质因数分解求 p、q）</p>
-<p><strong>密文 = 明文^E (mod N)</strong></p>
-<p>对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥</p>
-<p><strong>明文 = 密文^D (mode N)</strong></p>
-<p>对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥</p>
-<p><strong>生成密钥对过程：</strong></p>
+<h2 id="理论">理论</h2>
+<p>有助于对非对称加密原理的理解，比如 ecc 为什么是基于椭圆曲线的离散对数问题，哪里来的对数？</p>
+<p><strong>模运算：</strong></p>
+<p>在自然数范围，两数相除，要么除尽，要么有余数。</p>
+<p>如果 a 和 b 被整数 m 除的余数相同，则称 a 和 b 关于模 m 同余，记作：</p>
+<p>a ≡ b (mod m)</p>
+<p>例如： 31 ≡ 5 (mod 13)</p>
+<p><strong>群：</strong></p>
+<p>群指的是一个元素集合 G 以及 两个元素值之间的操作 o 的集合，记作 (G，o)，群有一下性质：</p>
 <ol>
-<li>生成 N
-N = p * q ( p和q为质数 )
-L = lcm(p-1,q-1) ( lcm 为求最小公倍数 )</li>
-<li>生成 E
-1 &lt; E &lt; L
-gcd(E,L)=1 ( gcd 为求最大公约数 )</li>
-<li>生成 D
-1 &lt; D &lt; L
-E * D (mod L) = 1</li>
-</ol>
-<h2 id="ecc">ECC</h2>
-<h3 id="基础知识">基础知识</h3>
-<h4 id="模运算">模运算</h4>
-<blockquote>
-<p>a = r (mod m) , r为余数，m为模数，r&lt;m</p>
-</blockquote>
-<p>例：42= 6 (mod 9)</p>
-<h4 id="群">群</h4>
-<p><strong>群指的是一个元素集合 G 以及 两个元素值之间的操作 o 的集合，即 (G，o)：</strong></p>
-<blockquote>
-<ol>
-<li>群操作 o 是封闭的，即对所有的 a b，a b 属于G, a o b = c，c 也属于 G。</li>
-<li>群操作 o 是可结合的，即 ao(boc) = (aob)oc。</li>
-<li>存在一个元素 1 ，对所有的 a ，a 属于 G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元</li>
+<li>群操作 o 是封闭的，即对所有的 a, b  ∈ G, a o b = c ∈ G 也成立。</li>
+<li>群操作 o 是可结合的，即 a, b, c ∈ G，则 ao(boc) = (aob)oc。</li>
+<li>存在一个元素 1 ，对所有的 a ∈ G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元</li>
 <li>a o a&rsquo; = a&rsquo; o a = 1，a’叫做 a 的逆元</li>
 <li>如果 a o b = b o a，则群 G 为阿贝尔群或可交换群</li>
 </ol>
-</blockquote>
 <p><strong>有限群：</strong></p>
-<blockquote>
 <p>一个群 (G,o) 是有限的，仅当他拥有有限个元素，G 的基或阶可以表示为 |G|</p>
-</blockquote>
 <p>密码学中使用的一般就是有限群</p>
 <p>群的基或阶其实就是群元素的个数</p>
 <p>例如：（Zn，+）Zn 的基为 |Zn|=n，因为 Zn = {0，1，2，&hellip; ，n-1}</p>
 <p><strong>元素的阶：</strong></p>
-<blockquote>
-<p>是指满足以下条件的最小正整数 k：
-ord(a) = a^k = a o a o a &hellip;..a = 1 ,1 是单位元</p>
-</blockquote>
+<p>群 (G,o) 内某个元素 a 的阶，是指满足以下条件的最小正整数 k：</p>
+<p>ord(a) = $a^{ k }$ = $\underbrace{a o a o a &hellip;a} _ {\text{k次} }$  =1 ，其中 1 是单位元</p>
 <p><strong>循环群：</strong></p>
-<blockquote>
 <p>如果群 G 包含一个拥有最大阶 ord(x) = |G| 的元素 x，则这个群是个循环群，拥有最大阶的元素成为生成元。</p>
-</blockquote>
 <p>这个 x 的幂值可以表示整个群</p>
 <p>例：Z11 = {1，2，3，4，5，6，7，8，9，10}</p>
 <p>x = 2 为生成元</p>
 <p>基为 |Z11| = 10</p>
-<p>2^10  = 1 (mod 11), 2的阶为10，即ord(2) = |Z11|</p>
+<p>$2^{10}$  ≡ 1 (mod 11), 2的阶为10，即ord(2) = |Z11|</p>
 <p>2 的幂值生成了所有元素</p>
-<h4 id="定理">定理：</h4>
-<blockquote>
+<p><strong>定理：</strong></p>
 <p>每个素数 p，( Zp,* )都是一个阿贝尔有限循环群</p>
-</blockquote>
 <p>该定理说明每个素数域的乘法群都是循环群，对于构建离散对数密码体制非常重要</p>
-<blockquote>
-<p>Hasse&rsquo;s定理：
-给定一个曲线E mod p ，曲线上的点的个数表示为 #E 则：
-p+1-2√p&lt;=#E&lt;=p+1+2√p</p>
-</blockquote>
-<h4 id="离散对数问题">离散对数问题</h4>
-<p><strong>基于Zp的离散对数问题（DLP）：</strong></p>
-<blockquote>
-<p>给定一个阶为 p-1 的有限循环群Zp，生成元为 a，b为另一个元素，DLP问题就是确定满足以下条件的整数 x（ 1 &lt;= x &lt;= p-1 ）的问题：
-a^x  = b (mod p)</p>
-</blockquote>
+<p><strong>Hasse&rsquo;s定理：</strong></p>
+<p>给定一个曲线 E 模为 p ，曲线上的点的个数表示为 #E 则：</p>
+<p>p+1-$\sqrt[2]{p}$ &lt;= #E &lt;= p+1+$\sqrt[3]p$</p>
+<p><strong>基于 Zp 的离散对数问题（DLP）：</strong></p>
+<p>给定一个阶为 p-1 的有限循环群 Zp，生成元为 a，b为另一个元素，DLP问题就是确定满足以下条件的整数 x（ 1 &lt;= x &lt;= p-1 ）的问题：</p>
+<p>$a^x$  ≡ b (mod p)</p>
 <p>当参数非常大的时候，求解 x 非常困难</p>
 <p><strong>推广的离散对数问题：</strong></p>
-<blockquote>
-<p>给定一个基为 n 的有限循环群 G，群操作为 o。生成元为a，b为另一个元素，DLP问题就是找到x（1 &lt;= x &lt;= n）使得：
-a^x = a o a o a &hellip;. o a = b</p>
-</blockquote>
+<p>给定一个基为 n 的有限循环群 G，群操作为 o。生成元为a，b为另一个元素，DLP问题就是找到x（1 &lt;= x &lt;= n）使得：</p>
+<p>$a^x$ =  $\underbrace{a o a o a &hellip;a} _ {\text{x次} }$ = b</p>
 <p><strong>椭圆曲线离散对数问题：</strong></p>
-<blockquote>
-<p>给定一个椭圆曲线E，群操作为+，生成元 G，T为另一个元素，dl问题就是找到 k(1 &lt;= k &lt;= #E) 使得：
-kG = G + G + G +&hellip;+G = T</p>
-</blockquote>
-<p>公钥密码体制正是找到了这样的一个群是的DLP问题成为了一个单向函数</p>
-<h4 id="应用在密码学中的椭圆曲线">应用在密码学中的椭圆曲线</h4>
-<p>基于椭圆曲线的非对称加密，跟 rsa 相比，密钥更短，强度更高</p>
-<p>安全建立在基于椭圆曲线的离散对数问题，是一种<strong>推广的离散对数问题</strong></p>
+<p>给定一个椭圆曲线 E，群操作为 +，生成元 G，T 为另一个元素，DLP 问题就是找到 k(1 &lt;= k &lt;= #E) 使得：</p>
+<p>k * G = $\underbrace{ G + G + G +&hellip;+G} _ {\text{k次} }$ = T</p>
+<p>非对称加密算法正是找到了这样的一个群使得 DLP 问题成为了一个单向函数</p>
+<h2 id="rsa">RSA</h2>
+<p>安全建立在<strong>基于大整数的因数分解问题</strong>（即对 N 的质因数分解求 p、q）</p>
+<p><strong>密钥对生成：</strong></p>
+<p>D、N 都是非常大的数字，通常为 1024 位或更长</p>
 <ol>
-<li>二元三次曲线 <strong>y^2 = x^3 + a * x + b (mod p)</strong> （其中p为大质数）</li>
-<li>定义的运算 P + Q = R,都是曲线上的点</li>
+<li>生成 N (模数)
+N = p * q ( p和q为质数 )
+L = lcm(p-1,q-1) ( lcm 为求最小公倍数 )</li>
+<li>生成 E (公共指数)
+1 &lt; E &lt; L
+gcd(E,L)=1 ( gcd 为求最大公约数 )</li>
+<li>生成 D (私有指数)
+1 &lt; D &lt; L
+E * D  mod L = 1</li>
 </ol>
-<p>循环群为椭圆曲线上的点，群操作为 +</p>
-<p>抽象的无穷的点 0 为单位元，满足 P+0 = P</p>
-<p>逆元 P+(-P) = 0，满足 -P = （Xp，p-Yp）</p>
-<h3 id="secp256k1曲线">secp256k1曲线</h3>
-<h4 id="基本参数">基本参数：</h4>
+<p><strong>加密：</strong></p>
+<p>密文 ≡ 明文^E (mod N)</p>
+<p>对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥</p>
+<p><strong>解密:</strong></p>
+<p>明文 ≡ 密文^D (mod N)</p>
+<p>对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥</p>
+<p><strong>Go 代码实战：</strong></p>
+<p>我们使用 Go 代码生成 128 位的密钥对，可以看到 N 和 D 都是一个很大的数字</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">TestRsa</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">){</span>
+	<span class="nx">priKey</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">rsa</span><span class="p">.</span><span class="nf">GenerateKey</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nx">Reader</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;N&#34;</span><span class="p">,</span><span class="nx">priKey</span><span class="p">.</span><span class="nx">N</span><span class="p">)</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;E&#34;</span><span class="p">,</span><span class="nx">priKey</span><span class="p">.</span><span class="nx">E</span><span class="p">)</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;D&#34;</span><span class="p">,</span><span class="nx">priKey</span><span class="p">.</span><span class="nx">D</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="c1">//生成的结果
+</span><span class="c1">// N 243397416550696148306109565225196099917
+</span><span class="c1">// E 65537
+</span><span class="c1">// D 151801669348507779797470340387169711233
+</span></code></pre></td></tr></table>
+</div>
+</div><h2 id="ecc">ECC</h2>
+<p>安全建立在基于椭圆曲线的离散对数问题，是一种<strong>推广的离散对数问题</strong>，跟 rsa 相比，密钥更短，强度更高。</p>
+<p>其数学公式为二元三次曲线 <strong>$y^2 ≡ x^3 + a * x + b (mod p)$</strong> （其中p为大质数），循环群为椭圆曲线上的点，我们令群操作记为 +，则有如下运算规则：</p>
 <ul>
 <li>
-<p>离散曲线： y^2 = (x^3 + 7) mod p（其中x和y都是整形保证了离散）
-p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-a=0
-b=7</p>
+<p>P + Q = R，其中 P、Q、R 都是曲线上的点，P、Q 连线与椭圆曲线相交于一点，该点与 x 轴对称的点就是 R</p>
 </li>
 <li>
-<p>基点 G
-G(&ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&rdquo;,
-&ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&rdquo;)</p>
+<p>P + P = 2 * P</p>
 </li>
 <li>
-<p>点的集合  {G，2G，3G，&hellip; ，nG}，nG=O，O 为抽象的无穷点即单位元
-n=&quot;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&rdquo;</p>
+<p>$\underbrace{ P + P + P +&hellip;+P} _ {\text{n次} }$ = n * P ，其中 n 为整数</p>
+</li>
+<li>
+<p>抽象的无穷的点 o 为单位元，满足 P+o = P</p>
+</li>
+<li>
+<p>逆元 P+(-P) = o，满足 -P = （Xp，p-Yp）</p>
 </li>
 </ul>
-<h4 id="私钥生成公钥原理">私钥生成公钥原理：</h4>
-<p>在上边的离散的椭圆曲线上，定义一套运算规则：</p>
-<blockquote>
-<p>加法：P+Q = R 
-乘法： K=kG</p>
-</blockquote>
-<p>k 为私钥，K 为公钥{r,s}，G为曲线上一点。</p>
-<p>由 k、G 算 K 简单，由 K、G 推出 k 极难。</p>
+<p><strong>比特币使用的 secp256k1 曲线：</strong></p>
+<p>该曲线在区块链中经常用到，具体参数如下：</p>
+<p>函数：$y^2 ≡ x^3 + 7 (mod p)$</p>
+<p>其中 p 为 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F</p>
+<p>基点 G 的坐标为：</p>
+<p>(&ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&rdquo;,&ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&rdquo;)</p>
+<p>点的集合  {G，2G，3G，&hellip; ，nG}，nG = O，O 为抽象的无穷点即单位元，n 为 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141</p>
+<p><strong>基于 ECC 的混合加密机制</strong></p>
+<p>计算加密密钥（输入公钥 a * G）：</p>
+<ol>
+<li>生成私钥 b</li>
+<li>计算公钥 b * G</li>
+<li>计算共享密钥 (a * G) * b</li>
+</ol>
+<p>计算解密密钥（输入公钥 b * G）：</p>
+<ol>
+<li>生成私钥 a</li>
+<li>计算公钥 a * G</li>
+<li>计算共享密钥 (b * G) * a</li>
+</ol>
+<p>其中 (a * G) * b = (b * G) * a，所以最终计算出来的共享密钥是相等的</p>
+<p>然后使用对称加密算法来进行加解密</p>
+<p><strong>Go代码实战：</strong></p>
+<p>我们使用 btcd 中的 btcec 包来测试密钥对的生成以及加解密，使用的曲线是 secp256k1，共享密钥的生成使用的ECDH，对称加密算法是 AES-256-CBC，使用公钥加密时，会将新生成的私钥对应的公钥信息写入密文中，在用私钥解密时，会先解析公钥，然后计算出共享密钥，再根据对称加密算法解密。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">TestEcc</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span>  <span class="p">{</span>
+	<span class="nx">priv</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nx">ecdsa</span><span class="p">.</span><span class="nf">GenerateKey</span><span class="p">(</span><span class="nf">S256</span><span class="p">(),</span><span class="nx">rand</span><span class="p">.</span><span class="nx">Reader</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">privKey</span><span class="o">:=</span><span class="p">(</span><span class="o">*</span><span class="nx">PrivateKey</span><span class="p">)(</span><span class="nx">priv</span><span class="p">)</span>
 
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;privKey:&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">privKey</span><span class="p">.</span><span class="nf">Serialize</span><span class="p">()))</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;pubKey:&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">privKey</span><span class="p">.</span><span class="nf">PubKey</span><span class="p">().</span><span class="nf">SerializeUncompressed</span><span class="p">()))</span>
+	<span class="nx">test</span><span class="o">:=</span><span class="s">&#34;hello ecc&#34;</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;to encrypt bytes:&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">test</span><span class="p">)))</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;to encrypt word:&#34;</span><span class="p">,</span><span class="nx">test</span><span class="p">)</span>
+	<span class="nx">cryptBytes</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nf">Encrypt</span><span class="p">(</span><span class="nx">privKey</span><span class="p">.</span><span class="nf">PubKey</span><span class="p">(),[]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">test</span><span class="p">))</span>
+	<span class="k">if</span> <span class="nx">err</span><span class="o">!=</span><span class="kc">nil</span><span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;cryptBytes:&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">cryptBytes</span><span class="p">))</span>
+
+	<span class="nx">decryptBytes</span><span class="p">,</span><span class="nx">err</span><span class="o">:=</span><span class="nf">Decrypt</span><span class="p">(</span><span class="nx">privKey</span><span class="p">,</span><span class="nx">cryptBytes</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;decryptBytes:&#34;</span><span class="p">,</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">decryptBytes</span><span class="p">))</span>
+	<span class="nx">t</span><span class="p">.</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;decrypt word:&#34;</span><span class="p">,</span><span class="nb">string</span><span class="p">(</span><span class="nx">decryptBytes</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1">// privKey: e7edc93193067989a066a1e75b96b2ee6102b6fd14b20e28c646bbdb4dd6f717
+</span><span class="c1">// pubKey: 04150b3d8af4ae33625681ec589ca4f85d1560dc287084411b28ea0c297302472096049ca74807bd2c26be73d1ac18edd86aa306898089e5a49bccf5309677ff8b
+</span><span class="c1">// to encrypt bytes: 68656c6c6f20656363
+</span><span class="c1">// to encrypt word: hello ecc
+</span><span class="c1">// cryptBytes: 344b3fb2502dd949af36ce8a439964c402ca0020e40591c164254a6c92c24b8f9d3491b356f51ce77bb29d27cca4163fa5c9234300200910a3a47ebd37ed89c674de7b26b92f2035f1a63b766b9942bc92b2479d90fc238b92b725c43142fcff1fb9ec39dc1789706966346992c8ba5d3110b464091dfde3a196d148321eb47a8bf2f53c5517
+</span><span class="c1">// decryptBytes: 68656c6c6f20656363
+</span><span class="c1">// decrypt word: hello ecc
+</span></code></pre></td></tr></table>
+</div>
+</div>
     </div>
 
     

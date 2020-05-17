@@ -69,7 +69,7 @@
 <meta itemprop="description" content="介绍 JSON 是一种轻量级的数据交换格式，易于阅读和编写，同时也易于机器解析与生成。其采用的是独立于语言的文本格式。可以去官网 json.org 详细了解。 JSON 中有两种">
 <meta itemprop="datePublished" content="2019-12-25T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2019-12-25T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="1229">
+<meta itemprop="wordCount" content="1395">
 
 
 
@@ -316,7 +316,7 @@ if (!doNotTrack) {
             <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
             
           </div>
-        <span class="more-meta"> 1229 words </span>
+        <span class="more-meta"> 1395 words </span>
           <span class="more-meta"> 3 min read </span>
 
         
@@ -352,7 +352,25 @@ if (!doNotTrack) {
     <div class="post-content">
       <h2 id="介绍">介绍</h2>
 <p>JSON 是一种轻量级的数据交换格式，易于阅读和编写，同时也易于机器解析与生成。其采用的是独立于语言的文本格式。可以去官网 <a href="https://json.org">json.org</a> 详细了解。</p>
-<p>JSON 中有两种结构，键值对的对象和数组，在 Golang 中对应的结构是struct/map 和 slice。JSON 中的基本类型是 string、number、bool、nul，在 Golang 中对应的就是 string、float64、boolean、nil。</p>
+<p>JSON 中有两种结构，键值对的对象和数组，JSON 中的基本类型是 string、number、bool、null。</p>
+<p>在 Go 中内置的大部分基本类型（复数没有实现）都实现了向 JSON 的这个 4 种类型转换的方法。</p>
+<p>当 Go 内置类型向 JSON转换时，默认有如下规则：</p>
+<ul>
+<li>string -&gt; string</li>
+<li>uint*/uint* -&gt; number</li>
+<li>float32/float64 -&gt; number</li>
+<li>nil -&gt; null</li>
+<li>bool -&gt; bool</li>
+</ul>
+<p>当 JSON 向 Go 转换时，如果目标类型是空接口，则生成的空接口类型的底层类型默认有以下规则：</p>
+<ul>
+<li>string -&gt; string</li>
+<li>number -&gt; float64</li>
+<li>null -&gt; nil</li>
+<li>bool -&gt; bool</li>
+</ul>
+<p>对于非内建类型或者是自定义的类型只要实现了 Mashaler/TextMarshaler 和 Unmashaler/TextUnmarshaler  接口，也都可以使用 Marshal() 和 Unmarshal() 方法来编码和解码</p>
+<p>例如：<code>big.Int</code> 没有实现上述接口不能调用 Marshal()来序列化，而 <code>*big.Int</code> 实现了 Mashaler 接口，则可以成功调用并序列化</p>
 <h2 id="编码">编码</h2>
 <p>我们可以使用 Marshal 方法来实现 JSON 编码</p>
 <div class="highlight"><div class="chroma">
@@ -411,10 +429,10 @@ if (!doNotTrack) {
 <pre class="chroma"><code class="language-fallback" data-lang="fallback">[]byte(`{&#34;Name&#34;:&#34;bob&#34;,&#34;Age&#34;:21}`)
 </code></pre></td></tr></table>
 </div>
-</div><p>但是需要注意，并不是结构体中的所有字段都可以编码为 JSON 格式：</p>
+</div><p>但是需要注意，并不是结构体中的所有原生类型的字段都可以编码为 JSON 格式：</p>
 <ul>
-<li>JSON 只支持 string 作为键，所以 map 中的 key，必须为 string 类型</li>
-<li>通道、附属、方法等类型不能被编码</li>
+<li>JSON 只支持 string 作为键，所以 map 中的 key 如果是内置类型，必须为 string 类型</li>
+<li>通道、复数、方法等类型不能被编码</li>
 <li>指针类型会对它指向的数据进行编码，如果是 nil，则编码为 null</li>
 <li>json 包只能获取结构体中导出的字段，因此未导出字段不能被编码</li>
 </ul>
@@ -528,13 +546,7 @@ if (!doNotTrack) {
 <span class="p">}</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>json 包使用了 map[string]interface{} 和 []interface{} 存储任意的 JSON 对象和数组，所以我们可以解析任意的 JSON 数据到一个 空接口 interface{} 类型的值，基本类型对应关系：</p>
-<ul>
-<li>JSON bool -&gt; bool</li>
-<li>JSON numbers -&gt; float64</li>
-<li>JSON string -&gt; string</li>
-<li>JSON null -&gt; nil</li>
-</ul>
+</div><p>json 包使用了 map[string]interface{} 和 []interface{} 存储任意的 JSON 对象和数组，所以我们可以解析任意的 JSON 数据到一个空接口 interface{} 类型的值。</p>
 <h2 id="解码任意json数据">解码任意JSON数据</h2>
 <p>先定义一个JSON数据：</p>
 <div class="highlight"><div class="chroma">
@@ -576,24 +588,32 @@ if (!doNotTrack) {
 </div><p>现在我们知道 f 的底层类型为 map[string]interface{}，我们就可以通过断言来获取具体的数据了：</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">m</span><span class="o">:=</span><span class="nx">f</span><span class="p">.(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span>
 <span class="k">for</span> <span class="nx">k</span><span class="p">,</span><span class="nx">v</span><span class="o">:=</span><span class="k">range</span> <span class="nx">m</span><span class="p">{</span>
 	<span class="k">switch</span> <span class="nx">vv</span><span class="o">:=</span><span class="nx">v</span><span class="p">.(</span><span class="kd">type</span><span class="p">){</span>
-		<span class="k">case</span> <span class="kt">string</span><span class="p">:</span>
-		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;string&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
-		<span class="k">case</span> <span class="kt">int</span><span class="p">:</span>
-		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;int&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
+        <span class="k">case</span> <span class="kt">string</span><span class="p">:</span>
+		    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;string&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
+        <span class="k">case</span> <span class="kt">float64</span><span class="p">:</span>
+		    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;float64&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
+        <span class="k">case</span> <span class="kt">bool</span><span class="p">:</span>
+            <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;bool&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
+        <span class="k">case</span> <span class="kc">nil</span><span class="p">:</span>           
+            <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;k&#34;</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="s">&#34;nil&#34;</span><span class="p">,</span><span class="nx">vv</span><span class="p">)</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></td></tr></table>

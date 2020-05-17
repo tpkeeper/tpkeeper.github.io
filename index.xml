@@ -12,6 +12,237 @@
     
     
     <item>
+      <title>区块链知识科普系列：十万个为什么（持续更新）</title>
+      <link>http://www.tpkeep.com/blog/blockchain-knowledge-why/</link>
+      <pubDate>Thu, 02 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/blockchain-knowledge-why/</guid>
+      
+        <description>&lt;h4 id=&#34;为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式&#34;&gt;为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？&lt;/h4&gt;
+&lt;p&gt;比特币的地址格式是 base58 而且加入了网络 id 和校验，可以区分不同的网络，还可以防止用户输入字母错误而导致的丢币情况。以太坊的地址直接就是公钥 hash 的前 20 个字节的十六进制格式，没有网络 id，也没有校验。&lt;/p&gt;
+&lt;p&gt;主要原因就是以太坊设计之初，把地址的格式和校验放在了上层协议之中，比如基于以太坊的域名服务 ENS，可以用容易记忆的域名绑定以太坊 16 进制的地址。只不过这些上层协议开发缓慢，还未大规模使用。&lt;/p&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>区块链知识科普系列：隔离见证</title>
+      <link>http://www.tpkeep.com/blog/blockchain-knowledge-segwit/</link>
+      <pubDate>Sun, 22 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/blockchain-knowledge-segwit/</guid>
+      
+        <description>&lt;h2 id=&#34;隔离见证的由来&#34;&gt;隔离见证的由来&lt;/h2&gt;
+&lt;p&gt;隔离见证最初是由 Pieter Wuille 在 2015 年的一次 btc 会议上提出的。Pieter Wuille 是 Blockstream 公司的开发者和共同创始人。该公司是一个专注于数字资产安全与金融服务的技术公司。&lt;/p&gt;
+&lt;p&gt;Wuille 提出隔离见证是为了修复 btc 协议的一个瑕疵。这个瑕疵就是交易的延展性。关于这个问题，我会在下文详细描述。&lt;/p&gt;
+&lt;p&gt;在隔离见证提出来后，比特币社区经过了长达 2 年的讨论，最终在 2017 年才开始激活，为了保持与之前版本的兼容，进行了软分叉升级。莱特币在这之前也做了隔离见证的升级。&lt;/p&gt;
+&lt;h2 id=&#34;交易的延展性&#34;&gt;交易的延展性&lt;/h2&gt;
+&lt;p&gt;现在我们来说一下什么是交易的延展性。&lt;/p&gt;
+&lt;p&gt;比特币的一笔交易是由输入输出组成的，每个输入都会附带一个签名来证明自己的所有权。每一笔交易都有一个 hash 叫 交易 id，这个 id 是独一无二的，用来区分不同的交易。但是后来发现这个签名可以在不影响验证的情况下修改一些字段，进而导致这个交易 id 的改变。这就是交易的延展性&lt;/p&gt;
+&lt;p&gt;这个延展性在某些情况下会引起资金安全。&lt;/p&gt;
+&lt;p&gt;当我们发起一笔交易时，首先发给一个节点 a，然后再由这个节点 a 通过 p2p 广播到其它节点，进而让整个网络知道这笔交易。如果这个节点 a 作恶了，或者说跟这个节点直接相连的节点作恶了，将你发送的那笔交易的 id 修改了，然后广播出去。虽然你的确把钱花出去了，但是你还在拿着原来的交易 id 去查询交易是否成功，显然是查不出来的。当年的门头沟事件就是利用了这个漏洞，盗取了大量的比特币。&lt;/p&gt;
+&lt;h2 id=&#34;隔离见证的具体实现&#34;&gt;隔离见证的具体实现&lt;/h2&gt;
+&lt;p&gt;既然是签名的改变导致的交易 id 的变化，那我们在计算交易 id 时不把签名这部分数据计算在内不就行了？实际上就是这么干的，顾名思义隔离见证的意思就是将见证的数据也就是签名数据隔离开来，纵使签名数据被修改了，也不会影响交易 id 的改变。&lt;/p&gt;
+&lt;h2 id=&#34;隔离见证带来了什么&#34;&gt;隔离见证带来了什么&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;最重要的就是解决交易的延展性，确保了交易 id 的唯一。&lt;/li&gt;
+&lt;li&gt;为二层协议的开发比如闪电网络打下了基础。&lt;/li&gt;
+&lt;li&gt;一定程度上扩展了块容量，增加了 tps。&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>Golang 字符编码</title>
+      <link>http://www.tpkeep.com/blog/golang-char-encode/</link>
+      <pubDate>Mon, 16 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-char-encode/</guid>
+      
+        <description>&lt;h2 id=&#34;字符集&#34;&gt;字符集&lt;/h2&gt;
+&lt;p&gt;字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字&lt;/p&gt;
+&lt;h2 id=&#34;编码&#34;&gt;编码&lt;/h2&gt;
+&lt;p&gt;广义上的编码就是将一个对象转换为一段字节序列，或者将一段字节序列转换为另一段字节序列，解码就是将一段字节序列恢复为一个对象，或者恢复为另一段字节序列。&lt;/p&gt;
+&lt;h2 id=&#34;字符编码&#34;&gt;字符编码&lt;/h2&gt;
+&lt;p&gt;用于字符的编码，其实就是针对字符集中数字的一种编码。编码的过程就是将数字转换成相应的一段字节序列的过程。不同的字符编码，对同一个数字编码出的字节序列是不同的。所以用一种编码去恢复另一种编码的字节序列，会得到不同的数字，也就对应不同的字符，也有可能直接解码失败，拿不到数字。这就是常见的乱码原因。&lt;/p&gt;
+&lt;p&gt;utf-8 就是一种针对 Unicode 字符集中所有数字的一种编码。类似的还有 utf-16、gb2312。&lt;/p&gt;
+&lt;h2 id=&#34;go-中的字符编码&#34;&gt;Go 中的字符编码&lt;/h2&gt;
+&lt;p&gt;Go 语言内部默认的字符编码为 utf-8。这意味着一个默认的 string 类型的字符串，在转换为字节数组时，拿到的是 utf-8 编码之后的字节序列。当然我们也指定其他编码方式来获取对应编码的字节序列。在使用 string() 直接将一段字节序列转为 string 时，默认也是用的 utf-8 。如果该段字节序列不是 utf-8 编码的则会出现乱码。&lt;/p&gt;
+&lt;p&gt;执行如下代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kn&#34;&gt;package&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;main&lt;/span&gt;
+
+&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;
+	&lt;span class=&#34;s&#34;&gt;&amp;#34;encoding/hex&amp;#34;&lt;/span&gt;
+	&lt;span class=&#34;s&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;name&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;s&#34;&gt;&amp;#34;我爱你&amp;#34;&lt;/span&gt;                           &lt;span class=&#34;c1&#34;&gt;//字符串
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;byteSlice&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;               &lt;span class=&#34;c1&#34;&gt;//默认按照 utf-8 对字符串编码
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Printf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;utf-8 编码: %v\n&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;byteSlice&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;//输出编码后的字节 [230 136 145 231 136 177 228 189 160]
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;strDec&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;byteSlice&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;          &lt;span class=&#34;c1&#34;&gt;//默认按照 utf-8 解码
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Printf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;utf-8 解码: %v\n&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;strDec&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;//输出解码后的字符串
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;tempHex&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;make&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;([]&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;9&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Encode&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;tempHex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;byteSlice&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;                   &lt;span class=&#34;c1&#34;&gt;//按照 16 进制对字节编码
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Printf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;hex 编码: %v\n&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;tempHex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;              &lt;span class=&#34;c1&#34;&gt;// 输出编码后的字节 [101 54 56 56 57 49 101 55 56 56 98 49 101 52 98 100 97 48]
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;tempStr&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;tempHex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;                       &lt;span class=&#34;c1&#34;&gt;//将编码后的字节按照 utf-8 解码
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Printf&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;utf-8 对 hex 编码后的字节解码: %v\n&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;tempStr&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;//输出解码后的字符串
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;byteSlice&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt; &lt;span class=&#34;c1&#34;&gt;// e68891e788b1e4bda0
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;utf-8 编码: [230 136 145 231 136 177 228 189 160]
+utf-8 解码: 我爱你
+hex 编码: [101 54 56 56 57 49 101 55 56 56 98 49 101 52 98 100 97 48]
+utf-8 对 hex 编码后的字节解码: e68891e788b1e4bda0
+e68891e788b1e4bda0
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;对以上输出进行分析：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;首先，下面是字符串“我爱你”的 utf-8 编码&lt;/p&gt;
+&lt;p&gt;我 ：230 136 145&lt;/p&gt;
+&lt;p&gt;爱 ：231 136 177&lt;/p&gt;
+&lt;p&gt;你 ：228 189 160&lt;/p&gt;
+&lt;p&gt;下面是字符串“e68891e788b1e4bda0”的 utf-8 编码&lt;/p&gt;
+&lt;p&gt;e : 101&lt;/p&gt;
+&lt;p&gt;6 : 54&lt;/p&gt;
+&lt;p&gt;8 : 56&lt;/p&gt;
+&lt;p&gt;&amp;hellip;&lt;/p&gt;
+&lt;p&gt;string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;hex.Encode() 方法其实是将字节序列对应的十六进制字符串进行 utf-8 编码，所以 string(hex.Encode())，会输出字节对应的十六进制字符串，相当于 hex.EncodeToString()这个方法。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;如何将一组任意的 []byte 转换为 hex 格式的字符串？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;首先，直接使用 string() 方法是不行的，因为它会将 []byte 按照utf-8 的方式解码，而 []byte 并不是 utf-8 格式的所以会出现乱码。&lt;/p&gt;
+&lt;p&gt;反过来推，要拿到 hex 格式的字符串，我们需要找到字符串对应的 utf-8 字节数组，然后再用 string() 就可以了。现在的问题变成了，如何将字节数组转换为其 hex 字符串所对应的 utf-8 编码的字节数组&lt;/p&gt;
+&lt;p&gt;hex.Encode() 方法正好就是这个功能，将输入的字节数组转换为 hex 格式所对应的 utf-8 编码的字节数组，它的内部实现比较巧妙，可以研究一下。&lt;/p&gt;
+&lt;p&gt;hex.EncodeToString() 其实就是 string(hex.Encode())，返回hex 格式的字符串&lt;/p&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>Golang 中如何实现 set 最高效</title>
+      <link>http://www.tpkeep.com/blog/golang-how-to-use-set/</link>
+      <pubDate>Tue, 25 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/golang-how-to-use-set/</guid>
+      
+        <description>&lt;p&gt;在写代码的过程中，避免不了用到 set 数据结构。但是在 Go 语言中并没有直接提供一个内置的的 set 类型供我们直接使用，这个时候就需要我们自己通过 Go 语言提供的内置类型 map 来实现一个。&lt;/p&gt;
+&lt;p&gt;如果 把 map 当做 set 来使用，那么 map 的 key 就可以作为 set 的内容，map 的 value 自然就是冗余的，但是又不能舍弃，那么这个 value 存什么类型的值比较合适呢？换句话说什么类型的值占用内存是最少的呢？ byte ? bool ？ int ? float32?  interface{} ? struct{} ?&lt;/p&gt;
+&lt;p&gt;我们不妨通过以下代码来查看一下各个类型所占用的实际内存：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;main&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;bool&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;bool:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sizeof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;b&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;int:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sizeof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;in&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;float32&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;float32:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sizeof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;struct{}:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sizeof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+	&lt;span class=&#34;kd&#34;&gt;var&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;interface&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;interface{}:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;unsafe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Sizeof&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;bool: 1
+int: 4
+float32: 4
+struct{}: 0
+interface{}: 8
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;从以上输出我们可以看到，struct{} 也就是空结构体类型是不占用内存的，因此我们用 struct{} 来作为 map 的 value 是最合适的。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;map&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;key&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>P2P对等网络 - upnp实现内网穿透</title>
       <link>http://www.tpkeep.com/blog/p2p-upnp/</link>
       <pubDate>Tue, 31 Dec 2019 00:00:00 +0000</pubDate>
@@ -1123,7 +1354,25 @@ t is now {77 Sunset Strip}
       
         <description>&lt;h2 id=&#34;介绍&#34;&gt;介绍&lt;/h2&gt;
 &lt;p&gt;JSON 是一种轻量级的数据交换格式，易于阅读和编写，同时也易于机器解析与生成。其采用的是独立于语言的文本格式。可以去官网 &lt;a href=&#34;https://json.org&#34;&gt;json.org&lt;/a&gt; 详细了解。&lt;/p&gt;
-&lt;p&gt;JSON 中有两种结构，键值对的对象和数组，在 Golang 中对应的结构是struct/map 和 slice。JSON 中的基本类型是 string、number、bool、nul，在 Golang 中对应的就是 string、float64、boolean、nil。&lt;/p&gt;
+&lt;p&gt;JSON 中有两种结构，键值对的对象和数组，JSON 中的基本类型是 string、number、bool、null。&lt;/p&gt;
+&lt;p&gt;在 Go 中内置的大部分基本类型（复数没有实现）都实现了向 JSON 的这个 4 种类型转换的方法。&lt;/p&gt;
+&lt;p&gt;当 Go 内置类型向 JSON转换时，默认有如下规则：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;string -&amp;gt; string&lt;/li&gt;
+&lt;li&gt;uint*/uint* -&amp;gt; number&lt;/li&gt;
+&lt;li&gt;float32/float64 -&amp;gt; number&lt;/li&gt;
+&lt;li&gt;nil -&amp;gt; null&lt;/li&gt;
+&lt;li&gt;bool -&amp;gt; bool&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当 JSON 向 Go 转换时，如果目标类型是空接口，则生成的空接口类型的底层类型默认有以下规则：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;string -&amp;gt; string&lt;/li&gt;
+&lt;li&gt;number -&amp;gt; float64&lt;/li&gt;
+&lt;li&gt;null -&amp;gt; nil&lt;/li&gt;
+&lt;li&gt;bool -&amp;gt; bool&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对于非内建类型或者是自定义的类型只要实现了 Mashaler/TextMarshaler 和 Unmashaler/TextUnmarshaler  接口，也都可以使用 Marshal() 和 Unmarshal() 方法来编码和解码&lt;/p&gt;
+&lt;p&gt;例如：&lt;code&gt;big.Int&lt;/code&gt; 没有实现上述接口不能调用 Marshal()来序列化，而 &lt;code&gt;*big.Int&lt;/code&gt; 实现了 Mashaler 接口，则可以成功调用并序列化&lt;/p&gt;
 &lt;h2 id=&#34;编码&#34;&gt;编码&lt;/h2&gt;
 &lt;p&gt;我们可以使用 Marshal 方法来实现 JSON 编码&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -1182,10 +1431,10 @@ t is now {77 Sunset Strip}
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;[]byte(`{&amp;#34;Name&amp;#34;:&amp;#34;bob&amp;#34;,&amp;#34;Age&amp;#34;:21}`)
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;但是需要注意，并不是结构体中的所有字段都可以编码为 JSON 格式：&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;但是需要注意，并不是结构体中的所有原生类型的字段都可以编码为 JSON 格式：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;JSON 只支持 string 作为键，所以 map 中的 key，必须为 string 类型&lt;/li&gt;
-&lt;li&gt;通道、附属、方法等类型不能被编码&lt;/li&gt;
+&lt;li&gt;JSON 只支持 string 作为键，所以 map 中的 key 如果是内置类型，必须为 string 类型&lt;/li&gt;
+&lt;li&gt;通道、复数、方法等类型不能被编码&lt;/li&gt;
 &lt;li&gt;指针类型会对它指向的数据进行编码，如果是 nil，则编码为 null&lt;/li&gt;
 &lt;li&gt;json 包只能获取结构体中导出的字段，因此未导出字段不能被编码&lt;/li&gt;
 &lt;/ul&gt;
@@ -1299,13 +1548,7 @@ t is now {77 Sunset Strip}
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;json 包使用了 map[string]interface{} 和 []interface{} 存储任意的 JSON 对象和数组，所以我们可以解析任意的 JSON 数据到一个 空接口 interface{} 类型的值，基本类型对应关系：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;JSON bool -&amp;gt; bool&lt;/li&gt;
-&lt;li&gt;JSON numbers -&amp;gt; float64&lt;/li&gt;
-&lt;li&gt;JSON string -&amp;gt; string&lt;/li&gt;
-&lt;li&gt;JSON null -&amp;gt; nil&lt;/li&gt;
-&lt;/ul&gt;
+&lt;/div&gt;&lt;p&gt;json 包使用了 map[string]interface{} 和 []interface{} 存储任意的 JSON 对象和数组，所以我们可以解析任意的 JSON 数据到一个空接口 interface{} 类型的值。&lt;/p&gt;
 &lt;h2 id=&#34;解码任意json数据&#34;&gt;解码任意JSON数据&lt;/h2&gt;
 &lt;p&gt;先定义一个JSON数据：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -1347,24 +1590,32 @@ t is now {77 Sunset Strip}
 &lt;/div&gt;&lt;p&gt;现在我们知道 f 的底层类型为 map[string]interface{}，我们就可以通过断言来获取具体的数据了：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td class=&#34;lntd&#34;&gt;
 &lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;nx&#34;&gt;m&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;map&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;interface&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{})&lt;/span&gt;
 &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;v&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;range&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;m&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
 	&lt;span class=&#34;k&#34;&gt;switch&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;v&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.(&lt;/span&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;){&lt;/span&gt;
-		&lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
-		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;string&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-		&lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
-		&lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;int&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+		    &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;string&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;float64&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+		    &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;float64&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;bool&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+            &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;bool&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+        &lt;span class=&#34;k&#34;&gt;case&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;           
+            &lt;span class=&#34;nx&#34;&gt;fmt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Println&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;k&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;k&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;nil&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;vv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
     &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
@@ -1793,7 +2044,7 @@ go tool cover -html&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covpro
     <item>
       <title>密码学系列：签名</title>
       <link>http://www.tpkeep.com/blog/encryption-signature/</link>
-      <pubDate>Wed, 11 Sep 2019 17:04:19 +0800</pubDate>
+      <pubDate>Wed, 11 Sep 2019 00:00:00 +0000</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-signature/</guid>
       
@@ -2060,11 +2311,12 @@ signature R&amp;gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
     <item>
       <title>密码学系列：非对称加密</title>
       <link>http://www.tpkeep.com/blog/encryption-asymmetric/</link>
-      <pubDate>Mon, 09 Sep 2019 17:04:19 +0800</pubDate>
+      <pubDate>Mon, 09 Sep 2019 00:00:00 +0000</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-asymmetric/</guid>
       
-        <description>&lt;p&gt;非对称加密有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密&lt;/p&gt;
+        <description>&lt;p&gt;非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密&lt;/p&gt;
+&lt;p&gt;本文主要介绍 RSA 跟 ECC 这两种非对称加密算法&lt;/p&gt;
 &lt;p&gt;他们都源于一个公共原理：&lt;strong&gt;单向函数&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;单向函数的定义：&lt;/p&gt;
 &lt;blockquote&gt;
@@ -2074,143 +2326,241 @@ signature R&amp;gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
 &lt;li&gt;x = f&amp;rsquo; (y) 计算是不可行的(需要的时间太长)&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;目前的公钥方案中主要使用了两个主流的单向函数：&lt;/p&gt;
+&lt;p&gt;目前的非对称加密算法中主要使用了两个主流的单向函数：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;大整数的因式分解&lt;/li&gt;
 &lt;li&gt;离散对数问题（DLP问题）&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;本文主要介绍 RSA 跟 ECC 这两种非对称加密算法&lt;/p&gt;
-&lt;h2 id=&#34;rsa&#34;&gt;RSA&lt;/h2&gt;
-&lt;p&gt;安全建立在基于&lt;strong&gt;大整数的因数分解问题&lt;/strong&gt;（即对 N 的质因数分解求 p、q）&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;密文 = 明文^E (mod N)&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;明文 = 密文^D (mode N)&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;生成密钥对过程：&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;理论&#34;&gt;理论&lt;/h2&gt;
+&lt;p&gt;有助于对非对称加密原理的理解，比如 ecc 为什么是基于椭圆曲线的离散对数问题，哪里来的对数？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;模运算：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在自然数范围，两数相除，要么除尽，要么有余数。&lt;/p&gt;
+&lt;p&gt;如果 a 和 b 被整数 m 除的余数相同，则称 a 和 b 关于模 m 同余，记作：&lt;/p&gt;
+&lt;p&gt;a ≡ b (mod m)&lt;/p&gt;
+&lt;p&gt;例如： 31 ≡ 5 (mod 13)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;群：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;群指的是一个元素集合 G 以及 两个元素值之间的操作 o 的集合，记作 (G，o)，群有一下性质：&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;生成 N
-N = p * q ( p和q为质数 )
-L = lcm(p-1,q-1) ( lcm 为求最小公倍数 )&lt;/li&gt;
-&lt;li&gt;生成 E
-1 &amp;lt; E &amp;lt; L
-gcd(E,L)=1 ( gcd 为求最大公约数 )&lt;/li&gt;
-&lt;li&gt;生成 D
-1 &amp;lt; D &amp;lt; L
-E * D (mod L) = 1&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&#34;ecc&#34;&gt;ECC&lt;/h2&gt;
-&lt;h3 id=&#34;基础知识&#34;&gt;基础知识&lt;/h3&gt;
-&lt;h4 id=&#34;模运算&#34;&gt;模运算&lt;/h4&gt;
-&lt;blockquote&gt;
-&lt;p&gt;a = r (mod m) , r为余数，m为模数，r&amp;lt;m&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;例：42= 6 (mod 9)&lt;/p&gt;
-&lt;h4 id=&#34;群&#34;&gt;群&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;群指的是一个元素集合 G 以及 两个元素值之间的操作 o 的集合，即 (G，o)：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;群操作 o 是封闭的，即对所有的 a b，a b 属于G, a o b = c，c 也属于 G。&lt;/li&gt;
-&lt;li&gt;群操作 o 是可结合的，即 ao(boc) = (aob)oc。&lt;/li&gt;
-&lt;li&gt;存在一个元素 1 ，对所有的 a ，a 属于 G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元&lt;/li&gt;
+&lt;li&gt;群操作 o 是封闭的，即对所有的 a, b  ∈ G, a o b = c ∈ G 也成立。&lt;/li&gt;
+&lt;li&gt;群操作 o 是可结合的，即 a, b, c ∈ G，则 ao(boc) = (aob)oc。&lt;/li&gt;
+&lt;li&gt;存在一个元素 1 ，对所有的 a ∈ G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元&lt;/li&gt;
 &lt;li&gt;a o a&amp;rsquo; = a&amp;rsquo; o a = 1，a’叫做 a 的逆元&lt;/li&gt;
 &lt;li&gt;如果 a o b = b o a，则群 G 为阿贝尔群或可交换群&lt;/li&gt;
 &lt;/ol&gt;
-&lt;/blockquote&gt;
 &lt;p&gt;&lt;strong&gt;有限群：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
 &lt;p&gt;一个群 (G,o) 是有限的，仅当他拥有有限个元素，G 的基或阶可以表示为 |G|&lt;/p&gt;
-&lt;/blockquote&gt;
 &lt;p&gt;密码学中使用的一般就是有限群&lt;/p&gt;
 &lt;p&gt;群的基或阶其实就是群元素的个数&lt;/p&gt;
 &lt;p&gt;例如：（Zn，+）Zn 的基为 |Zn|=n，因为 Zn = {0，1，2，&amp;hellip; ，n-1}&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;元素的阶：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;是指满足以下条件的最小正整数 k：
-ord(a) = a^k = a o a o a &amp;hellip;..a = 1 ,1 是单位元&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;群 (G,o) 内某个元素 a 的阶，是指满足以下条件的最小正整数 k：&lt;/p&gt;
+&lt;p&gt;ord(a) = $a^{ k }$ = $\underbrace{a o a o a &amp;hellip;a} _ {\text{k次} }$  =1 ，其中 1 是单位元&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;循环群：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
 &lt;p&gt;如果群 G 包含一个拥有最大阶 ord(x) = |G| 的元素 x，则这个群是个循环群，拥有最大阶的元素成为生成元。&lt;/p&gt;
-&lt;/blockquote&gt;
 &lt;p&gt;这个 x 的幂值可以表示整个群&lt;/p&gt;
 &lt;p&gt;例：Z11 = {1，2，3，4，5，6，7，8，9，10}&lt;/p&gt;
 &lt;p&gt;x = 2 为生成元&lt;/p&gt;
 &lt;p&gt;基为 |Z11| = 10&lt;/p&gt;
-&lt;p&gt;2^10  = 1 (mod 11), 2的阶为10，即ord(2) = |Z11|&lt;/p&gt;
+&lt;p&gt;$2^{10}$  ≡ 1 (mod 11), 2的阶为10，即ord(2) = |Z11|&lt;/p&gt;
 &lt;p&gt;2 的幂值生成了所有元素&lt;/p&gt;
-&lt;h4 id=&#34;定理&#34;&gt;定理：&lt;/h4&gt;
-&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;定理：&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;每个素数 p，( Zp,* )都是一个阿贝尔有限循环群&lt;/p&gt;
-&lt;/blockquote&gt;
 &lt;p&gt;该定理说明每个素数域的乘法群都是循环群，对于构建离散对数密码体制非常重要&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Hasse&amp;rsquo;s定理：
-给定一个曲线E mod p ，曲线上的点的个数表示为 #E 则：
-p+1-2√p&amp;lt;=#E&amp;lt;=p+1+2√p&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h4 id=&#34;离散对数问题&#34;&gt;离散对数问题&lt;/h4&gt;
-&lt;p&gt;&lt;strong&gt;基于Zp的离散对数问题（DLP）：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;给定一个阶为 p-1 的有限循环群Zp，生成元为 a，b为另一个元素，DLP问题就是确定满足以下条件的整数 x（ 1 &amp;lt;= x &amp;lt;= p-1 ）的问题：
-a^x  = b (mod p)&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Hasse&amp;rsquo;s定理：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;给定一个曲线 E 模为 p ，曲线上的点的个数表示为 #E 则：&lt;/p&gt;
+&lt;p&gt;p+1-$\sqrt[2]{p}$ &amp;lt;= #E &amp;lt;= p+1+$\sqrt[3]p$&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基于 Zp 的离散对数问题（DLP）：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;给定一个阶为 p-1 的有限循环群 Zp，生成元为 a，b为另一个元素，DLP问题就是确定满足以下条件的整数 x（ 1 &amp;lt;= x &amp;lt;= p-1 ）的问题：&lt;/p&gt;
+&lt;p&gt;$a^x$  ≡ b (mod p)&lt;/p&gt;
 &lt;p&gt;当参数非常大的时候，求解 x 非常困难&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;推广的离散对数问题：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;给定一个基为 n 的有限循环群 G，群操作为 o。生成元为a，b为另一个元素，DLP问题就是找到x（1 &amp;lt;= x &amp;lt;= n）使得：
-a^x = a o a o a &amp;hellip;. o a = b&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;给定一个基为 n 的有限循环群 G，群操作为 o。生成元为a，b为另一个元素，DLP问题就是找到x（1 &amp;lt;= x &amp;lt;= n）使得：&lt;/p&gt;
+&lt;p&gt;$a^x$ =  $\underbrace{a o a o a &amp;hellip;a} _ {\text{x次} }$ = b&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;椭圆曲线离散对数问题：&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;给定一个椭圆曲线E，群操作为+，生成元 G，T为另一个元素，dl问题就是找到 k(1 &amp;lt;= k &amp;lt;= #E) 使得：
-kG = G + G + G +&amp;hellip;+G = T&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;公钥密码体制正是找到了这样的一个群是的DLP问题成为了一个单向函数&lt;/p&gt;
-&lt;h4 id=&#34;应用在密码学中的椭圆曲线&#34;&gt;应用在密码学中的椭圆曲线&lt;/h4&gt;
-&lt;p&gt;基于椭圆曲线的非对称加密，跟 rsa 相比，密钥更短，强度更高&lt;/p&gt;
-&lt;p&gt;安全建立在基于椭圆曲线的离散对数问题，是一种&lt;strong&gt;推广的离散对数问题&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;给定一个椭圆曲线 E，群操作为 +，生成元 G，T 为另一个元素，DLP 问题就是找到 k(1 &amp;lt;= k &amp;lt;= #E) 使得：&lt;/p&gt;
+&lt;p&gt;k * G = $\underbrace{ G + G + G +&amp;hellip;+G} _ {\text{k次} }$ = T&lt;/p&gt;
+&lt;p&gt;非对称加密算法正是找到了这样的一个群使得 DLP 问题成为了一个单向函数&lt;/p&gt;
+&lt;h2 id=&#34;rsa&#34;&gt;RSA&lt;/h2&gt;
+&lt;p&gt;安全建立在&lt;strong&gt;基于大整数的因数分解问题&lt;/strong&gt;（即对 N 的质因数分解求 p、q）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;密钥对生成：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;D、N 都是非常大的数字，通常为 1024 位或更长&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;二元三次曲线 &lt;strong&gt;y^2 = x^3 + a * x + b (mod p)&lt;/strong&gt; （其中p为大质数）&lt;/li&gt;
-&lt;li&gt;定义的运算 P + Q = R,都是曲线上的点&lt;/li&gt;
+&lt;li&gt;生成 N (模数)
+N = p * q ( p和q为质数 )
+L = lcm(p-1,q-1) ( lcm 为求最小公倍数 )&lt;/li&gt;
+&lt;li&gt;生成 E (公共指数)
+1 &amp;lt; E &amp;lt; L
+gcd(E,L)=1 ( gcd 为求最大公约数 )&lt;/li&gt;
+&lt;li&gt;生成 D (私有指数)
+1 &amp;lt; D &amp;lt; L
+E * D  mod L = 1&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;循环群为椭圆曲线上的点，群操作为 +&lt;/p&gt;
-&lt;p&gt;抽象的无穷的点 0 为单位元，满足 P+0 = P&lt;/p&gt;
-&lt;p&gt;逆元 P+(-P) = 0，满足 -P = （Xp，p-Yp）&lt;/p&gt;
-&lt;h3 id=&#34;secp256k1曲线&#34;&gt;secp256k1曲线&lt;/h3&gt;
-&lt;h4 id=&#34;基本参数&#34;&gt;基本参数：&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;加密：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;密文 ≡ 明文^E (mod N)&lt;/p&gt;
+&lt;p&gt;对明文的加密过程就是明文的 E 次方对 N 求余，知道了 E 和 N 就可以对明文进行加密了，所以 E 和 N 的组合就是公钥&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;解密:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;明文 ≡ 密文^D (mod N)&lt;/p&gt;
+&lt;p&gt;对密文的解密过程就是密文的 D 次方对 N 求余，知道了 D 和 N 就可以对密文解密了，所以 D 和 N 的组合就是私钥&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Go 代码实战：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;我们使用 Go 代码生成 128 位的密钥对，可以看到 N 和 D 都是一个很大的数字&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;TestRsa&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;T&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;){&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;priKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rsa&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;GenerateKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Reader&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;128&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;N&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;priKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;E&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;priKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;E&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;D&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;priKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;D&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;span class=&#34;c1&#34;&gt;//生成的结果
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// N 243397416550696148306109565225196099917
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// E 65537
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// D 151801669348507779797470340387169711233
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;ecc&#34;&gt;ECC&lt;/h2&gt;
+&lt;p&gt;安全建立在基于椭圆曲线的离散对数问题，是一种&lt;strong&gt;推广的离散对数问题&lt;/strong&gt;，跟 rsa 相比，密钥更短，强度更高。&lt;/p&gt;
+&lt;p&gt;其数学公式为二元三次曲线 &lt;strong&gt;$y^2 ≡ x^3 + a * x + b (mod p)$&lt;/strong&gt; （其中p为大质数），循环群为椭圆曲线上的点，我们令群操作记为 +，则有如下运算规则：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;离散曲线： y^2 = (x^3 + 7) mod p（其中x和y都是整形保证了离散）
-p=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-a=0
-b=7&lt;/p&gt;
+&lt;p&gt;P + Q = R，其中 P、Q、R 都是曲线上的点，P、Q 连线与椭圆曲线相交于一点，该点与 x 轴对称的点就是 R&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;基点 G
-G(&amp;ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&amp;rdquo;,
-&amp;ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&amp;rdquo;)&lt;/p&gt;
+&lt;p&gt;P + P = 2 * P&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;点的集合  {G，2G，3G，&amp;hellip; ，nG}，nG=O，O 为抽象的无穷点即单位元
-n=&amp;quot;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;$\underbrace{ P + P + P +&amp;hellip;+P} _ {\text{n次} }$ = n * P ，其中 n 为整数&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;抽象的无穷的点 o 为单位元，满足 P+o = P&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;逆元 P+(-P) = o，满足 -P = （Xp，p-Yp）&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;h4 id=&#34;私钥生成公钥原理&#34;&gt;私钥生成公钥原理：&lt;/h4&gt;
-&lt;p&gt;在上边的离散的椭圆曲线上，定义一套运算规则：&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;加法：P+Q = R 
-乘法： K=kG&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;k 为私钥，K 为公钥{r,s}，G为曲线上一点。&lt;/p&gt;
-&lt;p&gt;由 k、G 算 K 简单，由 K、G 推出 k 极难。&lt;/p&gt;
-</description>
+&lt;p&gt;&lt;strong&gt;比特币使用的 secp256k1 曲线：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;该曲线在区块链中经常用到，具体参数如下：&lt;/p&gt;
+&lt;p&gt;函数：$y^2 ≡ x^3 + 7 (mod p)$&lt;/p&gt;
+&lt;p&gt;其中 p 为 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F&lt;/p&gt;
+&lt;p&gt;基点 G 的坐标为：&lt;/p&gt;
+&lt;p&gt;(&amp;ldquo;0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798&amp;rdquo;,&amp;ldquo;483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8&amp;rdquo;)&lt;/p&gt;
+&lt;p&gt;点的集合  {G，2G，3G，&amp;hellip; ，nG}，nG = O，O 为抽象的无穷点即单位元，n 为 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;基于 ECC 的混合加密机制&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;计算加密密钥（输入公钥 a * G）：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;生成私钥 b&lt;/li&gt;
+&lt;li&gt;计算公钥 b * G&lt;/li&gt;
+&lt;li&gt;计算共享密钥 (a * G) * b&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;计算解密密钥（输入公钥 b * G）：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;生成私钥 a&lt;/li&gt;
+&lt;li&gt;计算公钥 a * G&lt;/li&gt;
+&lt;li&gt;计算共享密钥 (b * G) * a&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;其中 (a * G) * b = (b * G) * a，所以最终计算出来的共享密钥是相等的&lt;/p&gt;
+&lt;p&gt;然后使用对称加密算法来进行加解密&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Go代码实战：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;我们使用 btcd 中的 btcec 包来测试密钥对的生成以及加解密，使用的曲线是 secp256k1，共享密钥的生成使用的ECDH，对称加密算法是 AES-256-CBC，使用公钥加密时，会将新生成的私钥对应的公钥信息写入密文中，在用私钥解密时，会先解析公钥，然后计算出共享密钥，再根据对称加密算法解密。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;29
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;30
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;31
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;32
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;33
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;34
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;func&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;TestEcc&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;testing&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;T&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;  &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;priv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;ecdsa&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;GenerateKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;S256&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(),&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Reader&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;privKey&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;PrivateKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;priv&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;privKey:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;privKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Serialize&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()))&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;pubKey:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;privKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;PubKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;().&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;SerializeUncompressed&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()))&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;test&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;hello ecc&amp;#34;&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;to encrypt bytes:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;([]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;test&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)))&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;to encrypt word:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;test&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;cryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Encrypt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;privKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;PubKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(),[]&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;byte&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;test&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;cryptBytes:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;cryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;decryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;:=&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Decrypt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;privKey&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;cryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;!=&lt;/span&gt; &lt;span class=&#34;kc&#34;&gt;nil&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+		&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Fatal&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;err&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+	&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;decryptBytes:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;hex&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;EncodeToString&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;decryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nf&#34;&gt;Log&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;&amp;#34;decrypt word:&amp;#34;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;decryptBytes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+
+&lt;span class=&#34;c1&#34;&gt;// privKey: e7edc93193067989a066a1e75b96b2ee6102b6fd14b20e28c646bbdb4dd6f717
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// pubKey: 04150b3d8af4ae33625681ec589ca4f85d1560dc287084411b28ea0c297302472096049ca74807bd2c26be73d1ac18edd86aa306898089e5a49bccf5309677ff8b
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// to encrypt bytes: 68656c6c6f20656363
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// to encrypt word: hello ecc
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// cryptBytes: 344b3fb2502dd949af36ce8a439964c402ca0020e40591c164254a6c92c24b8f9d3491b356f51ce77bb29d27cca4163fa5c9234300200910a3a47ebd37ed89c674de7b26b92f2035f1a63b766b9942bc92b2479d90fc238b92b725c43142fcff1fb9ec39dc1789706966346992c8ba5d3110b464091dfde3a196d148321eb47a8bf2f53c5517
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// decryptBytes: 68656c6c6f20656363
+&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;// decrypt word: hello ecc
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
       
     </item>
     
     <item>
       <title>密码学系列：对称加密</title>
       <link>http://www.tpkeep.com/blog/encryption-symmetric/</link>
-      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      <pubDate>Mon, 02 Sep 2019 00:00:00 +0000</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-symmetric/</guid>
       
@@ -2463,7 +2813,7 @@ n=&amp;quot;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&a
     <item>
       <title>密码学系列：概述</title>
       <link>http://www.tpkeep.com/blog/encryption-overview/</link>
-      <pubDate>Mon, 02 Sep 2019 17:04:19 +0800</pubDate>
+      <pubDate>Mon, 02 Sep 2019 00:00:00 +0000</pubDate>
       
       <guid>http://www.tpkeep.com/blog/encryption-overview/</guid>
       
@@ -2551,8 +2901,6 @@ n=&amp;quot;0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141&a
 &lt;p&gt;《深入浅出密码学》- Christof Paar / Jan Pelzl 著 马小婷 译&lt;/p&gt;
 &lt;p&gt;《应用密码学：协议、算法与C源程序》- Bruce Schneier 著&lt;/p&gt;
 &lt;p&gt;《公钥密码学的数学基础》- 王小云 著&lt;/p&gt;
-&lt;h2 id=&#34;参考代码合集&#34;&gt;参考代码合集&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://github.com/tpkeeper/crypto&#34;&gt;https://github.com/tpkeeper/crypto&lt;/a&gt;&lt;/p&gt;
 </description>
       
     </item>
@@ -5607,8 +5955,8 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
         <description>&lt;ul&gt;
 &lt;li&gt;我叫大远&lt;/li&gt;
 &lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
-&lt;li&gt;本博客是基于&lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt;搭建的静态网站，托管于github。&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于 github。&lt;/li&gt;
+&lt;li&gt;我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
       

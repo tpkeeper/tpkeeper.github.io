@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>密码学系列：概述 - 大远的博客</title>
+  <title>Golang 字符编码 - 大远的博客</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="大远" />
-  <meta name="description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、" />
+  <meta name="description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一" />
 
   <meta name="keywords" content="大远, 博客, 区块链, Golang" />
 
@@ -35,7 +35,7 @@
 <meta name="generator" content="Hugo 0.71.0-DEV" />
 
 
-<link rel="canonical" href="http://www.tpkeep.com/blog/encryption-overview/" />
+<link rel="canonical" href="http://www.tpkeep.com/blog/golang-char-encode/" />
 
 
 
@@ -59,23 +59,23 @@
 
 
 
-<meta property="og:title" content="密码学系列：概述" />
-<meta property="og:description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、" />
+<meta property="og:title" content="Golang 字符编码" />
+<meta property="og:description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.tpkeep.com/blog/encryption-overview/" />
-<meta property="article:published_time" content="2019-09-02T00:00:00+00:00" />
-<meta property="article:modified_time" content="2019-09-02T00:00:00+00:00" />
-<meta itemprop="name" content="密码学系列：概述">
-<meta itemprop="description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、">
-<meta itemprop="datePublished" content="2019-09-02T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2019-09-02T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="935">
+<meta property="og:url" content="http://www.tpkeep.com/blog/golang-char-encode/" />
+<meta property="article:published_time" content="2020-03-16T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-03-16T00:00:00+00:00" />
+<meta itemprop="name" content="Golang 字符编码">
+<meta itemprop="description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一">
+<meta itemprop="datePublished" content="2020-03-16T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2020-03-16T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="1221">
 
 
 
-<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="密码学系列：概述"/>
-<meta name="twitter:description" content="在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、"/>
+<meta itemprop="keywords" content="Golang," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Golang 字符编码"/>
+<meta name="twitter:description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -306,18 +306,18 @@ if (!doNotTrack) {
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">密码学系列：概述</h1>
+      <h1 class="post-title">Golang 字符编码</h1>
       
       <div class="post-meta">
-        <time datetime="2019-09-02" class="post-time">
-          2019-09-02
+        <time datetime="2020-03-16" class="post-time">
+          2020-03-16
         </time>
         <div class="post-category">
-            <a href="http://www.tpkeep.com/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E7%B3%BB%E5%88%97/"> 密码学系列 </a>
+            <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
             
           </div>
-        <span class="more-meta"> 935 words </span>
-          <span class="more-meta"> 2 min read </span>
+        <span class="more-meta"> 1221 words </span>
+          <span class="more-meta"> 3 min read </span>
 
         
         
@@ -338,13 +338,10 @@ if (!doNotTrack) {
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#对称加密算法">对称加密算法</a></li>
-    <li><a href="#非对称加密算法">非对称加密算法</a></li>
-    <li><a href="#密钥交换算法">密钥交换算法</a></li>
-    <li><a href="#签名算法">签名算法</a></li>
-    <li><a href="#常用的散列函数">常用的散列函数</a></li>
-    <li><a href="#常见术语">常见术语</a></li>
-    <li><a href="#密码学相关书籍">密码学相关书籍</a></li>
+    <li><a href="#字符集">字符集</a></li>
+    <li><a href="#编码">编码</a></li>
+    <li><a href="#字符编码">字符编码</a></li>
+    <li><a href="#go-中的字符编码">Go 中的字符编码</a></li>
   </ul>
 </nav>
   </div>
@@ -352,90 +349,104 @@ if (!doNotTrack) {
 
     
     <div class="post-content">
-      <p>在加解密技术中根据密钥的类型一般可以分为对称加密和非对称加密，本系列文章将对这两种类型涉及到的加解密算法展开分析，其他的密码技术如散列算法、密钥协商、签名等，也在讨论范围之内。</p>
-<ul>
-<li>将现实世界的东西映射为比特序列的操作为编码</li>
-<li>将表示明文的比特序列转换为表示密码的比特序列为加密</li>
-</ul>
-<h2 id="对称加密算法">对称加密算法</h2>
-<p>常用的对称加密算法：</p>
-<ul>
-<li>DES（Data Encryption Standard）</li>
-<li>三重DES（triple-DES）</li>
-<li>AES（Advanced Encryption Standard）Rijndael</li>
-</ul>
-<p>上边三种算法都只能加密固定长度的一个字节分组，故也可以叫做分组密码。如果要加密大段明文，还需要对明文迭代进行加密，不同的迭代方式就称为模式，主要有以下几种：</p>
-<ul>
-<li>ECB（Electronic CodeBook）</li>
-<li>CBC（Cipher Block Chaining）</li>
-<li>CFB（Cipher FeedBack）</li>
-<li>OFB（Output FeedBack）</li>
-<li>CTR（Counter）</li>
-</ul>
-<h2 id="非对称加密算法">非对称加密算法</h2>
-<p>常用的算法：</p>
-<ul>
-<li>RSA</li>
-<li>ECC</li>
-</ul>
-<p>特点：</p>
-<p>需要极其复杂的计算，因此相比对称加密速度比较慢（速度是对称加密的几百分之一）</p>
-<p>主要应用：</p>
-<ul>
-<li>密钥协商</li>
-<li>数字签名（DSA、ECDSA）</li>
-<li>加解密（RSA、ECC）</li>
-</ul>
-<h2 id="密钥交换算法">密钥交换算法</h2>
-<ul>
-<li>Diff-Hellman 密钥交换(DHKE)</li>
-<li>ECDH</li>
-</ul>
-<h2 id="签名算法">签名算法</h2>
-<ul>
-<li>RSA数字签名 (基于大数的分解问题)</li>
-<li>DSA (基于离散对数问题)</li>
-<li>ECDSA (基于椭圆曲线的推广的离散对数问题)</li>
-<li>Schnorr</li>
-</ul>
-<h2 id="常用的散列函数">常用的散列函数</h2>
-<ul>
-<li>MD4（Message Digest）：128 bit，不安全</li>
-<li>MD5 ：128 bit，不安全</li>
-<li>SHA-1 ：160 bit，不安全，山大王小云攻破 message，长度上限 2^64 -1 bit</li>
-<li>SHA-2
-<ul>
-<li>SHA-256 ：256 bit，message 长度上限 2^64 - 1 bit</li>
-<li>SHA-384 ：384 bit，message 长度上限 2^128 - 1 bit</li>
-<li>SHA-512 ：512 bit，message 长度上限 2^128 -1 bit</li>
-</ul>
-</li>
-<li>RIPEMD-160 ：160 bit</li>
-<li>SHA-3（Keccak）：理论可以生成任何长度散列值，message 长度无限制
-<ul>
-<li>SHA3-224</li>
-<li>SHA3-256</li>
-<li>SHA3-384</li>
-<li>SHA3-512</li>
-</ul>
-</li>
-</ul>
-<h2 id="常见术语">常见术语</h2>
-<ul>
-<li>EC, Elliptic Curve, 椭圆曲线</li>
-<li>ECC, Elliptic Curve Cryptography, 椭圆曲线密码学</li>
-<li>ECDSA, Elliptic Curve Digital Signature Algorithm, 椭圆曲线数字签名算法</li>
-<li>DH, Diffie-Hellman Key Exchange, Diffie-Hellman 密钥交换</li>
-<li>ECDH, Elliptic Curve Diffie-Hellman Key Exchange, 椭圆曲线 Diffie-Hellman 密钥交换</li>
-<li>IES, Integrated Encryption Schema, 集成加密框架</li>
-<li>ECIES, Elliptic Curve Integrated Encryption Schema, 椭圆曲线集成加密框架</li>
-<li>KDF, Key Derivation Function, 密钥(私钥)生成函数</li>
-</ul>
-<h2 id="密码学相关书籍">密码学相关书籍</h2>
-<p>《图解密码技术》- 结城浩 著</p>
-<p>《深入浅出密码学》- Christof Paar / Jan Pelzl 著 马小婷 译</p>
-<p>《应用密码学：协议、算法与C源程序》- Bruce Schneier 著</p>
-<p>《公钥密码学的数学基础》- 王小云 著</p>
+      <h2 id="字符集">字符集</h2>
+<p>字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字</p>
+<h2 id="编码">编码</h2>
+<p>广义上的编码就是将一个对象转换为一段字节序列，或者将一段字节序列转换为另一段字节序列，解码就是将一段字节序列恢复为一个对象，或者恢复为另一段字节序列。</p>
+<h2 id="字符编码">字符编码</h2>
+<p>用于字符的编码，其实就是针对字符集中数字的一种编码。编码的过程就是将数字转换成相应的一段字节序列的过程。不同的字符编码，对同一个数字编码出的字节序列是不同的。所以用一种编码去恢复另一种编码的字节序列，会得到不同的数字，也就对应不同的字符，也有可能直接解码失败，拿不到数字。这就是常见的乱码原因。</p>
+<p>utf-8 就是一种针对 Unicode 字符集中所有数字的一种编码。类似的还有 utf-16、gb2312。</p>
+<h2 id="go-中的字符编码">Go 中的字符编码</h2>
+<p>Go 语言内部默认的字符编码为 utf-8。这意味着一个默认的 string 类型的字符串，在转换为字节数组时，拿到的是 utf-8 编码之后的字节序列。当然我们也指定其他编码方式来获取对应编码的字节序列。在使用 string() 直接将一段字节序列转为 string 时，默认也是用的 utf-8 。如果该段字节序列不是 utf-8 编码的则会出现乱码。</p>
+<p>执行如下代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;encoding/hex&#34;</span>
+	<span class="s">&#34;fmt&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">name</span> <span class="o">:=</span> <span class="s">&#34;我爱你&#34;</span>                           <span class="c1">//字符串
+</span><span class="c1"></span>	<span class="nx">byteSlice</span> <span class="o">:=</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>               <span class="c1">//默认按照 utf-8 对字符串编码
+</span><span class="c1"></span>	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;utf-8 编码: %v\n&#34;</span><span class="p">,</span> <span class="nx">byteSlice</span><span class="p">)</span> <span class="c1">//输出编码后的字节 [230 136 145 231 136 177 228 189 160]
+</span><span class="c1"></span>
+	<span class="nx">strDec</span> <span class="o">:=</span> <span class="nb">string</span><span class="p">(</span><span class="nx">byteSlice</span><span class="p">)</span>          <span class="c1">//默认按照 utf-8 解码
+</span><span class="c1"></span>	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;utf-8 解码: %v\n&#34;</span><span class="p">,</span> <span class="nx">strDec</span><span class="p">)</span> <span class="c1">//输出解码后的字符串
+</span><span class="c1"></span>
+	<span class="nx">tempHex</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">9</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+	<span class="nx">hex</span><span class="p">.</span><span class="nf">Encode</span><span class="p">(</span><span class="nx">tempHex</span><span class="p">,</span> <span class="nx">byteSlice</span><span class="p">)</span>                   <span class="c1">//按照 16 进制对字节编码
+</span><span class="c1"></span>	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;hex 编码: %v\n&#34;</span><span class="p">,</span> <span class="nx">tempHex</span><span class="p">)</span>              <span class="c1">// 输出编码后的字节 [101 54 56 56 57 49 101 55 56 56 98 49 101 52 98 100 97 48]
+</span><span class="c1"></span>	<span class="nx">tempStr</span> <span class="o">:=</span> <span class="nb">string</span><span class="p">(</span><span class="nx">tempHex</span><span class="p">)</span>                       <span class="c1">//将编码后的字节按照 utf-8 解码
+</span><span class="c1"></span>	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;utf-8 对 hex 编码后的字节解码: %v\n&#34;</span><span class="p">,</span> <span class="nx">tempStr</span><span class="p">)</span> <span class="c1">//输出解码后的字符串
+</span><span class="c1"></span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">byteSlice</span><span class="p">))</span> <span class="c1">// e68891e788b1e4bda0
+</span><span class="c1"></span><span class="p">}</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><p>输出：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">utf-8 编码: [230 136 145 231 136 177 228 189 160]
+utf-8 解码: 我爱你
+hex 编码: [101 54 56 56 57 49 101 55 56 56 98 49 101 52 98 100 97 48]
+utf-8 对 hex 编码后的字节解码: e68891e788b1e4bda0
+e68891e788b1e4bda0
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>对以上输出进行分析：</strong></p>
+<p>首先，下面是字符串“我爱你”的 utf-8 编码</p>
+<p>我 ：230 136 145</p>
+<p>爱 ：231 136 177</p>
+<p>你 ：228 189 160</p>
+<p>下面是字符串“e68891e788b1e4bda0”的 utf-8 编码</p>
+<p>e : 101</p>
+<p>6 : 54</p>
+<p>8 : 56</p>
+<p>&hellip;</p>
+<p>string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&rdquo;</p>
+<p>hex.Encode() 方法其实是将字节序列对应的十六进制字符串进行 utf-8 编码，所以 string(hex.Encode())，会输出字节对应的十六进制字符串，相当于 hex.EncodeToString()这个方法。</p>
+<p><strong>如何将一组任意的 []byte 转换为 hex 格式的字符串？</strong></p>
+<p>首先，直接使用 string() 方法是不行的，因为它会将 []byte 按照utf-8 的方式解码，而 []byte 并不是 utf-8 格式的所以会出现乱码。</p>
+<p>反过来推，要拿到 hex 格式的字符串，我们需要找到字符串对应的 utf-8 字节数组，然后再用 string() 就可以了。现在的问题变成了，如何将字节数组转换为其 hex 字符串所对应的 utf-8 编码的字节数组</p>
+<p>hex.Encode() 方法正好就是这个功能，将输入的字节数组转换为 hex 格式所对应的 utf-8 编码的字节数组，它的内部实现比较巧妙，可以研究一下。</p>
+<p>hex.EncodeToString() 其实就是 string(hex.Encode())，返回hex 格式的字符串</p>
 
     </div>
 
@@ -449,7 +460,7 @@ if (!doNotTrack) {
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
     <span class="item-content">
-      2019-09-02
+      2020-03-16
       
     </span>
   </p>
@@ -466,14 +477,14 @@ if (!doNotTrack) {
 
     <footer class="post-footer">
       <div class="post-tags">
-          <a href="http://www.tpkeep.com/tags/encrypt/">Encrypt</a>
+          <a href="http://www.tpkeep.com/tags/golang/">Golang</a>
           
         </div>
 
       
       <nav class="post-nav">
         
-          <a class="prev" href="/blog/encryption-symmetric/">
+          <a class="prev" href="/blog/blockchain-knowledge-segwit/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -483,12 +494,12 @@ if (!doNotTrack) {
 </svg>
 
             </i>
-            <span class="prev-text nav-default">密码学系列：对称加密</span>
+            <span class="prev-text nav-default">区块链知识科普系列：隔离见证</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
         
-          <a class="next" href="/blog/btcd-src-rpc/">
-            <span class="next-text nav-default">btcd 源码分析系列：7 - rpc</span>
+          <a class="next" href="/blog/golang-how-to-use-set/">
+            <span class="next-text nav-default">Golang 中如何实现 set 最高效</span>
             <span class="prev-text nav-mobile">Next</span>
             
             <i class="iconfont">
