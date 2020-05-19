@@ -6,10 +6,26 @@
     <description>Recent content on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 30 Aug 2019 13:54:08 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 30 Aug 2019 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="http://www.tpkeep.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>香山初遇</title>
+      <link>http://www.tpkeep.com/blog/life-first-see-you/</link>
+      <pubDate>Tue, 19 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/life-first-see-you/</guid>
+      
+        <description>&lt;p&gt;&lt;img src=&#34;http://www.tpkeep.com/image/first_see_you.jpg&#34; alt=&#34;香山树下&#34;&gt;&lt;/p&gt;
+&lt;p&gt;她叫大胆，但是大胆一点都不胆大。可能起这个名子就是为了壮胆。&lt;/p&gt;
+&lt;p&gt;第一次看见她应该是在香山，哦不对，应该是在厕所。说来也巧，当时在同学家玩，去了趟公共卫生间，刚好碰见她在门后，还把对方都吓了个半死。但当时也只是照了个面，并没有后文，甚至连对方长相都不知道，只记得是个女的，短发。&lt;/p&gt;
+&lt;p&gt;真正认识她并且跟她说上话是在香山，二零一八年六月十七日。一块同去的有我同学，以及他的四个室友(包括大胆)，还有大胆的一个同学，总共3男4女。虽然彼此住的比较近，但是从家里出发的时候并没有一块，我跟同学准备先去吃个早饭，他们先走，就分成了两拨，最后约定在香山脚下汇合。其实这几个人当中，我只跟我的同学比较熟悉，跟他们见面我还是比较期待的，万一有我喜欢的类型呢，哈哈。我跟同学吃完饭先是坐地铁，然后是坐小火车直接到了香山脚下，出了站，抬头就可以看见山顶，不高，但还是比城市里的高楼好看些。接着我们就去找他们汇合，他们在旁边的小饭馆里歇脚，顺便吃了点东西。等我们找到那家饭馆时，发现正好中间隔了一个马路，远远望去，可以看见他们说的餐馆，车还是比较多的，我跟同学便在马路这边稍等了一会。他们也听说我们到了对面，便陆陆续续的出来了。&lt;/p&gt;
+&lt;p&gt;先出来的是个男的和一个女的(后来得知是小情侣)，远远的跟陈鑫招了招手，他们认识。接着又走出来了几个女的，我一眼就看到了他们当中一个穿红色T恤的短发妹子，瘦瘦的，中等个，身前斜挎一个小包。特别是在她出店扭头的那一瞬间，脸上露着笑容，脸颊的短发随风微动，简直太美了，这一瞬间今生难忘，大概也就是从这一刻，我的视野一直都没有移开过她。&lt;/p&gt;
+</description>
+      
+    </item>
     
     <item>
       <title>区块链知识科普系列：十万个为什么（持续更新）</title>
@@ -5946,23 +5962,6 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
     </item>
     
     <item>
-      <title>关于</title>
-      <link>http://www.tpkeep.com/about/</link>
-      <pubDate>Fri, 30 Aug 2019 13:54:08 +0800</pubDate>
-      
-      <guid>http://www.tpkeep.com/about/</guid>
-      
-        <description>&lt;ul&gt;
-&lt;li&gt;我叫大远&lt;/li&gt;
-&lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
-&lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于 github。&lt;/li&gt;
-&lt;li&gt;我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-      
-    </item>
-    
-    <item>
       <title>btcd 源码分析系列：2 - addrmanager</title>
       <link>http://www.tpkeep.com/blog/btcd-src-addrmanager/</link>
       <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
@@ -6202,6 +6201,23 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>关于</title>
+      <link>http://www.tpkeep.com/about/</link>
+      <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/about/</guid>
+      
+        <description>&lt;ul&gt;
+&lt;li&gt;我叫大远&lt;/li&gt;
+&lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
+&lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于 github。&lt;/li&gt;
+&lt;li&gt;我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
       

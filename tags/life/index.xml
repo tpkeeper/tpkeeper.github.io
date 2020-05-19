@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>life on 大远的博客</title>
+    <link>http://www.tpkeep.com/tags/life/</link>
+    <description>Recent content in life on 大远的博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 19 May 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.tpkeep.com/tags/life/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>香山初遇</title>
+      <link>http://www.tpkeep.com/blog/life-first-see-you/</link>
+      <pubDate>Tue, 19 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.tpkeep.com/blog/life-first-see-you/</guid>
+      <description>她叫大胆，但是大胆一点都不胆大。可能起这个名子就是为了壮胆。 第一次看见她应该是在香山，哦不对，应该是在厕所。说来也巧，当时在同学家玩，去了趟</description>
+    </item>
+    
+  </channel>
+</rss>
