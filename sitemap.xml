@@ -3,42 +3,21 @@
   
   <url>
     <loc>http://www.tpkeep.com/categories/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.tpkeep.com/tags/life/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.tpkeep.com/categories/life/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
+    <lastmod>2020-04-02T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://www.tpkeep.com/post/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
+    <lastmod>2020-04-02T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>http://www.tpkeep.com/tags/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.tpkeep.com/blog/life-first-see-you/</loc>
-    <lastmod>2020-05-19T00:00:00+00:00</lastmod>
+    <lastmod>2020-04-02T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -59,6 +38,13 @@
   
   <url>
     <loc>http://www.tpkeep.com/blog/blockchain-knowledge-why/</loc>
+    <lastmod>2020-04-02T00:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.tpkeep.com/</loc>
     <lastmod>2020-04-02T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -268,21 +254,14 @@
   </url>
   
   <url>
-    <loc>http://www.tpkeep.com/blog/btcd-src-addrmanager/</loc>
-    <lastmod>2019-08-30T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
     <loc>http://www.tpkeep.com/about/</loc>
-    <lastmod>2019-08-30T00:00:00+00:00</lastmod>
+    <lastmod>2019-08-30T13:54:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://www.tpkeep.com/</loc>
+    <loc>http://www.tpkeep.com/blog/btcd-src-addrmanager/</loc>
     <lastmod>2019-08-30T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

@@ -6,26 +6,10 @@
     <description>Recent content on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 30 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 02 Apr 2020 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="http://www.tpkeep.com/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>香山初遇</title>
-      <link>http://www.tpkeep.com/blog/life-first-see-you/</link>
-      <pubDate>Tue, 19 May 2020 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.tpkeep.com/blog/life-first-see-you/</guid>
-      
-        <description>&lt;p&gt;&lt;img src=&#34;http://www.tpkeep.com/image/first_see_you.jpg&#34; alt=&#34;香山树下&#34;&gt;&lt;/p&gt;
-&lt;p&gt;她叫大胆，但是大胆一点都不胆大。可能起这个名子就是为了壮胆。&lt;/p&gt;
-&lt;p&gt;第一次看见她应该是在香山，哦不对，应该是在厕所。说来也巧，当时在同学家玩，去了趟公共卫生间，刚好碰见她在门后，还把对方都吓了个半死。但当时也只是照了个面，并没有后文，甚至连对方长相都不知道，只记得是个女的，短发。&lt;/p&gt;
-&lt;p&gt;真正认识她并且跟她说上话是在香山，二零一八年六月十七日。一块同去的有我同学，以及他的四个室友(包括大胆)，还有大胆的一个同学，总共3男4女。虽然彼此住的比较近，但是从家里出发的时候并没有一块，我跟同学准备先去吃个早饭，他们先走，就分成了两拨，最后约定在香山脚下汇合。其实这几个人当中，我只跟我的同学比较熟悉，跟他们见面我还是比较期待的，万一有我喜欢的类型呢，哈哈。我跟同学吃完饭先是坐地铁，然后是坐小火车直接到了香山脚下，出了站，抬头就可以看见山顶，不高，但还是比城市里的高楼好看些。接着我们就去找他们汇合，他们在旁边的小饭馆里歇脚，顺便吃了点东西。等我们找到那家饭馆时，发现正好中间隔了一个马路，远远望去，可以看见他们说的餐馆，车还是比较多的，我跟同学便在马路这边稍等了一会。他们也听说我们到了对面，便陆陆续续的出来了。&lt;/p&gt;
-&lt;p&gt;先出来的是个男的和一个女的(后来得知是小情侣)，远远的跟陈鑫招了招手，他们认识。接着又走出来了几个女的，我一眼就看到了他们当中一个穿红色T恤的短发妹子，瘦瘦的，中等个，身前斜挎一个小包。特别是在她出店扭头的那一瞬间，脸上露着笑容，脸颊的短发随风微动，简直太美了，这一瞬间今生难忘，大概也就是从这一刻，我的视野一直都没有移开过她。&lt;/p&gt;
-</description>
-      
-    </item>
     
     <item>
       <title>区块链知识科普系列：十万个为什么（持续更新）</title>
@@ -34,9 +18,39 @@
       
       <guid>http://www.tpkeep.com/blog/blockchain-knowledge-why/</guid>
       
-        <description>&lt;h4 id=&#34;为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式&#34;&gt;为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？&lt;/h4&gt;
+        <description>&lt;h2 id=&#34;为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式&#34;&gt;为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？&lt;/h2&gt;
 &lt;p&gt;比特币的地址格式是 base58 而且加入了网络 id 和校验，可以区分不同的网络，还可以防止用户输入字母错误而导致的丢币情况。以太坊的地址直接就是公钥 hash 的前 20 个字节的十六进制格式，没有网络 id，也没有校验。&lt;/p&gt;
 &lt;p&gt;主要原因就是以太坊设计之初，把地址的格式和校验放在了上层协议之中，比如基于以太坊的域名服务 ENS，可以用容易记忆的域名绑定以太坊 16 进制的地址。只不过这些上层协议开发缓慢，还未大规模使用。&lt;/p&gt;
+&lt;h2 id=&#34;表示难度的-target-跟-difficult-是一个概念吗&#34;&gt;表示难度的 target 跟 difficult 是一个概念吗？&lt;/h2&gt;
+&lt;p&gt;它们的大小是正好相反的，header 里有个字段是 difficult，这个字段是根据难度调整算法计算出来的，填充到 header 里，然后让矿工去挖块。这个难度调整算法是根据之前 header 里的 difficult 和出块时间计算的，不同的链有不同的调整算法。target 是 由 difficult 计算出来的，用来下发给矿工，只要计算出来的 hash 小于这个 target 就算是符合难度要求了。&lt;/p&gt;
+&lt;h2 id=&#34;以太坊跟比特币的签名有什么区别&#34;&gt;以太坊跟比特币的签名有什么区别？&lt;/h2&gt;
+&lt;p&gt;使用的签名算法都是基于 secp256k1 的 ecdsa，但是对于签名的序列化格式不同。&lt;/p&gt;
+&lt;p&gt;ecdsa 的签名数据结构统一如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span class=&#34;kd&#34;&gt;type&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;Signature&lt;/span&gt; &lt;span class=&#34;kd&#34;&gt;struct&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;R&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;big&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Int&lt;/span&gt;
+	&lt;span class=&#34;nx&#34;&gt;S&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;big&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;Int&lt;/span&gt;
+&lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;btc 使用了 DER 的序列化格式,一共 70 bytes：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;0x30 &amp;lt;length&amp;gt; 0x02 &amp;lt;length r&amp;gt; r 0x02 &amp;lt;length s&amp;gt; s&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;eth 使用的是 r s v 的序列化格式，一共 65 字节：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;[R || S || V]&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;其中 v 是 recovery id，值为 0 或者 1，利用这个 v，可以根据 签名内容+签名 来恢复公钥&lt;/p&gt;
+&lt;h2 id=&#34;以太坊的虚拟机跟比特币的脚本有什么区别&#34;&gt;以太坊的虚拟机跟比特币的脚本有什么区别？&lt;/h2&gt;
+&lt;p&gt;一个是图灵完备比较灵活，一个是非图灵完备比较安全。&lt;/p&gt;
+&lt;p&gt;比特币的脚本是一种基于栈的没有循环的非图灵完备的虚拟机，所有的操作码都是在一个字节长度内定义，加上保留的差不多一共 181 个操作码。&lt;/p&gt;
+&lt;p&gt;以太坊的 evm 是一种基于栈的图灵完备的虚拟机，所有的操作码也是在一个字节长度内定义，差不多 144 个操作码。&lt;/p&gt;
+&lt;h2 id=&#34;reference&#34;&gt;Reference&lt;/h2&gt;
+&lt;p&gt;[1] &lt;a href=&#34;https://en.bitcoin.it/wiki/Script&#34;&gt;https://en.bitcoin.it/wiki/Script&lt;/a&gt;&lt;/p&gt;
 </description>
       
     </item>
@@ -2305,7 +2319,7 @@ go tool cover -html&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covpro
 &lt;p&gt;比特币跟以太坊都有实现，但最终的签名信息序列化格式不同&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;// btc 中的格式
-&amp;lt;(byte of 27+public key solution)+4 if compressed &amp;gt;&amp;lt; padded bytes for 
+&amp;lt;(byte of 27+public key solution)+4 if compressed &amp;gt;&amp;lt; padded bytes for
 signature R&amp;gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;blockquote&gt;
@@ -5962,6 +5976,23 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
     </item>
     
     <item>
+      <title>关于</title>
+      <link>http://www.tpkeep.com/about/</link>
+      <pubDate>Fri, 30 Aug 2019 13:54:08 +0800</pubDate>
+      
+      <guid>http://www.tpkeep.com/about/</guid>
+      
+        <description>&lt;ul&gt;
+&lt;li&gt;我叫大远&lt;/li&gt;
+&lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
+&lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于 github。&lt;/li&gt;
+&lt;li&gt;我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      
+    </item>
+    
+    <item>
       <title>btcd 源码分析系列：2 - addrmanager</title>
       <link>http://www.tpkeep.com/blog/btcd-src-addrmanager/</link>
       <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
@@ -6201,23 +6232,6 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-      
-    </item>
-    
-    <item>
-      <title>关于</title>
-      <link>http://www.tpkeep.com/about/</link>
-      <pubDate>Fri, 30 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>http://www.tpkeep.com/about/</guid>
-      
-        <description>&lt;ul&gt;
-&lt;li&gt;我叫大远&lt;/li&gt;
-&lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
-&lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于 github。&lt;/li&gt;
-&lt;li&gt;我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
       

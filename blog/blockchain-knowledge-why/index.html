@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.71.0-DEV" />
+<meta name="generator" content="Hugo 0.74.2" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/blockchain-knowledge-why/" />
@@ -53,7 +53,7 @@
 
 
 
-<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+<link rel="stylesheet" href="/sass/jane.min.fa3d941d1d0e0ddc985804227feabffea55c89883eb0af34e0532a7ae9135151.css" integrity="sha256-&#43;j2UHR0ODdyYWAQif&#43;q//qVciYg&#43;sK804FMqeukTUVE=" media="screen" crossorigin="anonymous">
 
 
 
@@ -69,7 +69,7 @@
 <meta itemprop="description" content="为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？ 比特币的地址格式是 base58 而且加入了网络 id 和校验，可以区分不同的网络，还可以防止用户输入字母错">
 <meta itemprop="datePublished" content="2020-04-02T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2020-04-02T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="213">
+<meta itemprop="wordCount" content="712">
 
 
 
@@ -316,8 +316,8 @@ if (!doNotTrack) {
             <a href="http://www.tpkeep.com/categories/%E5%8C%BA%E5%9D%97%E9%93%BE%E7%9F%A5%E8%AF%86%E7%A7%91%E6%99%AE%E7%B3%BB%E5%88%97/"> 区块链知识科普系列 </a>
             
           </div>
-        <span class="more-meta"> 213 words </span>
-          <span class="more-meta"> 1 min read </span>
+        <span class="more-meta"> 712 words </span>
+          <span class="more-meta"> 2 min read </span>
 
         
         
@@ -338,11 +338,11 @@ if (!doNotTrack) {
   <div class="post-toc-content">
     <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li></li>
-      </ul>
-    </li>
+    <li><a href="#为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式">为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？</a></li>
+    <li><a href="#表示难度的-target-跟-difficult-是一个概念吗">表示难度的 target 跟 difficult 是一个概念吗？</a></li>
+    <li><a href="#以太坊跟比特币的签名有什么区别">以太坊跟比特币的签名有什么区别？</a></li>
+    <li><a href="#以太坊的虚拟机跟比特币的脚本有什么区别">以太坊的虚拟机跟比特币的脚本有什么区别？</a></li>
+    <li><a href="#reference">Reference</a></li>
   </ul>
 </nav>
   </div>
@@ -350,9 +350,39 @@ if (!doNotTrack) {
 
     
     <div class="post-content">
-      <h4 id="为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式">为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？</h4>
+      <h2 id="为什么以太坊的地址是-16-进制格式而不是比特币的-base58-格式">为什么以太坊的地址是 16 进制格式而不是比特币的 base58 格式？</h2>
 <p>比特币的地址格式是 base58 而且加入了网络 id 和校验，可以区分不同的网络，还可以防止用户输入字母错误而导致的丢币情况。以太坊的地址直接就是公钥 hash 的前 20 个字节的十六进制格式，没有网络 id，也没有校验。</p>
 <p>主要原因就是以太坊设计之初，把地址的格式和校验放在了上层协议之中，比如基于以太坊的域名服务 ENS，可以用容易记忆的域名绑定以太坊 16 进制的地址。只不过这些上层协议开发缓慢，还未大规模使用。</p>
+<h2 id="表示难度的-target-跟-difficult-是一个概念吗">表示难度的 target 跟 difficult 是一个概念吗？</h2>
+<p>它们的大小是正好相反的，header 里有个字段是 difficult，这个字段是根据难度调整算法计算出来的，填充到 header 里，然后让矿工去挖块。这个难度调整算法是根据之前 header 里的 difficult 和出块时间计算的，不同的链有不同的调整算法。target 是 由 difficult 计算出来的，用来下发给矿工，只要计算出来的 hash 小于这个 target 就算是符合难度要求了。</p>
+<h2 id="以太坊跟比特币的签名有什么区别">以太坊跟比特币的签名有什么区别？</h2>
+<p>使用的签名算法都是基于 secp256k1 的 ecdsa，但是对于签名的序列化格式不同。</p>
+<p>ecdsa 的签名数据结构统一如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Signature</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">R</span> <span class="o">*</span><span class="nx">big</span><span class="p">.</span><span class="nx">Int</span>
+	<span class="nx">S</span> <span class="o">*</span><span class="nx">big</span><span class="p">.</span><span class="nx">Int</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>btc 使用了 DER 的序列化格式,一共 70 bytes：</p>
+<p><code>0x30 &lt;length&gt; 0x02 &lt;length r&gt; r 0x02 &lt;length s&gt; s</code></p>
+<p>eth 使用的是 r s v 的序列化格式，一共 65 字节：</p>
+<p><code>[R || S || V]</code></p>
+<p>其中 v 是 recovery id，值为 0 或者 1，利用这个 v，可以根据 签名内容+签名 来恢复公钥</p>
+<h2 id="以太坊的虚拟机跟比特币的脚本有什么区别">以太坊的虚拟机跟比特币的脚本有什么区别？</h2>
+<p>一个是图灵完备比较灵活，一个是非图灵完备比较安全。</p>
+<p>比特币的脚本是一种基于栈的没有循环的非图灵完备的虚拟机，所有的操作码都是在一个字节长度内定义，加上保留的差不多一共 181 个操作码。</p>
+<p>以太坊的 evm 是一种基于栈的图灵完备的虚拟机，所有的操作码也是在一个字节长度内定义，差不多 144 个操作码。</p>
+<h2 id="reference">Reference</h2>
+<p>[1] <a href="https://en.bitcoin.it/wiki/Script">https://en.bitcoin.it/wiki/Script</a></p>
 
     </div>
 
@@ -390,19 +420,6 @@ if (!doNotTrack) {
       
       <nav class="post-nav">
         
-          <a class="prev" href="/blog/life-first-see-you/">
-            
-            <i class="iconfont">
-              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
-  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-  width="18" height="18">
-  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
-</svg>
-
-            </i>
-            <span class="prev-text nav-default">香山初遇</span>
-            <span class="prev-text nav-mobile">Prev</span>
-          </a>
         
           <a class="next" href="/blog/blockchain-knowledge-segwit/">
             <span class="next-text nav-default">区块链知识科普系列：隔离见证</span>
@@ -498,7 +515,7 @@ if (!doNotTrack) {
   <span class="copyright-year">
     &copy;
     
-      2018 -
+      2017 -
     2020
     <span class="heart">
       
@@ -547,7 +564,7 @@ if (!doNotTrack) {
 
 
 
-<script type="text/javascript" src="/js/main.dee43230127a73d039a734510fa896c89c3c7ce0cf0be0c7a7433f8fd69b76dc.js" integrity="sha256-3uQyMBJ6c9A5pzRRD6iWyJw8fODPC&#43;DHp0M/j9abdtw=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
 
 
 
