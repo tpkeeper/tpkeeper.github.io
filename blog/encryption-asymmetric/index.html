@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.74.2" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/encryption-asymmetric/" />
@@ -67,13 +67,14 @@
 <meta property="article:modified_time" content="2019-09-09T00:00:00+00:00" />
 <meta itemprop="name" content="密码学系列：非对称加密">
 <meta itemprop="description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单">
-<meta itemprop="datePublished" content="2019-09-09T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2019-09-09T00:00:00&#43;00:00" />
+<meta itemprop="datePublished" content="2019-09-09T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2019-09-09T00:00:00+00:00" />
 <meta itemprop="wordCount" content="2244">
 
 
 
-<meta itemprop="keywords" content="Encrypt," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Encrypt," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="密码学系列：非对称加密"/>
 <meta name="twitter:description" content="非对称加密算法有两个密钥：公钥和私钥，公钥用来加密数据，私钥用于解密 本文主要介绍 RSA 跟 ECC 这两种非对称加密算法 他们都源于一个公共原理：单向函数 单"/>
 
@@ -125,7 +126,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
         
       </li><li class="mobile-menu-item">
@@ -249,7 +250,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
 
         
@@ -356,7 +357,7 @@ if (!doNotTrack) {
 <p>函数 f() 是一个单向函数，当且仅当：</p>
 <ol>
 <li>y = f(x) 计算比较容易</li>
-<li>x = f&rsquo; (y) 计算是不可行的(需要的时间太长)</li>
+<li>x = f' (y) 计算是不可行的(需要的时间太长)</li>
 </ol>
 </blockquote>
 <p>目前的非对称加密算法中主要使用了两个主流的单向函数：</p>
@@ -377,7 +378,7 @@ if (!doNotTrack) {
 <li>群操作 o 是封闭的，即对所有的 a, b  ∈ G, a o b = c ∈ G 也成立。</li>
 <li>群操作 o 是可结合的，即 a, b, c ∈ G，则 ao(boc) = (aob)oc。</li>
 <li>存在一个元素 1 ，对所有的 a ∈ G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元</li>
-<li>a o a&rsquo; = a&rsquo; o a = 1，a’叫做 a 的逆元</li>
+<li>a o a' = a' o a = 1，a’叫做 a 的逆元</li>
 <li>如果 a o b = b o a，则群 G 为阿贝尔群或可交换群</li>
 </ol>
 <p><strong>有限群：</strong></p>
@@ -732,7 +733,7 @@ E * D  mod L = 1</li>
     &copy;
     
       2017 -
-    2020
+    2021
     <span class="heart">
       
       <i class="iconfont">

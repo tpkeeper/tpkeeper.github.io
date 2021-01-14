@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.74.2" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/btcd-src-rpc/" />
@@ -67,13 +67,14 @@
 <meta property="article:modified_time" content="2019-08-30T17:04:40+08:00" />
 <meta itemprop="name" content="btcd 源码分析系列：7 - rpc">
 <meta itemprop="description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock">
-<meta itemprop="datePublished" content="2019-08-30T17:04:40&#43;08:00" />
-<meta itemprop="dateModified" content="2019-08-30T17:04:40&#43;08:00" />
-<meta itemprop="wordCount" content="985">
+<meta itemprop="datePublished" content="2019-08-30T17:04:40+08:00" />
+<meta itemprop="dateModified" content="2019-08-30T17:04:40+08:00" />
+<meta itemprop="wordCount" content="983">
 
 
 
-<meta itemprop="keywords" content="btcd," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="btcd," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="btcd 源码分析系列：7 - rpc"/>
 <meta name="twitter:description" content="参考：btcd btcd实现了基于http的和websocket的json-rpc,支持http Basic authentication。 websock"/>
 
@@ -125,7 +126,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
         
       </li><li class="mobile-menu-item">
@@ -249,7 +250,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
 
         
@@ -315,7 +316,7 @@ if (!doNotTrack) {
         <div class="post-category">
             
           </div>
-        <span class="more-meta"> 985 words </span>
+        <span class="more-meta"> 983 words </span>
           <span class="more-meta"> 2 min read </span>
 
         
@@ -359,7 +360,7 @@ if (!doNotTrack) {
 <h2 id="一start">一、start</h2>
 <ul>
 <li>
-<p>启动一个server,监听路径&rdquo;/&ldquo;和&rdquo;/ws&rdquo;,分别对应http/websocket。</p>
+<p>启动一个server,监听路径&quot;/&ldquo;和&rdquo;/ws&quot;,分别对应http/websocket。</p>
 </li>
 <li>
 <p>通过chedkAuth()函数认证，基于Basic authentication</p>
@@ -827,7 +828,7 @@ if (!doNotTrack) {
     &copy;
     
       2017 -
-    2020
+    2021
     <span class="heart">
       
       <i class="iconfont">

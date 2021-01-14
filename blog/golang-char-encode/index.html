@@ -32,7 +32,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.74.2" />
+<meta name="generator" content="Hugo 0.80.0" />
 
 
 <link rel="canonical" href="http://www.tpkeep.com/blog/golang-char-encode/" />
@@ -67,13 +67,14 @@
 <meta property="article:modified_time" content="2020-03-16T00:00:00+00:00" />
 <meta itemprop="name" content="Golang 字符编码">
 <meta itemprop="description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一">
-<meta itemprop="datePublished" content="2020-03-16T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2020-03-16T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="1221">
+<meta itemprop="datePublished" content="2020-03-16T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2020-03-16T00:00:00+00:00" />
+<meta itemprop="wordCount" content="1220">
 
 
 
-<meta itemprop="keywords" content="Golang," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="Golang," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 字符编码"/>
 <meta name="twitter:description" content="字符集 字符集是数字与字符对应关系的集合，像 ASCII、Unicode 都是属于字符集，声明了哪个字符对应哪个特定的数字 编码 广义上的编码就是将一"/>
 
@@ -125,7 +126,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
         
       </li><li class="mobile-menu-item">
@@ -249,7 +250,7 @@ if (!doNotTrack) {
         
           
           
-            <a class="menu-item-link" href="http://www.tpkeep.com/post">归档</a>
+            <a class="menu-item-link" href="http://www.tpkeep.com/post">全部文章</a>
           
 
         
@@ -316,7 +317,7 @@ if (!doNotTrack) {
             <a href="http://www.tpkeep.com/categories/golang/"> Golang </a>
             
           </div>
-        <span class="more-meta"> 1221 words </span>
+        <span class="more-meta"> 1220 words </span>
           <span class="more-meta"> 3 min read </span>
 
         
@@ -440,7 +441,7 @@ e68891e788b1e4bda0
 <p>6 : 54</p>
 <p>8 : 56</p>
 <p>&hellip;</p>
-<p>string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&rdquo;</p>
+<p>string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&quot;</p>
 <p>hex.Encode() 方法其实是将字节序列对应的十六进制字符串进行 utf-8 编码，所以 string(hex.Encode())，会输出字节对应的十六进制字符串，相当于 hex.EncodeToString()这个方法。</p>
 <p><strong>如何将一组任意的 []byte 转换为 hex 格式的字符串？</strong></p>
 <p>首先，直接使用 string() 方法是不行的，因为它会将 []byte 按照utf-8 的方式解码，而 []byte 并不是 utf-8 格式的所以会出现乱码。</p>
@@ -593,7 +594,7 @@ e68891e788b1e4bda0
     &copy;
     
       2017 -
-    2020
+    2021
     <span class="heart">
       
       <i class="iconfont">

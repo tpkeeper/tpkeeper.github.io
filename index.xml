@@ -181,7 +181,7 @@ e68891e788b1e4bda0
 &lt;p&gt;6 : 54&lt;/p&gt;
 &lt;p&gt;8 : 56&lt;/p&gt;
 &lt;p&gt;&amp;hellip;&lt;/p&gt;
-&lt;p&gt;string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;string() 函数是将 []byte 按照 utf-8 解码为字符串，所以 string([]byte(name)) 会输出 “我爱你&amp;quot;&lt;/p&gt;
 &lt;p&gt;hex.Encode() 方法其实是将字节序列对应的十六进制字符串进行 utf-8 编码，所以 string(hex.Encode())，会输出字节对应的十六进制字符串，相当于 hex.EncodeToString()这个方法。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;如何将一组任意的 []byte 转换为 hex 格式的字符串？&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;首先，直接使用 string() 方法是不行的，因为它会将 []byte 按照utf-8 的方式解码，而 []byte 并不是 utf-8 格式的所以会出现乱码。&lt;/p&gt;
@@ -2084,7 +2084,7 @@ go tool cover -html&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covpro
 &lt;p&gt;公钥：E、N
 私钥：D、N
 签名：签名 = 消息^D mod N
-验证：消息&amp;rsquo; = 签名^E mod N ，如果消息&#39;==消息则验证成功&lt;/p&gt;
+验证：消息&#39; = 签名^E mod N ，如果消息&#39;==消息则验证成功&lt;/p&gt;
 &lt;h2 id=&#34;dsa&#34;&gt;DSA&lt;/h2&gt;
 &lt;p&gt;由NIST(美国国家标准技术研究所)1991年制定的数字签名技术规范，是Schnorr算法的变体。&lt;/p&gt;
 &lt;p&gt;安全性建立在离散对数问题&lt;/p&gt;
@@ -2109,7 +2109,7 @@ go tool cover -html&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;./testdata/covpro
 &lt;li&gt;计算辅助值 $u_1$ = w * SHA(x) mod q&lt;/li&gt;
 &lt;li&gt;计算辅助值 $u_2$ = w * r mod q&lt;/li&gt;
 &lt;li&gt;v = ($a^{u_1} * b^{u_2}$ mod p) mod q&lt;/li&gt;
-&lt;li&gt;v&amp;rsquo; = r mod q，如果 v == v&amp;rsquo; 则签名正确&lt;/li&gt;
+&lt;li&gt;v&#39; = r mod q，如果 v == v&#39; 则签名正确&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;Golang SDK dsa 签名过程代码：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -2353,7 +2353,7 @@ signature R&amp;gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
 &lt;p&gt;函数 f() 是一个单向函数，当且仅当：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;y = f(x) 计算比较容易&lt;/li&gt;
-&lt;li&gt;x = f&amp;rsquo; (y) 计算是不可行的(需要的时间太长)&lt;/li&gt;
+&lt;li&gt;x = f&#39; (y) 计算是不可行的(需要的时间太长)&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;目前的非对称加密算法中主要使用了两个主流的单向函数：&lt;/p&gt;
@@ -2374,7 +2374,7 @@ signature R&amp;gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
 &lt;li&gt;群操作 o 是封闭的，即对所有的 a, b  ∈ G, a o b = c ∈ G 也成立。&lt;/li&gt;
 &lt;li&gt;群操作 o 是可结合的，即 a, b, c ∈ G，则 ao(boc) = (aob)oc。&lt;/li&gt;
 &lt;li&gt;存在一个元素 1 ，对所有的 a ∈ G，均满足 a o 1 = 1 o a = a ，这个元素叫中性元或单位元&lt;/li&gt;
-&lt;li&gt;a o a&amp;rsquo; = a&amp;rsquo; o a = 1，a’叫做 a 的逆元&lt;/li&gt;
+&lt;li&gt;a o a&#39; = a&#39; o a = 1，a’叫做 a 的逆元&lt;/li&gt;
 &lt;li&gt;如果 a o b = b o a，则群 G 为阿贝尔群或可交换群&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;strong&gt;有限群：&lt;/strong&gt;&lt;/p&gt;
@@ -2953,7 +2953,7 @@ E * D  mod L = 1&lt;/li&gt;
 &lt;h2 id=&#34;一start&#34;&gt;一、start&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;启动一个server,监听路径&amp;rdquo;/&amp;ldquo;和&amp;rdquo;/ws&amp;rdquo;,分别对应http/websocket。&lt;/p&gt;
+&lt;p&gt;启动一个server,监听路径&amp;quot;/&amp;ldquo;和&amp;rdquo;/ws&amp;quot;,分别对应http/websocket。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;通过chedkAuth()函数认证，基于Basic authentication&lt;/p&gt;

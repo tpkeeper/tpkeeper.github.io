@@ -6,11 +6,7 @@
     <description>Recent content in Encrypt on 大远的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 11 Sep 2019 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="http://www.tpkeep.com/tags/encrypt/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Wed, 11 Sep 2019 00:00:00 +0000</lastBuildDate><atom:link href="http://www.tpkeep.com/tags/encrypt/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>密码学系列：签名</title>
       <link>http://www.tpkeep.com/blog/encryption-signature/</link>
