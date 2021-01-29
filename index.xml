@@ -5983,19 +5983,8 @@ func (mp *TxPool) ProcessOrphans(acceptedTx *btcutil.Tx) []*TxDesc {
       <guid>http://www.tpkeep.com/about/</guid>
       
         <description>&lt;ul&gt;
-&lt;li&gt;我叫大远&lt;/li&gt;
-&lt;li&gt;毕业于 &lt;a href=&#34;http://www.tust.edu.cn/&#34;&gt;天津科技大学&lt;/a&gt; 计算机科学与信息工程学院&lt;/li&gt;
+&lt;li&gt;我叫大远，常年搬砖，炼有 cv 大法，已至九层境界。&lt;/li&gt;
 &lt;li&gt;本博客是基于 &lt;a href=&#34;https://gohugo.io/&#34;&gt;hugo&lt;/a&gt; 搭建的静态网站，托管于我的 &lt;a href=&#34;https://github.com/tpkeeper&#34;&gt;Github&lt;/a&gt;。&lt;/li&gt;
-&lt;li&gt;技术栈
-&lt;ul&gt;
-&lt;li&gt;Go （2017—至今）&lt;/li&gt;
-&lt;li&gt;Solidity （2019-至今）&lt;/li&gt;
-&lt;li&gt;Java 2年（2016-2018 已弃）&lt;/li&gt;
-&lt;li&gt;Nodejs （2015-2016 已弃）&lt;/li&gt;
-&lt;li&gt;Html/Css （熟悉）&lt;/li&gt;
-&lt;li&gt;Rust （了解）&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
 &lt;li&gt;开源项目
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;https://github.com/tpkeeper/gin-dump&#34;&gt;gin-dump&lt;/a&gt; gin 框架 中间件，用于调试输出 header/body&lt;/li&gt;
